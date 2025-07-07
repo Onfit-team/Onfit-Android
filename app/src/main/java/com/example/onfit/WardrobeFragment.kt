@@ -266,4 +266,6 @@ class WardrobeFragment : Fragment() {
         // 필요시에만 GC 호출 (일반적으로 권장되지 않음)
         // System.gc()
     }
+
+
 }
