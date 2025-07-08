@@ -14,6 +14,8 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.onfit.databinding.ActivityRegisterBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.io.ByteArrayOutputStream
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding : ActivityRegisterBinding
@@ -23,6 +25,11 @@ class RegisterActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 날짜 오늘로 설정
+        val today = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
+        binding.registerDateTv.text = today.format(formatter)
 
         // 뒤로가기 버튼
         binding.registerBackBtn.setOnClickListener {
