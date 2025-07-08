@@ -1,8 +1,12 @@
 package com.example.onfit
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.onfit.databinding.FragmentHomeBinding
 import java.time.LocalDate
@@ -15,6 +19,7 @@ import com.example.onfit.data.model.SimItem
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private var isShrunk = false
 
     //홈 화면 옷 리스트
     private val clothSuggestList = listOf(
@@ -95,10 +100,50 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.homeRegisterBtn.setOnClickListener { 
             //여기다가 add 작성
         }
+
+        // 스크롤 시 버튼 텍스트 변화
+        binding.homeSv.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            if (scrollY > 50 && !isShrunk) {
+                isShrunk = true
+                animateButtonChange("+")
+            } else if (scrollY <= 50 && isShrunk) {
+                isShrunk = false
+                animateButtonChange("+ 등록하기")
+            }
+        }
+    }
+
+    // 버튼 애니메이션
+    private fun animateButtonChange(newText: String) {
+        val button = binding.homeRegisterBtn
+
+        // 애니메이션으로 alpha 0 → 텍스트 변경 → alpha 1
+        val fadeOut = ObjectAnimator.ofFloat(button, "alpha", 1f, 0f).apply {
+            duration = 100
+        }
+        val fadeIn = ObjectAnimator.ofFloat(button, "alpha", 0f, 1f).apply {
+            duration = 100
+        }
+
+        fadeOut.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                button.text = newText
+
+                // 텍스트 변경 후 크기 재조정
+                val layoutParams = button.layoutParams
+                layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT
+                button.layoutParams = layoutParams
+
+                fadeIn.start()
+            }
+        })
+        fadeOut.start()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+
 }
