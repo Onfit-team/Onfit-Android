@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- 홈프래그먼트 -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.onfit.HomeFragment"
+        android:label="홈"/>
+
+    <fragment
+        android:id="@+id/wardrobeFragmnt"
+        android:name="com.example.onfit.WardrobeFragment"
+        android:label="옷장"/>
+
+    <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.example.onfit.CalendarFragment"
+        android:label="캘린더"/>
+
+    <fragment
+        android:id="@+id/communityFragment"
+        android:name="com.example.onfit.CommunityFragment"
+        android:label="커뮤니티"/>
+
+    <fragment
+        android:id="@+id/mypageFragment"
+        android:name="com.example.onfit.MyPageFragment"
+        android:label="마이페이지"/>
+</navigation>
