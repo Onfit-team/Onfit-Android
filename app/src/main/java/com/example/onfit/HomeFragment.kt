@@ -3,10 +3,13 @@ package com.example.onfit
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.onfit.databinding.FragmentHomeBinding
 import java.time.LocalDate
@@ -14,6 +17,7 @@ import java.time.format.DateTimeFormatter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.data.model.BestItem
 import com.example.onfit.data.model.SimItem
+import com.google.android.material.bottomsheet.BottomSheetDialog
 
 // fragment_home.xml을 사용하는 HomeFragment 정의
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -96,9 +100,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.bestoutfitRecycleView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         
-        
-        binding.homeRegisterBtn.setOnClickListener { 
-            //여기다가 add 작성
+        // 등록 버튼 클릭 시 bottom sheet 보여짐
+        binding.homeRegisterBtn.setOnClickListener {
+            showBottomSheet()
         }
 
         // 스크롤 시 버튼 텍스트 변화
@@ -140,10 +144,29 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         fadeOut.start()
     }
 
+    private fun showBottomSheet() {
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(view)
+
+        // 카메라 버튼 클릭
+        view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
+            val intent = Intent(requireContext(), RegisterActivity::class.java)
+            startActivity(intent)
+            dialog.dismiss()
+        }
+
+        // 사진첩 버튼 클릭
+        view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
+            Toast.makeText(requireContext(), "사진첩 클릭됨", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
 
 }
