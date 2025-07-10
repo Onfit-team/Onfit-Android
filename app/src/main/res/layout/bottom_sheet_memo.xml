@@ -9,8 +9,8 @@
         android:id="@+id/memo_back_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/arrow_back"
-        android:background="@color/white" />
+        android:src="@drawable/arrow_left"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -33,12 +33,13 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/memo_done_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
         android:text="완료"
         android:textColor="@color/white"
+        android:textStyle="bold"
         android:background="@drawable/square_button"
         android:layout_gravity="end"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="60dp" />
 
 </LinearLayout>
