@@ -1,0 +1,642 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_button_container"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 뒤로가기 + 타이틀 -->
+            <ImageButton
+                android:id="@+id/ic_back"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="33dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="뒤로가기"
+                android:src="@drawable/leftarrow" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="어떤 옷을 찾으시나요?"
+                    android:textSize="20sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="95dp"
+                android:layout_height="match_parent"
+                android:text="계절"
+                android:textSize="15sp"
+                android:layout_marginBottom="10dp"
+                android:textStyle="bold" />
+
+            <HorizontalScrollView
+                android:id="@+id/seasonCategoryScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:id="@+id/seasonCategoryLayout"
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <android.widget.Button
+                        android:id="@+id/btnTopCategory1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="0dp"
+                        android:minHeight="35dp"
+                        android:minWidth="70dp"
+                        android:textSize="14sp"
+                        android:layout_marginRight="10dp"
+                        android:background="@drawable/rounded_button_selector"
+                        android:textColor="@color/rounded_button_text_selector"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:text="봄ㆍ가을" />
+
+                    <android.widget.Button
+                        android:id="@+id/btnTopCategory2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="0dp"
+                        android:minHeight="35dp"
+                        android:minWidth="60dp"
+                        android:textSize="14sp"
+                        android:background="@drawable/rounded_button_selector"
+                        android:layout_marginRight="10dp"
+                        android:textColor="@color/rounded_button_text_selector"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:text="여름" />
+
+                    <android.widget.Button
+                        android:id="@+id/btnTopCategory3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:padding="0dp"
+                        android:minHeight="35dp"
+                        android:minWidth="60dp"
+                        android:textSize="14sp"
+                        android:background="@drawable/rounded_button_selector"
+                        android:layout_marginRight="10dp"
+                        android:textColor="@color/rounded_button_text_selector"
+                        style="?android:attr/borderlessButtonStyle"
+                        android:text="겨울" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <TextView
+                android:layout_width="95dp"
+                android:layout_height="match_parent"
+                android:text="색"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <!-- 색상 스피너 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="49dp"
+                android:background="@drawable/spinner_background"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp">
+
+                <Spinner
+                    android:id="@+id/spinner_color"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:popupBackground="@drawable/spinner_background"
+                    android:spinnerMode="dropdown" />
+
+                <ImageView
+                    android:layout_width="15dp"
+                    android:layout_height="15dp"
+                    android:src="@drawable/arrow_down"
+                    android:layout_marginLeft="8dp" />
+            </LinearLayout>
+
+            <!-- 스타일 태그 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스타일 태그"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="분위기"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:flexWrap="wrap"
+                android:justifyContent="flex_start"
+                android:alignItems="flex_start"
+                android:layout_marginBottom="9dp">
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#캐주얼" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#스트릿"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#미니멀" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#클래식" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#빈티지" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:flexWrap="wrap"
+                android:justifyContent="flex_start"
+                android:alignItems="flex_start"
+                android:layout_marginBottom="24dp">
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#러블리" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#페미닌"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#보이시" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="50dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#모던" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 용도 태그 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="용도"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:flexWrap="wrap"
+                android:justifyContent="flex_start"
+                android:alignItems="flex_start"
+                android:layout_marginBottom="9dp">
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#데일리" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#출근룩"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="100dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#데이트룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="100dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#나들이룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#여행룩" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:flexWrap="wrap"
+                android:justifyContent="flex_start"
+                android:alignItems="flex_start"
+                android:layout_marginBottom="24dp">
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#운동복" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#하객룩"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="60dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#파티룩" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 브랜드 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="브랜드"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="13dp"/>
+
+            <!-- 브랜드 선택 버튼 -->
+            <LinearLayout
+                android:id="@+id/brand_dropdown_container"
+                android:layout_width="match_parent"
+                android:layout_height="49dp"
+                android:background="@drawable/spinner_background"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:layout_marginBottom="60dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:id="@+id/brand_dropdown_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="브랜드를 선택하세요"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/spinner_background_with_arrow" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 하단 고정 버튼 -->
+    <LinearLayout
+        android:id="@+id/bottom_button_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white"
+        android:padding="24dp"
+        android:elevation="8dp">
+
+        <android.widget.Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="적용하기"
+            android:background="@drawable/rounded_blue_button"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            style="?android:attr/borderlessButtonStyle"/>
+    </LinearLayout>
+
+    <!-- 브랜드 선택 팝업 -->
+    <LinearLayout
+        android:id="@+id/brand_popup_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- 위쪽 빈 공간 (클릭 시 팝업 닫힘) -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 브랜드 선택 팝업 내용 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            android:orientation="vertical"
+            android:padding="0dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <!-- 팝업 헤더 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="브랜드"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:gravity="center" />
+            </LinearLayout>
+
+            <!-- 브랜드 목록 스크롤뷰 (동적 높이 조정) -->
+            <ScrollView
+                android:id="@+id/brand_scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxHeight="400dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/brand_adidas"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="아디다스"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_nike"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="나이키"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_zara"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="자라"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_uniqlo"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="유니클로"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_hm"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="H&M"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_muji"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="무인사"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/brand_spao"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:text="SPAO"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/black"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
