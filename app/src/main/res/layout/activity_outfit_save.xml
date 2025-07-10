@@ -143,7 +143,7 @@
                     android:id="@+id/outfit_save_spinner1"
                     android:layout_width="153dp"
                     android:layout_height="48dp"
-                    android:background="@drawable/spinner_background"
+                    android:background="@drawable/spinner_background_custom"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:orientation="horizontal"
@@ -174,7 +174,7 @@
                     android:layout_width="153dp"
                     android:layout_height="48dp"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/spinner_background"
+                    android:background="@drawable/spinner_background_custom"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:orientation="horizontal"
@@ -240,7 +240,7 @@
                     android:id="@+id/outfit_save_spinner3"
                     android:layout_width="153dp"
                     android:layout_height="48dp"
-                    android:background="@drawable/spinner_background"
+                    android:background="@drawable/spinner_background_custom"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:orientation="horizontal"
@@ -271,7 +271,7 @@
                     android:layout_width="153dp"
                     android:layout_height="48dp"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/spinner_background"
+                    android:background="@drawable/spinner_background_custom"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:orientation="horizontal"
@@ -499,7 +499,7 @@
                 android:hint="브랜드를 입력해주세요"
                 android:textSize="15sp"
                 android:paddingLeft="13dp"
-                android:background="@drawable/spinner_background"
+                android:background="@drawable/spinner_background_custom"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_save_info_tv"/>
 
             <EditText
@@ -510,7 +510,7 @@
                 android:hint="가격을 입력해주세요"
                 android:textSize="15sp"
                 android:paddingLeft="13dp"
-                android:background="@drawable/spinner_background"
+                android:background="@drawable/spinner_background_custom"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_save_et1"/>
 
             <EditText
@@ -521,7 +521,7 @@
                 android:hint="사이즈를 입력해주세요"
                 android:textSize="15sp"
                 android:paddingLeft="13dp"
-                android:background="@drawable/spinner_background"
+                android:background="@drawable/spinner_background_custom"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_save_et2"/>
 
             <EditText
@@ -532,7 +532,7 @@
                 android:hint="구매 사이트"
                 android:textSize="15sp"
                 android:paddingLeft="13dp"
-                android:background="@drawable/spinner_background"
+                android:background="@drawable/spinner_background_custom"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_save_et3"/>
 
             <!-- 저장하기 버튼 -->
