@@ -535,16 +535,6 @@
                 android:background="@drawable/spinner_background"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_save_et3"/>
 
-            <View
-                android:id="@+id/outfit_save_line2"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F1F1F1"
-                android:layout_marginTop="40dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/outfit_save_et4"/>
-
             <!-- 저장하기 버튼 -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/outfit_save_save_btn"
@@ -553,13 +543,13 @@
                 android:text="저장하기"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="60dp"
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/square_button"
                 android:textColor="@android:color/white"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/outfit_save_line2"/>
+                app:layout_constraintTop_toBottomOf="@+id/outfit_save_et4"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

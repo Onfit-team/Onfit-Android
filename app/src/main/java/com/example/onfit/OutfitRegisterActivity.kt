@@ -6,16 +6,38 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.databinding.ActivityOutfitRegisterBinding
 import com.example.onfit.databinding.ActivitySaveBinding
 
 class OutfitRegisterActivity : AppCompatActivity() {
+    private lateinit var adapter: OutfitAdapter
+    private lateinit var outfitList: MutableList<OutfitItem>
+    lateinit var binding: ActivityOutfitRegisterBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        lateinit var binding: ActivityOutfitRegisterBinding
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityOutfitRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // RecyclerView 세팅
+        outfitList = mutableListOf(
+            OutfitItem(R.drawable.outfit_top, notInCloset = true),
+            OutfitItem(R.drawable.outfit_pants, notInCloset = true),
+            OutfitItem(R.drawable.outfit_shoes, notInCloset = true)
+        ) // 초기 빈 리스트
+        adapter = OutfitAdapter(outfitList)
+
+        val recyclerView = findViewById<RecyclerView>(R.id.outfit_register_rv)
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // 추가 버튼 클릭 시 아이템 추가
+        binding.outfitRegisterAddButton.setOnClickListener {
+            adapter.addItem(OutfitItem(R.drawable.sun, notInCloset = true)) // 기본 이미지로 추가
+        }
 
         // 아이템 저장 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
