@@ -24,9 +24,9 @@ class OutfitRegisterActivity : AppCompatActivity() {
 
         // RecyclerView 세팅
         outfitList = mutableListOf(
-            OutfitItem(R.drawable.outfit_top, notInCloset = true),
-            OutfitItem(R.drawable.outfit_pants, notInCloset = true),
-            OutfitItem(R.drawable.outfit_shoes, notInCloset = true)
+            OutfitItem(R.drawable.outfit_top, isInCloset = true),
+            OutfitItem(R.drawable.outfit_pants, isInCloset = true),
+            OutfitItem(R.drawable.outfit_shoes, isInCloset = true)
         ) // 초기 빈 리스트
         adapter = OutfitAdapter(outfitList)
 
@@ -36,7 +36,7 @@ class OutfitRegisterActivity : AppCompatActivity() {
 
         // 추가 버튼 클릭 시 아이템 추가
         binding.outfitRegisterAddButton.setOnClickListener {
-            adapter.addItem(OutfitItem(R.drawable.sun, notInCloset = true)) // 기본 이미지로 추가
+            adapter.addItem(OutfitItem(R.drawable.sun, isInCloset = true)) // 기본 이미지로 추가
         }
 
         // 아이템 저장 화면으로 이동

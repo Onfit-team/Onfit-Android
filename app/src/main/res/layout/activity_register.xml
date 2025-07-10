@@ -51,6 +51,15 @@
                 app:layout_constraintStart_toEndOf="@+id/register_date_tv"
                 />
 
+            <ImageView
+                android:id="@+id/register_weather_iv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/sun"
+                android:layout_marginTop="1dp"
+                app:layout_constraintEnd_toStartOf="@+id/register_weather_tv"
+                app:layout_constraintTop_toTopOf="parent"/>
+
             <TextView
                 android:id="@+id/register_weather_tv"
                 android:layout_width="wrap_content"
