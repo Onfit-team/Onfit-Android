@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.onfit"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -41,17 +41,14 @@ android {
 }
 
 dependencies {
-    //바텀 네비게이션
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
-    //chip 라이브러리
-    implementation("com.google.android.material:material:1.12.0")
-    //리사이클러뷰
-    implementation("androidx.recyclerview:recyclerview:1.4.0")
+    implementation ("com.google.android.flexbox:flexbox:3.0.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
