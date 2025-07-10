@@ -25,7 +25,7 @@
                 android:id="@+id/register_back_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/arrow_back"
+                android:src="@drawable/arrow_left"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"/>
@@ -44,7 +44,8 @@
                 android:id="@+id/register_dropdown_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/arrow_drop_down"
+                android:layout_marginTop="3dp"
+                android:src="@drawable/arrow_down"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/register_date_tv"
@@ -54,7 +55,7 @@
                 android:id="@+id/register_weather_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌡️ 17.6°C"
+                android:text="17.6°C"
                 android:textSize="16sp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -64,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="5dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="15dp"
                 app:layout_constraintTop_toBottomOf="@id/register_date_tv"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
@@ -161,7 +162,7 @@
                 android:layout_height="wrap_content"
                 android:text="스타일 태그"
                 android:textStyle="bold"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:layout_marginTop="16dp"
                 app:layout_constraintTop_toBottomOf="@id/register_memo_et"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -171,8 +172,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="분위기"
+                android:textStyle="bold"
                 android:layout_marginTop="10dp"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/register_style_tv" />
 
@@ -258,7 +260,7 @@
                 android:layout_height="wrap_content"
                 android:text="용도"
                 android:layout_marginTop="10dp"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/register_vibe_chips" />
 
@@ -340,6 +342,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="기록하기"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/square_button"
