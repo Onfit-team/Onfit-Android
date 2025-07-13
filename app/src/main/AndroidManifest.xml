@@ -13,18 +13,6 @@
         android:theme="@style/Theme.Onfit"
         tools:targetApi="31">
         <activity
-            android:name=".OutfitSaveActivity"
-            android:exported="false" />
-        <activity
-            android:name=".OutfitRegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SaveActivity"
-            android:exported="false" />
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
