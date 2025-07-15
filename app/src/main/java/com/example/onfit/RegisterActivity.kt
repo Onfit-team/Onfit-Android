@@ -3,6 +3,7 @@ package com.example.onfit
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -55,7 +56,7 @@ class RegisterActivity : AppCompatActivity(), TopSheetDialogFragment.OnMemoDoneL
             datePickerDialog.show()
         }
 
-        // 기록하기 버튼
+        /// 기록하기 버튼
         binding.registerSaveBtn.setOnClickListener {
             // 날짜 정보 intent로 전송
             val originalDate = binding.registerDateTv.text.toString()
@@ -66,9 +67,8 @@ class RegisterActivity : AppCompatActivity(), TopSheetDialogFragment.OnMemoDoneL
 
             // 이미지 정보 비트맵으로 변환하여 intent로 전송
             val imageView = binding.registerOutfitIv
-            imageView.isDrawingCacheEnabled = true
-            imageView.buildDrawingCache()
-            val bitmap = imageView.drawingCache
+            val drawable = imageView.drawable
+            val bitmap = (drawable as BitmapDrawable).bitmap
 
             val stream = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
