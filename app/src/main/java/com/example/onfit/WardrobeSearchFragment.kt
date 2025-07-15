@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
-import com.google.android.flexbox.FlexboxLayout
 
 class WardrobeSearchFragment : Fragment() {
 
@@ -71,22 +70,22 @@ class WardrobeSearchFragment : Fragment() {
         styleButtons = mutableListOf()
         purposeButtons = mutableListOf()
 
-        // Style buttons (mood)
-        val styleLayout1 = view.findViewById<FlexboxLayout>(R.id.topCategoryLayout1)
-        val styleLayout2 = view.findViewById<FlexboxLayout>(R.id.topCategoryLayout2)
+        // Style buttons (mood) - LinearLayout으로 변경
+        val styleLayout1 = view.findViewById<LinearLayout>(R.id.topCategoryLayout1)
+        val styleLayout2 = view.findViewById<LinearLayout>(R.id.topCategoryLayout2)
 
         addButtonsFromLayout(styleLayout1, styleButtons)
         addButtonsFromLayout(styleLayout2, styleButtons)
 
-        // Purpose buttons
-        val purposeLayout1 = view.findViewById<FlexboxLayout>(R.id.topCategoryLayout3)
-        val purposeLayout2 = view.findViewById<FlexboxLayout>(R.id.topCategoryLayout4)
+        // Purpose buttons - LinearLayout으로 변경
+        val purposeLayout1 = view.findViewById<LinearLayout>(R.id.topCategoryLayout3)
+        val purposeLayout2 = view.findViewById<LinearLayout>(R.id.topCategoryLayout4)
 
         addButtonsFromLayout(purposeLayout1, purposeButtons)
         addButtonsFromLayout(purposeLayout2, purposeButtons)
     }
 
-    private fun addButtonsFromLayout(layout: FlexboxLayout, buttonList: MutableList<Button>) {
+    private fun addButtonsFromLayout(layout: LinearLayout, buttonList: MutableList<Button>) {
         for (i in 0 until layout.childCount) {
             val child = layout.getChildAt(i)
             if (child is Button) {
@@ -96,9 +95,9 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        // Back button
+        // Back button - Activity 종료로 변경
         icBack.setOnClickListener {
-            requireActivity().onBackPressed()
+            requireActivity().finish()
         }
 
         // Brand dropdown
@@ -285,6 +284,28 @@ class WardrobeSearchFragment : Fragment() {
                 it.layoutParams = scrollViewLayoutParams
             }
         }
+
+        // 브랜드 팝업 상단 모서리 둥글게 만들기
+        setBrandPopupCornerRadius()
+    }
+
+    private fun setBrandPopupCornerRadius() {
+        val popupContent = brandPopupOverlay.getChildAt(1) as? LinearLayout
+        popupContent?.let {
+            // 상단 모서리만 둥글게 하는 drawable 생성
+            val cornerRadius = 20f * resources.displayMetrics.density // 20dp를 px로 변환
+
+            val drawable = android.graphics.drawable.GradientDrawable()
+            drawable.setColor(android.graphics.Color.WHITE)
+            drawable.cornerRadii = floatArrayOf(
+                cornerRadius, cornerRadius, // 좌상단
+                cornerRadius, cornerRadius, // 우상단
+                0f, 0f,                     // 우하단
+                0f, 0f                      // 좌하단
+            )
+
+            it.background = drawable
+        }
     }
 
     private fun hideBrandPopup() {
@@ -331,8 +352,8 @@ class WardrobeSearchFragment : Fragment() {
 
         Toast.makeText(requireContext(), filterSummary, Toast.LENGTH_LONG).show()
 
-        // Example: Navigate back or to results
-        requireActivity().onBackPressed()
+        // Navigate back to previous screen
+        requireActivity().finish()
     }
 
     // Function to reset all filters

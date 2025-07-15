@@ -34,7 +34,8 @@
                 android:background="@drawable/rounded_button_selector"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="전체 10" />
+                android:text="전체 10"
+                android:fontFamily="@font/intermedium"/>
 
             <android.widget.Button
                 android:id="@+id/btnTopCategory2"
@@ -48,7 +49,8 @@
                 android:layout_marginRight="10dp"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="상의 10" />
+                android:text="상의 10"
+                android:fontFamily="@font/intermedium"/>
 
             <android.widget.Button
                 android:id="@+id/btnTopCategory3"
@@ -62,7 +64,8 @@
                 android:layout_marginRight="10dp"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="하의 10" />
+                android:text="하의 10"
+                android:fontFamily="@font/intermedium"/>
 
             <android.widget.Button
                 android:id="@+id/btnTopCategory4"
@@ -76,7 +79,8 @@
                 android:layout_marginRight="10dp"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="아우터 10" />
+                android:text="아우터 10"
+                android:fontFamily="@font/intermedium"/>
 
             <android.widget.Button
                 android:id="@+id/btnTopCategory5"
@@ -90,7 +94,8 @@
                 android:layout_marginRight="10dp"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="원피스 10" />
+                android:text="원피스 10"
+                android:fontFamily="@font/intermedium"/>
 
             <android.widget.Button
                 android:id="@+id/btnTopCategory6"
@@ -104,7 +109,8 @@
                 android:layout_marginRight="10dp"
                 android:textColor="@color/rounded_button_text_selector"
                 style="?android:attr/borderlessButtonStyle"
-                android:text="신발 10" />
+                android:text="신발 10"
+                android:fontFamily="@font/intermedium"/>
         </LinearLayout>
 
     </HorizontalScrollView>

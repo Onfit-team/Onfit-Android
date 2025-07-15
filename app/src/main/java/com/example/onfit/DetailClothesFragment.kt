@@ -17,7 +17,7 @@ class DetailClothesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_detail_clothes, container, false)
+        val view = inflater.inflate(R.layout.fragment_clothes_detail, container, false)
 
         val deleteButton = view.findViewById<ImageButton>(R.id.ic_delete)
         deleteButton.setOnClickListener {

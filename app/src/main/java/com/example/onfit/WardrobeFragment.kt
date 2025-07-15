@@ -1,5 +1,6 @@
 package com.example.onfit
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.RelativeLayout
 
 class WardrobeFragment : Fragment() {
@@ -63,6 +66,29 @@ class WardrobeFragment : Fragment() {
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // 등록 버튼 클릭 리스너
+        val registerBtn = view.findViewById<ImageButton>(R.id.wardrobe_register_btn)
+        registerBtn.setOnClickListener {
+            val bottomSheet = RegisterItemBottomSheet()
+            bottomSheet.show(parentFragmentManager, bottomSheet.tag)
+        }
+
+        // 검색 아이콘 클릭 리스너 추가
+        val searchIcon = view.findViewById<ImageButton>(R.id.ic_search)
+        searchIcon?.setOnClickListener {
+            navigateToWardrobeSearch()
+        }
+    }
+
+    private fun navigateToWardrobeSearch() {
+        // WardrobeSearchActivity로 이동
+        val intent = Intent(requireContext(), WardrobeSearchActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun initializeViews(view: View) {
         recyclerView = view.findViewById(R.id.wardrobeRecyclerView)
         subFilterLayout = view.findViewById(R.id.subFilterLayout)
@@ -70,9 +96,19 @@ class WardrobeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = WardrobeAdapter(allImageList)
+        adapter = WardrobeAdapter(allImageList) { imageResId ->
+            // 옷 아이템 클릭 시 상세 페이지로 이동
+            navigateToClothesDetail(imageResId)
+        }
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
         recyclerView.adapter = adapter
+    }
+
+    private fun navigateToClothesDetail(imageResId: Int) {
+        // ClothesDetailActivity로 이동
+        val intent = Intent(requireContext(), ClothesDetailActivity::class.java)
+        intent.putExtra("image_res_id", imageResId) // 이미지 리소스 ID 전달
+        startActivity(intent)
     }
 
     private fun setupTopCategoryButtons(view: View) {
@@ -266,6 +302,4 @@ class WardrobeFragment : Fragment() {
         // 필요시에만 GC 호출 (일반적으로 권장되지 않음)
         // System.gc()
     }
-
-
 }

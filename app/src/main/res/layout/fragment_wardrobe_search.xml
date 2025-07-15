@@ -39,7 +39,7 @@
                     android:layout_height="wrap_content"
                     android:text="어떤 옷을 찾으시나요?"
                     android:textSize="20sp"
-                    android:textStyle="bold"/>
+                    android:fontFamily="@font/pretendardsemibold"/>
             </LinearLayout>
 
             <TextView
@@ -48,7 +48,7 @@
                 android:text="계절"
                 android:textSize="15sp"
                 android:layout_marginBottom="10dp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/pretendardsemibold"/>
 
             <HorizontalScrollView
                 android:id="@+id/seasonCategoryScrollView"
@@ -60,7 +60,8 @@
                     android:id="@+id/seasonCategoryLayout"
                     android:orientation="horizontal"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pretendardmedium">
 
                     <android.widget.Button
                         android:id="@+id/btnTopCategory1"
@@ -113,7 +114,8 @@
                 android:text="색"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="10dp" />
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/pretendardsemibold"/>
 
             <!-- 색상 스피너 -->
             <LinearLayout
@@ -123,7 +125,8 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:paddingLeft="16dp"
-                android:paddingRight="16dp">
+                android:paddingRight="16dp"
+                android:fontFamily="@font/pretendardmedium">
 
                 <Spinner
                     android:id="@+id/spinner_color"
@@ -149,7 +152,8 @@
                 android:textStyle="bold"
                 android:textSize="18sp"
                 android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pretendardbold"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -157,23 +161,24 @@
                 android:text="분위기"
                 android:textStyle="bold"
                 android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pretendardbold"/>
 
-            <com.google.android.flexbox.FlexboxLayout
+            <!-- 분위기 태그 첫 번째 줄 -->
+            <LinearLayout
                 android:id="@+id/topCategoryLayout1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
-                android:layout_marginBottom="9dp">
+                android:orientation="horizontal"
+                android:layout_marginBottom="9dp"
+                android:fontFamily="@font/pretendardmedium">
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -185,7 +190,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -197,7 +202,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -209,42 +214,44 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#클래식" />
 
+            </LinearLayout>
+
+            <!-- 분위기 태그 두 번째 줄 -->
+            <LinearLayout
+                android:id="@+id/topCategoryLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/pretendardmedium">
+
+
+
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#빈티지" />
 
-            </com.google.android.flexbox.FlexboxLayout>
-
-            <com.google.android.flexbox.FlexboxLayout
-                android:id="@+id/topCategoryLayout2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
-                android:layout_marginBottom="24dp">
-
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -256,7 +263,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -268,7 +275,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -287,31 +294,31 @@
                     android:layout_marginRight="10dp"
                     android:text="#모던" />
 
-            </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
 
             <!-- 용도 태그 -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="용도"
-                android:textStyle="bold"
+                android:fontFamily="@font/pretendardbold"
                 android:layout_marginBottom="8dp" />
 
-            <com.google.android.flexbox.FlexboxLayout
+            <!-- 용도 태그 첫 번째 줄 -->
+            <LinearLayout
                 android:id="@+id/topCategoryLayout3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
-                android:layout_marginBottom="9dp">
+                android:orientation="horizontal"
+                android:layout_marginBottom="9dp"
+                android:fontFamily="@font/pretendardmedium">
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -323,7 +330,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -335,7 +342,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="100dp"
+                    android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -347,35 +354,35 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="100dp"
+                    android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#나들이룩" />
 
+            </LinearLayout>
+
+            <!-- 용도 태그 두 번째 줄 -->
+            <LinearLayout
+                android:id="@+id/topCategoryLayout4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/pretendardmedium">
+
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#여행룩" />
-
-            </com.google.android.flexbox.FlexboxLayout>
-
-            <com.google.android.flexbox.FlexboxLayout
-                android:id="@+id/topCategoryLayout4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
-                android:layout_marginBottom="24dp">
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
@@ -394,7 +401,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -406,14 +413,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#파티룩" />
 
-            </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
 
             <!-- 브랜드 -->
             <TextView
@@ -423,7 +430,8 @@
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:layout_marginTop="32dp"
-                android:layout_marginBottom="13dp"/>
+                android:layout_marginBottom="13dp"
+                android:fontFamily="@font/pretendardbold"/>
 
             <!-- 브랜드 선택 버튼 -->
             <LinearLayout
@@ -446,7 +454,8 @@
                     android:layout_weight="1"
                     android:text="브랜드를 선택하세요"
                     android:textSize="16sp"
-                    android:textColor="@android:color/darker_gray" />
+                    android:textColor="@android:color/darker_gray"
+                    android:fontFamily="@font/pretendardmedium"/>
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -472,9 +481,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="적용하기"
-            android:background="@drawable/rounded_blue_button"
+            android:background="@drawable/rounded_button"
             android:textColor="@android:color/white"
-            android:textStyle="bold"
+            android:fontFamily="@font/pretendardsemibold"
             style="?android:attr/borderlessButtonStyle"/>
     </LinearLayout>
 
@@ -596,7 +605,7 @@
                         android:id="@+id/brand_hm"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
-                        android:text="H&M"
+                        android:text="H&amp;M"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center_vertical"
