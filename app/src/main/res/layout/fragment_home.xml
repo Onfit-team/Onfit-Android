@@ -6,6 +6,7 @@
     android:layout_height="match_parent">
 
 <androidx.core.widget.NestedScrollView
+    android:id="@+id/home_sv"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
@@ -346,16 +347,32 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
     <!-- 스크롤과 무관하게 항상 화면 오른쪽 아래에 고정된 FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/home_register_btn"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@drawable/addbtn"
-        android:contentDescription="추가"
-        app:backgroundTint="#007AFF"
-        app:tint="@android:color/white"
+        android:layout_height="60dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/home_register_btn">
+        <TextView
+            android:id="@+id/home_register_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ 등록하기"
+            android:textSize="17sp"
+            android:textColor="@color/white"
+            android:layout_gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

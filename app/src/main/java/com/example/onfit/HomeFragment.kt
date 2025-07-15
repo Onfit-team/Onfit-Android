@@ -1,8 +1,12 @@
 package com.example.onfit
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.onfit.databinding.FragmentHomeBinding
 import java.time.LocalDate
@@ -15,6 +19,7 @@ import com.example.onfit.data.model.SimItem
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private var isShortText = false
 
     //홈 화면 옷 리스트
     private val clothSuggestList = listOf(
@@ -90,11 +95,41 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.bestoutfitRecycleView.adapter = bestadapter
         binding.bestoutfitRecycleView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        
+
+        val scrollView = binding.homeSv
+        val registerTv = binding.homeRegisterTv
+
+        // 스크롤이 50 이상 내려갔을 때 버튼 텍스트 변경
+        scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            if (scrollY > 50 && !isShortText) {
+                animateTextChange(registerTv, "+") // 스크롤 시 "+등록하기" → "+"
+                isShortText = true
+            } else if (scrollY <= 50 && isShortText) {
+                animateTextChange(registerTv, "+ 등록하기") // "+" → "+등록하기"
+                isShortText = false
+            }
+        }
         
         binding.homeRegisterBtn.setOnClickListener { 
             //여기다가 add 작성
         }
+    }
+
+    // 텍스트 부드럽게 변하게 하는 애니메이션
+    private fun animateTextChange(textView: TextView, newText: String) {
+        val fadeOut = ObjectAnimator.ofFloat(textView, "alpha", 1f, 0f)
+        val fadeIn = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f)
+
+        fadeOut.duration = 150
+        fadeIn.duration = 150
+
+        fadeOut.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                textView.text = newText
+                fadeIn.start()
+            }
+        })
+        fadeOut.start()
     }
 
     override fun onDestroyView() {
