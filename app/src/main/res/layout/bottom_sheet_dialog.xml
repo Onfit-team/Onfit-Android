@@ -13,8 +13,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Outfit 등록하기"
-        android:textSize="16sp"
-        android:textStyle="bold"
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendardbold"
         android:layout_marginBottom="16dp"
         android:layout_gravity="center"/>
 
@@ -41,8 +41,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="카메라"
-                android:textColor="#888888"
-                android:textSize="14sp"/>
+                android:fontFamily="@font/pretendardsemibold"
+                android:textColor="#BCBCBC"
+                android:textSize="13sp"/>
         </LinearLayout>
 
         <LinearLayout
@@ -62,8 +63,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="사진첩"
-                android:textColor="#888888"
-                android:textSize="14sp"/>
+                android:fontFamily="@font/pretendardsemibold"
+                android:textColor="#BCBCBC"
+                android:textSize="13sp"/>
         </LinearLayout>
 
     </LinearLayout>
