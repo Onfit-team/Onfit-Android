@@ -30,11 +30,11 @@ class SaveActivity : AppCompatActivity() {
             binding.saveOutfitIv.setImageBitmap(bitmap)
         }
 
-//        // 옷장 저장하기 클릭 시 OutfitRegister 화면으로 이동
-//        binding.saveClosetBtn.setOnClickListener {
-//            val intent = Intent(this, OutfitRegisterActivity::class.java)
-//            startActivity(intent)
-//        }
+        // 옷장 저장하기 클릭 시 OutfitRegister 화면으로 이동
+        binding.saveClosetBtn.setOnClickListener {
+            val intent = Intent(this, OutfitRegisterActivity::class.java)
+            startActivity(intent)
+        }
 
         // 뒤로가기 버튼
         binding.saveBackBtn.setOnClickListener {
