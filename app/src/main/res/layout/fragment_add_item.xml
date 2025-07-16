@@ -440,7 +440,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="80dp"
+                    android:minWidth="100dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -452,12 +452,24 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="80dp"
+                    android:minWidth="100dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
                     android:layout_marginRight="10dp"
                     android:text="#나들이룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="82dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="10dp"
+                    android:text="#여행룩" />
 
             </com.google.android.flexbox.FlexboxLayout>
 
@@ -465,11 +477,10 @@
                 android:id="@+id/topCategoryLayout4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:flexWrap="wrap"
-                app:justifyContent="flex_start"
-                app:alignItems="flex_start"
-                android:layout_marginBottom="24dp"
-                android:fontFamily="@font/pretendardmedium">
+                android:flexWrap="wrap"
+                android:justifyContent="flex_start"
+                android:alignItems="flex_start"
+                android:layout_marginBottom="24dp">
 
                 <!-- 더미 버튼들 -->
                 <android.widget.Button
@@ -477,19 +488,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
-                    android:layout_marginRight="10dp"
-                    android:text="#여행룩" />
-
-                <android.widget.Button
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -501,7 +500,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -513,7 +512,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
                     android:textColor="@color/black"
@@ -527,7 +526,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="구매 정보"
-                android:fontFamily="@font/pretendardsemibold"
+                android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
             <EditText
@@ -537,8 +536,7 @@
                 android:hint="브랜드를 입력해주세요"
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/pretendardregular"/>
+                android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_price"
@@ -548,8 +546,7 @@
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
                 android:inputType="number"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/pretendardregular" />
+                android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_size"
@@ -558,8 +555,7 @@
                 android:hint="사이즈를 입력해주세요"
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/pretendardregular"/>
+                android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_site"
@@ -568,8 +564,7 @@
                 android:hint="구매사이트"
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="24dp"
-                android:fontFamily="@font/pretendardregular"/>
+                android:layout_marginBottom="24dp" />
 
         </LinearLayout>
     </ScrollView>
@@ -580,9 +575,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="저장하기"
-        android:background="@drawable/rounded_button"
+        android:background="@drawable/rounded_blue_button"
         android:textColor="@android:color/white"
-        android:fontFamily="@font/intersemibold"
+        android:textStyle="bold"
         android:layout_margin="24dp"
         style="?android:attr/borderlessButtonStyle"/>
 

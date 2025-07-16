@@ -134,8 +134,7 @@
                         android:minWidth="55dp"
                         android:background="@drawable/rounded_button_selector"
                         android:textColor="@android:color/black"
-                        android:layout_marginBottom="5dp"
-                        android:fontFamily="@font/intermedium"/>
+                        android:layout_marginBottom="5dp" />
 
                     <TextView
                         style="?android:attr/borderlessButtonStyle"
@@ -147,8 +146,7 @@
                         android:minWidth="55dp"
                         android:background="@drawable/rounded_button_selector"
                         android:textColor="@android:color/black"
-                        android:layout_marginBottom="5dp"
-                        android:fontFamily="@font/intermedium"/>
+                        android:layout_marginBottom="5dp" />
 
                     <TextView
                         style="?android:attr/borderlessButtonStyle"
@@ -159,8 +157,7 @@
                         android:minHeight="20dp"
                         android:minWidth="55dp"
                         android:background="@drawable/rounded_button_selector"
-                        android:textColor="@android:color/black"
-                        android:fontFamily="@font/intermedium"/>
+                        android:textColor="@android:color/black" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -180,16 +177,14 @@
                 android:textStyle="bold"
                 android:textSize="17dp"
                 android:layout_marginTop="25dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/pretendardsemibold"/>
+                android:layout_marginBottom="8dp" />
 
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:weightSum="2"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/intermedium">
+                android:layout_marginBottom="8dp">
 
                 <EditText
                     android:id="@+id/et_brand"
@@ -220,8 +215,7 @@
                 android:hint="사이즈"
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/intermedium"/>
+                android:layout_marginBottom="8dp" />
 
             <EditText
                 android:id="@+id/et_site"
@@ -230,8 +224,7 @@
                 android:hint="구매사이트"
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp"
-                android:layout_marginBottom="20dp"
-                android:fontFamily="@font/intermedium"/>
+                android:layout_marginBottom="20dp"/>
 
             <!-- 옷장 아이템 -->
             <LinearLayout
@@ -250,8 +243,7 @@
                     android:textSize="16sp"
                     android:textColor="#000000"
                     android:textStyle="bold"
-                    android:layout_marginBottom="12dp"
-                    android:fontFamily="@font/pretendardsemibold"/>
+                    android:layout_marginBottom="12dp" />
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -261,8 +253,7 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:fontFamily="@font/intermedium">
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -464,8 +455,7 @@
                     android:textSize="16sp"
                     android:textColor="#000000"
                     android:textStyle="bold"
-                    android:layout_marginBottom="12dp"
-                    android:fontFamily="@font/pretendardsemibold"/>
+                    android:layout_marginBottom="12dp" />
 
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -475,8 +465,7 @@
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:fontFamily="@font/intermedium">
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
