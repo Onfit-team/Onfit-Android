@@ -1,5 +1,6 @@
 package com.example.onfit
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -28,6 +29,12 @@ class SaveActivity : AppCompatActivity() {
             val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
             binding.saveOutfitIv.setImageBitmap(bitmap)
         }
+
+//        // 옷장 저장하기 클릭 시 OutfitRegister 화면으로 이동
+//        binding.saveClosetBtn.setOnClickListener {
+//            val intent = Intent(this, OutfitRegisterActivity::class.java)
+//            startActivity(intent)
+//        }
 
         // 뒤로가기 버튼
         binding.saveBackBtn.setOnClickListener {
