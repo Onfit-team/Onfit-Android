@@ -16,5 +16,10 @@ class OutfitSaveActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityOutfitSaveBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 뒤로가기
+        binding.outfitSaveBackBtn.setOnClickListener {
+            finish()
+        }
     }
 }
