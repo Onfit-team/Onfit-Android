@@ -275,10 +275,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#캐주얼"/>
 
@@ -287,10 +287,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#스트릿"/>
 
@@ -299,10 +299,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#미니멀" />
 
@@ -311,10 +311,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#클래식" />
 
@@ -323,10 +323,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:text="#빈티지" />
 
             </com.google.android.flexbox.FlexboxLayout>
@@ -347,10 +347,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#러블리" />
 
@@ -359,10 +359,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#페미닌"/>
 
@@ -371,10 +371,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="62dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#보이시" />
 
@@ -386,7 +386,7 @@
                     android:minWidth="58dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#모던" />
 
@@ -416,10 +416,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#데일리" />
 
@@ -428,10 +428,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="68dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#출근룩"/>
 
@@ -440,10 +440,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="100dp"
+                    android:minWidth="76dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#데이트룩" />
 
@@ -452,24 +452,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="100dp"
+                    android:minWidth="76dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#나들이룩" />
-
-                <android.widget.Button
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="82dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
-                    android:layout_marginRight="10dp"
-                    android:text="#여행룩" />
 
             </com.google.android.flexbox.FlexboxLayout>
 
@@ -477,9 +465,9 @@
                 android:id="@+id/topCategoryLayout4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
                 android:layout_marginBottom="24dp">
 
                 <!-- 더미 버튼들 -->
@@ -488,10 +476,22 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#여행룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#운동복" />
 
@@ -500,10 +500,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#하객룩"/>
 
@@ -512,10 +512,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:minHeight="35dp"
-                    android:minWidth="60dp"
+                    android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#파티룩" />
 
@@ -575,7 +575,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="저장하기"
-        android:background="@drawable/rounded_blue_button"
+        android:background="@drawable/rounded_button"
         android:textColor="@android:color/white"
         android:textStyle="bold"
         android:layout_margin="24dp"

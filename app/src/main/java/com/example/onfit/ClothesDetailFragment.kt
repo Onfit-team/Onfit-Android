@@ -64,7 +64,7 @@ class ClothesDetailFragment : Fragment() {
         }
 
         // 이미지 설정 (실제 레이아웃의 ID로 변경 필요)
-        val clothesImageView = view.findViewById<ImageView>(R.id.imageView) // 또는 실제 ID
+        val clothesImageView = view.findViewById<ImageView>(R.id.clothes_image) // 또는 실제 ID
         clothesImageView?.setImageResource(imageResId)
 
         // 여기에 상세 페이지 로직 추가

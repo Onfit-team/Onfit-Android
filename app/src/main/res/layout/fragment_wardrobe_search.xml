@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@android:color/white">
 
     <ScrollView
@@ -232,8 +233,6 @@
                 android:layout_marginBottom="24dp"
                 android:fontFamily="@font/pretendardmedium">
 
-
-
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
@@ -309,118 +308,119 @@
                 android:id="@+id/topCategoryLayout3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:fontFamily="@font/pretendardmedium"
                 android:layout_marginBottom="9dp"
-                android:fontFamily="@font/pretendardmedium">
+                android:orientation="horizontal">
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
+                    android:layout_marginRight="10dp"
+                    android:background="@drawable/rounded_button_selector"
                     android:minWidth="65dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
+                    android:minHeight="35dp"
+                    android:text="#데일리"
                     android:textColor="@color/rounded_button_text_selector"
-                    android:layout_marginRight="10dp"
-                    android:text="#데일리" />
+                    android:textSize="14sp" />
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="82dp"
-                    android:textSize="14sp"
+                    android:layout_marginRight="10dp"
                     android:background="@drawable/rounded_button_selector"
+                    android:minWidth="65dp"
+                    android:minHeight="35dp"
+                    android:text="#출근룩"
                     android:textColor="@color/rounded_button_text_selector"
-                    android:layout_marginRight="10dp"
-                    android:text="#출근룩"/>
+                    android:textSize="14sp" />
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="100dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
                     android:layout_marginRight="10dp"
-                    android:text="#데이트룩" />
-
-                <android.widget.Button
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="100dp"
-                    android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
-                    android:layout_marginRight="10dp"
-                    android:text="#나들이룩" />
-
-                <android.widget.Button
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:minWidth="78dp"
                     android:minHeight="35dp"
-                    android:minWidth="82dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
+                    android:text="#데이트룩"
                     android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginRight="10dp"
-                    android:text="#여행룩" />
+                    android:background="@drawable/rounded_button_selector"
+                    android:minWidth="78dp"
+                    android:minHeight="35dp"
+                    android:text="#나들이룩"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
-            <com.google.android.flexbox.FlexboxLayout
+            <!-- 용도 태그 두 번째 줄 -->
+            <LinearLayout
                 android:id="@+id/topCategoryLayout4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:flexWrap="wrap"
-                android:justifyContent="flex_start"
-                android:alignItems="flex_start"
-                android:layout_marginBottom="24dp">
+                android:fontFamily="@font/pretendardmedium"
+                android:layout_marginBottom="24dp"
+                android:orientation="horizontal">
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="60dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
-                    android:text="#운동복" />
+                    android:background="@drawable/rounded_button_selector"
+                    android:minWidth="65dp"
+                    android:minHeight="35dp"
+                    android:text="#여행룩"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
+
+
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="60dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
-                    android:text="#하객룩"/>
+                    android:background="@drawable/rounded_button_selector"
+                    android:minWidth="65dp"
+                    android:minHeight="35dp"
+                    android:text="#운동복"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
 
                 <android.widget.Button
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minHeight="35dp"
-                    android:minWidth="60dp"
-                    android:textSize="14sp"
-                    android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
-                    android:text="#파티룩" />
+                    android:background="@drawable/rounded_button_selector"
+                    android:minWidth="65dp"
+                    android:minHeight="35dp"
+                    android:text="#하객룩"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
 
-            </com.google.android.flexbox.FlexboxLayout>
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_button_selector"
+                    android:minWidth="65dp"
+                    android:minHeight="35dp"
+                    android:text="#파티룩"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
 
             <!-- 브랜드 -->
             <TextView

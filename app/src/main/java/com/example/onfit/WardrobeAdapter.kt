@@ -13,6 +13,7 @@ class WardrobeAdapter(
 
     inner class WardrobeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
+            ?: throw IllegalStateException("imageView not found in item_wardrobe.xml")
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WardrobeViewHolder {
