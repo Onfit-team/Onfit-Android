@@ -80,7 +80,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.similarStyleRecyclerView.adapter = simadapter
         binding.similarStyleRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        
+
         val lateadapter = LatestStyleAdapter(latestStyleList)
         binding.latestStyleRecyclerView.adapter = lateadapter
         binding.latestStyleRecyclerView.layoutManager =
@@ -90,9 +90,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.bestoutfitRecycleView.adapter = bestadapter
         binding.bestoutfitRecycleView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        
-        
-        binding.homeRegisterBtn.setOnClickListener { 
+
+
+        binding.homeRegisterBtn.setOnClickListener {
             //여기다가 add 작성
         }
     }

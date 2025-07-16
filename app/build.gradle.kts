@@ -49,6 +49,9 @@ dependencies {
     //리사이클러뷰
     implementation("androidx.recyclerview:recyclerview:1.4.0")
 
+    // flexbox
+    implementation ("com.google.android.flexbox:flexbox:3.0.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)

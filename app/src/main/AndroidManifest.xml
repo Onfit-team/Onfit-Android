@@ -21,6 +21,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".AddItemActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".WardrobeSearchActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ClothesDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
