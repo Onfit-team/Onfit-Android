@@ -181,7 +181,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#캐주얼" />
 
@@ -193,7 +193,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#스트릿"/>
 
@@ -205,7 +205,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#미니멀" />
 
@@ -217,7 +217,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#클래식" />
 
@@ -242,7 +242,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#빈티지" />
 
@@ -254,7 +254,7 @@
                     android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#러블리" />
 
@@ -266,7 +266,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#페미닌"/>
 
@@ -278,7 +278,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#보이시" />
 
@@ -290,7 +290,7 @@
                     android:minWidth="50dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#모던" />
 
@@ -321,7 +321,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#데일리" />
 
@@ -333,7 +333,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#출근룩"/>
 
@@ -345,7 +345,7 @@
                     android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#데이트룩" />
 
@@ -357,7 +357,7 @@
                     android:minWidth="70dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#나들이룩" />
 
@@ -380,7 +380,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#여행룩" />
 
@@ -392,7 +392,7 @@
                     android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#운동복" />
 
@@ -404,7 +404,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#하객룩"/>
 
@@ -416,7 +416,7 @@
                     android:minWidth="65dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#파티룩" />
 
