@@ -38,5 +38,16 @@ class OutfitRegisterActivity : AppCompatActivity() {
             val newItem = OutfitItem(R.drawable.sun)
             adapter.addItem(newItem)
         }
+
+        // 뒤로가기
+        binding.outfitRegisterBackBtn.setOnClickListener {
+            finish()
+        }
+
+        // OutfitSaveActivity(아웃핏 저장 화면)로 이동
+        binding.outfitRegisterSaveBtn.setOnClickListener {
+            val intent = Intent(this, OutfitSaveActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

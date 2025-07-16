@@ -36,6 +36,7 @@
                 android:layout_height="wrap_content"
                 android:text="AI가 Outfit에서"
                 android:textSize="20sp"
+                android:layout_marginTop="15dp"
                 android:fontFamily="@font/pretendardbold"
                 app:layout_constraintTop_toBottomOf="@+id/outfit_register_back_btn"
                 app:layout_constraintLeft_toLeftOf="parent"/>

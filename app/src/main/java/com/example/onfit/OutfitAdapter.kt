@@ -1,5 +1,6 @@
 package com.example.onfit
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,12 +42,35 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>) :
         }
 
         // x 버튼 눌렀을 때 아이템 삭제
+        // x 버튼 누를 시 아이템 삭제 팝업
         holder.remove.setOnClickListener {
-            val pos = holder.adapterPosition
-            if (pos != RecyclerView.NO_POSITION) {
-                items.removeAt(pos)
-                notifyItemRemoved(pos)
+            val dialogView = LayoutInflater.from(holder.itemView.context)
+                .inflate(R.layout.outfit_delete_dialog, null)
+            val dialog = AlertDialog.Builder(holder.itemView.context)
+                .setView(dialogView)
+                .create()
+
+            // 이미지 설정
+            val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
+            dialogImage.setImageResource(item.imageResId)
+
+            // 예 버튼 클릭 → 아이템 삭제
+            dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {
+                val pos = holder.adapterPosition
+                if (pos != RecyclerView.NO_POSITION) {
+                    items.removeAt(pos)
+                    notifyItemRemoved(pos)
+                }
+                dialog.dismiss()
             }
+
+            // 아니오 버튼 클릭 → 그냥 팝업 닫기
+            dialogView.findViewById<Button>(R.id.delete_dialog_no_btn).setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            dialog.show()
         }
     }
 
