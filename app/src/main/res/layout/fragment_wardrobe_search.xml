@@ -333,7 +333,7 @@
                     android:minWidth="82dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#출근룩"/>
 
@@ -369,11 +369,11 @@
                     android:minWidth="82dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#여행룩" />
 
-            </com.google.android.flexbox.FlexboxLayout>
+            </LinearLayout>
 
             <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/topCategoryLayout4"
@@ -392,7 +392,7 @@
                     android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#운동복" />
 
@@ -404,7 +404,7 @@
                     android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#하객룩"/>
 
@@ -416,7 +416,7 @@
                     android:minWidth="60dp"
                     android:textSize="14sp"
                     android:background="@drawable/rounded_button_selector"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rounded_button_text_selector"
                     android:layout_marginRight="10dp"
                     android:text="#파티룩" />
 
@@ -479,7 +479,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="적용하기"
-            android:background="@drawable/rounded_blue_button"
+            android:background="@drawable/rounded_button"
             android:textColor="@android:color/white"
             android:textStyle="bold"
             style="?android:attr/borderlessButtonStyle"/>
@@ -603,7 +603,7 @@
                         android:id="@+id/brand_hm"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
-                        android:text="H&M"
+                        android:text="H&amp;M"
                         android:textSize="16sp"
                         android:textColor="@android:color/black"
                         android:gravity="center_vertical"

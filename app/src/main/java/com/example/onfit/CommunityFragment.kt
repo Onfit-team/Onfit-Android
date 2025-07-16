@@ -28,3 +28,4 @@ class CommunityFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
+}
