@@ -13,4 +13,16 @@
         <item name="cornerSizeBottomRight">0dp</item>
     </style>
 
+    <!-- RegisterActivity의 메모 top sheet dialog -->
+    <style name="TopSheetDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <style name="TopSheetAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in_from_top</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_to_top</item>
+    </style>
+
 </resources>
