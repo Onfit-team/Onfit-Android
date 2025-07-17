@@ -89,7 +89,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.similarStyleRecyclerView.adapter = simadapter
         binding.similarStyleRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        
+
         val lateadapter = LatestStyleAdapter(latestStyleList)
         binding.latestStyleRecyclerView.adapter = lateadapter
         binding.latestStyleRecyclerView.layoutManager =
