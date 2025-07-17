@@ -15,6 +15,7 @@ import com.example.onfit.data.model.SimItem
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private var isShortButton = false
 
     //홈 화면 옷 리스트
     private val clothSuggestList = listOf(
@@ -91,6 +92,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.bestoutfitRecycleView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
+        val scrollView = binding.homeSv
+        val registerBtn = binding.homeRegisterBtn
+
+        // 스크롤이 50 이상 내려갔을 때 버튼 변경
+        scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+            if (scrollY > 50 && !isShortButton) {
+                registerBtn.setImageResource(R.drawable.register_btn_short)
+                isShortButton = true
+            } else if (scrollY <= 50 && isShortButton) {
+                registerBtn.setImageResource(R.drawable.register_btn_long)
+                isShortButton = false
+            }
+        }
 
         binding.homeRegisterBtn.setOnClickListener {
             //여기다가 add 작성
