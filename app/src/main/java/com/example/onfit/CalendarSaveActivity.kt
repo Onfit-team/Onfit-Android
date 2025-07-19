@@ -26,6 +26,11 @@ class CalendarSaveActivity : AppCompatActivity() {
         binding = ActivityCalendarSaveBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 뒤로가기 버튼
+        binding.calendarSaveBackBtn.setOnClickListener {
+            finish()
+        }
+
         // RecyclerView 어댑터 연결
         val calendarSaveAdapter = CalendarSaveAdapter(calendarSaveList)
         binding.calendarSaveRv.adapter = calendarSaveAdapter
