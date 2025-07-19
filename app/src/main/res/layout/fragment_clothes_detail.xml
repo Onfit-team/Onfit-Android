@@ -57,7 +57,7 @@
                     android:layout_height="24dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="수정하기"
-                    android:src="@drawable/edit" />
+                    android:src="@drawable/edit_gray" />
             </LinearLayout>
 
             <!-- 옷 이미지 + 정보 -->
