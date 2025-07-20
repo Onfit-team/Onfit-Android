@@ -1,9 +1,12 @@
 package com.example.onfit
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,10 +34,41 @@ class CalendarSaveActivity : AppCompatActivity() {
             finish()
         }
 
+        // 삭제 팝업
+        binding.calendarSaveSendIv.setOnClickListener {
+            showDeleteDialog()
+        }
+
         // RecyclerView 어댑터 연결
         val calendarSaveAdapter = CalendarSaveAdapter(calendarSaveList)
         binding.calendarSaveRv.adapter = calendarSaveAdapter
         binding.calendarSaveRv.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+    }
+
+    // 삭제 팝업
+    private fun showDeleteDialog() {
+        val dialog = AlertDialog.Builder(this).create()
+        val dialogView = layoutInflater.inflate(R.layout.outfit_delete_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(false) // 바깥 클릭으로 안 닫히게
+
+        dialog.window?.setBackgroundDrawable(ContextCompat.getDrawable(this, R.drawable.rounded_white_bg))
+
+        // 버튼 참조
+        val yesBtn = dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn)
+        val noBtn = dialogView.findViewById<Button>(R.id.delete_dialog_no_btn)
+
+        // 현재 Activity 종료 → 이전 CalendarFragment 화면으로 이동
+        yesBtn.setOnClickListener {
+            dialog.dismiss()
+            finish()
+        }
+
+        // 다이얼로그 닫기
+        noBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 }
