@@ -7,11 +7,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.databinding.ActivityCalendarRewriteBinding
 
 class CalendarRewriteActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityCalendarRewriteBinding
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: CalendarRewriteAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +25,15 @@ class CalendarRewriteActivity : AppCompatActivity() {
         // RecyclerView orientation 설정
         val recyclerView = binding.calendarRewriteRv
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        // RecyclerView 더미 데이터 추가
+        val dummyItems = mutableListOf(
+            CalendarRewriteItem(R.drawable.calendar_save_image2),
+            CalendarRewriteItem(R.drawable.calendar_save_image3)
+        )
+
+        adapter = CalendarRewriteAdapter(dummyItems)
+        recyclerView.adapter = adapter
 
         // 날짜 선택 드롭다운 메뉴
         binding.calendarRewriteDropdownBtn.setOnClickListener {
@@ -37,6 +49,5 @@ class CalendarRewriteActivity : AppCompatActivity() {
             }, year, month, day)
             datePickerDialog.show()
         }
-
     }
 }
