@@ -1,6 +1,7 @@
 package com.example.onfit
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.databinding.ActivityCalendarRewriteBinding
 
-class CalendarRewriteActivity : AppCompatActivity() {
+class CalendarRewriteActivity : AppCompatActivity(), TopSheetDialogFragment.OnMemoDoneListener {
 
     lateinit var binding: ActivityCalendarRewriteBinding
     private lateinit var recyclerView: RecyclerView
@@ -35,6 +36,21 @@ class CalendarRewriteActivity : AppCompatActivity() {
         adapter = CalendarRewriteAdapter(dummyItems)
         recyclerView.adapter = adapter
 
+        // 다이얼로그 띄우기
+        binding.calendarRewriteMemoTv.setOnClickListener {
+            TopSheetDialogFragment().show(supportFragmentManager, "TopSheet")
+        }
+
+        // 뒤로가기
+        binding.calendarRewriteBackBtn.setOnClickListener {
+            finish()
+        }
+
+        binding.calendarRewriteFl2.setOnClickListener {
+            val intent = Intent(this, CalendarSelectActivity::class.java)
+            startActivity(intent)
+        }
+
         // 날짜 선택 드롭다운 메뉴
         binding.calendarRewriteDropdownBtn.setOnClickListener {
             val currentDateText = binding.calendarRewriteDateTv.text.toString()
@@ -49,5 +65,11 @@ class CalendarRewriteActivity : AppCompatActivity() {
             }, year, month, day)
             datePickerDialog.show()
         }
+    }
+
+    // 다이얼로그에서 입력된 텍스트를 TextView에 표시
+    override fun onMemoDone(memoText: String) {
+        val memoEditText = binding.calendarRewriteMemoTv
+        memoEditText.setText(memoText)
     }
 }

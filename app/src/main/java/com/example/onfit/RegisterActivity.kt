@@ -35,7 +35,7 @@ class RegisterActivity : AppCompatActivity(), TopSheetDialogFragment.OnMemoDoneL
         val dateTextView = binding.registerDateTv
         dateTextView.text = formattedDate
 
-        // 예시: 다이얼로그 띄우기
+        // 다이얼로그 띄우기
         val memo = binding.registerMemoEt
         memo.setOnClickListener {
             TopSheetDialogFragment().show(supportFragmentManager, "TopSheet")

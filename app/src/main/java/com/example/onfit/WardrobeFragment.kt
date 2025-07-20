@@ -17,7 +17,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RelativeLayout
 
-class WardrobeFragment : Fragment() {
+open class WardrobeFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WardrobeAdapter
