@@ -14,8 +14,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="left_circle" />
-                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\left-circle.svg" />
+                            <entry key="outputName" value="leftarrow" />
+                            <entry key="sourceFile" value="C:\Users\jerry\Desktop\leftarrow.svg" />
                           </map>
                         </option>
                       </PersistentState>
