@@ -45,7 +45,6 @@
         <activity
             android:name=".ClothesDetailActivity"
             android:exported="false" />
-        <activity android:name=".CommunityDetailActivity" />
     </application>
 
 </manifest>

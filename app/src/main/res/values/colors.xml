@@ -10,4 +10,7 @@
     <color name="gray_dark">#FF757575</color>
 
     <color name="gray">#808080</color>
+    <color name="nav_text_color">#999999</color>
+    <color name="tag_background_gray">#F0F0F0</color>
+    <color name="item_background">#F8F8F8</color>
 </resources>

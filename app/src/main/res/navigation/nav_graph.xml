@@ -29,4 +29,9 @@
         android:name="com.example.onfit.MyPageFragment"
         android:label="마이페이지"/>
 
+    <fragment
+        android:id="@+id/styleOutfitsFragment"
+        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:label="스타일별 Outfit"/>
+
 </navigation>
