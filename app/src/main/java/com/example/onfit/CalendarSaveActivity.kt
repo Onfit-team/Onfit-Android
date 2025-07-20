@@ -1,5 +1,6 @@
 package com.example.onfit
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
@@ -37,6 +38,12 @@ class CalendarSaveActivity : AppCompatActivity() {
         // 삭제 팝업
         binding.calendarSaveSendIv.setOnClickListener {
             showDeleteDialog()
+        }
+
+        // CalendarRewriteActivity로 이동
+        binding.calendarSaveEditIv.setOnClickListener {
+            val intent = Intent(this, CalendarRewriteActivity::class.java)
+            startActivity(intent)
         }
 
         // RecyclerView 어댑터 연결

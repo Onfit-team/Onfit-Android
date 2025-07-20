@@ -14,8 +14,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="send" />
-                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\send.svg" />
+                            <entry key="outputName" value="album" />
+                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\album.svg" />
                           </map>
                         </option>
                       </PersistentState>
