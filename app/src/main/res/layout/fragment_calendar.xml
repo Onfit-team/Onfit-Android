@@ -1,60 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- 상단 헤더 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:background="@android:color/white"
-        android:layout_marginTop="38dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="최근 한달 간"
-            android:textSize="17sp"
-            android:fontFamily="@font/pretendardbold"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/tvMostUsedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="#포멀 스타일이 가장 많았어요!"
-            android:textSize="17sp"
-            android:fontFamily="@font/pretendardbold"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="16dp" />
-
-        <android.widget.Button
-            android:id="@+id/btnStyleOutfits"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <!-- 상단 헤더 -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="스타일 별 Outfit 보기"
-            android:textColor="@android:color/white"
-            android:background="@drawable/rounded_button"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            style="?android:attr/borderlessButtonStyle" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@android:color/white"
+            android:layout_marginTop="38dp">
 
-    <!-- 캘린더 스크롤뷰 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvCalendar"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@android:color/white"
-        android:padding="16dp"
-        android:clipToPadding="false"
-        android:scrollbars="none" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="최근 한달 간"
+                android:textSize="17sp"
+                android:fontFamily="@font/pretendardbold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvMostUsedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#포멀 스타일이 가장 많았어요!"
+                android:textSize="17sp"
+                android:fontFamily="@font/pretendardbold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp" />
+
+            <android.widget.Button
+                android:id="@+id/btnStyleOutfits"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="스타일 별 Outfit 보기"
+                android:textColor="@android:color/white"
+                android:background="@drawable/rounded_button"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                style="?android:attr/borderlessButtonStyle" />
+        </LinearLayout>
+
+        <!-- 캘린더 스크롤뷰 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/white"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:scrollbars="none" />
+
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/calendar_register_btn"
@@ -66,6 +72,7 @@
         android:focusable="true"
         android:paddingLeft="25dp"
         android:paddingRight="25dp"
+        android:layout_gravity="bottom|end"
         android:background="@drawable/home_register_btn">
         <TextView
             android:id="@+id/home_register_tv"
@@ -80,4 +87,4 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-</LinearLayout>
+</FrameLayout>
