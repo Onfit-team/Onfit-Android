@@ -14,8 +14,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="check_gray" />
-                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\check_gray.svg" />
+                            <entry key="outputName" value="leftarrow" />
+                            <entry key="sourceFile" value="C:\Users\jerry\Desktop\leftarrow.svg" />
                           </map>
                         </option>
                       </PersistentState>
