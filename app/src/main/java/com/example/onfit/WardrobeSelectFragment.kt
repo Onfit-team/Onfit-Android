@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -39,6 +40,13 @@ class WardrobeSelectFragment : WardrobeFragment() {
         // 기존에 있던 버튼 숨기기
         view?.findViewById<ImageButton>(R.id.ic_search)?.visibility = View.GONE
         view?.findViewById<ImageButton>(R.id.wardrobe_register_btn)?.visibility = View.GONE
+
+        // marginTop 제거
+        val rootLayout = view.findViewById<LinearLayout>(R.id.topCategoryLayout)
+        val params = rootLayout.layoutParams as ViewGroup.MarginLayoutParams
+        params.topMargin = 0
+        rootLayout.layoutParams = params
+
 
         return view
     }
