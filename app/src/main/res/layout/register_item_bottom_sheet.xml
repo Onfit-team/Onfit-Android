@@ -6,8 +6,6 @@
     android:background="@drawable/bottom_sheet_background"
     android:padding="24dp">
 
-
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,17 +21,16 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp"
-        android:weightSum="2">
+        android:layout_marginBottom="8dp">
 
         <!-- 카메라 버튼 -->
         <LinearLayout
             android:id="@+id/camera_option"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
+            android:layout_marginRight="15dp"
             android:clickable="true"
             android:focusable="true">
 
@@ -66,11 +63,11 @@
         <!-- 사진첩 버튼 -->
         <LinearLayout
             android:id="@+id/gallery_option"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
+            android:layout_marginLeft="15dp"
             android:clickable="true"
             android:focusable="true">
 
