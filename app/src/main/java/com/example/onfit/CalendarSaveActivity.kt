@@ -2,6 +2,8 @@ package com.example.onfit
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
+import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -77,5 +79,12 @@ class CalendarSaveActivity : AppCompatActivity() {
             dialog.dismiss()
         }
         dialog.show()
+
+        // 다이얼로그 너비를 294dp로 설정
+        val width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
+        ).toInt()
+
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 }
