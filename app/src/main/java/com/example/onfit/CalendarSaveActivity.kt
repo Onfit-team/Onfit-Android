@@ -57,6 +57,7 @@ class CalendarSaveActivity : AppCompatActivity() {
 
     // 삭제 팝업
     private fun showDeleteDialog() {
+        // 다이얼로그 레이아웃 inflate
         val dialog = AlertDialog.Builder(this).create()
         val dialogView = layoutInflater.inflate(R.layout.outfit_delete_dialog, null)
         dialog.setView(dialogView)
