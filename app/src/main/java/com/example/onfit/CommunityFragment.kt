@@ -83,6 +83,12 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         binding.shareOutfitIb.setOnClickListener {
             showPostOutfitDialog()
         }
+
+        // 검색 필터 화면
+        binding.searchIconIv.setOnClickListener {
+            val dialog = TopSearchDialogFragment()
+            dialog.show(parentFragmentManager, "TopSearchDialog")
+        }
     }
 
     private fun showPostOutfitDialog() {
