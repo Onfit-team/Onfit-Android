@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <ImageButton
+        android:id="@+id/top_info_back_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/arrow_back"
+        android:background="@color/white" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="구매 정보"
+        android:textSize="19sp"
+        android:textColor="@color/black"
+        android:fontFamily="@font/pretendardsemibold"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="12dp" />
+
+    <EditText
+        android:id="@+id/top_info_et1"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="5dp"
+        android:hint="브랜드를 입력해주세요"
+        android:fontFamily="@font/pretendardmedium"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:paddingLeft="13dp"
+        android:textColorHint="#868686"
+        android:background="@drawable/outfit_save_spinner_background" />
+
+    <EditText
+        android:id="@+id/top_info_et2"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:hint="가격을 입력해주세요"
+        android:fontFamily="@font/pretendardmedium"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:paddingLeft="13dp"
+        android:textColorHint="#868686"
+        android:background="@drawable/outfit_save_spinner_background" />
+
+    <EditText
+        android:id="@+id/top_info_et3"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:hint="사이즈를 입력해주세요"
+        android:fontFamily="@font/pretendardmedium"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:paddingLeft="13dp"
+        android:textColorHint="#868686"
+        android:background="@drawable/outfit_save_spinner_background" />
+
+    <EditText
+        android:id="@+id/top_info_et4"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:hint="구매 사이트"
+        android:fontFamily="@font/pretendardmedium"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:paddingLeft="13dp"
+        android:textColorHint="#868686"
+        android:background="@drawable/outfit_save_spinner_background" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/top_info_done_btn"
+        android:layout_width="80dp"
+        android:layout_height="35dp"
+        android:text="완료"
+        android:textSize="15sp"
+        android:fontFamily="@font/pretendardbold"
+        android:textColor="@color/white"
+        android:background="@drawable/rounded_button"
+        android:layout_gravity="end"
+        android:layout_marginTop="16dp" />
+</LinearLayout>
