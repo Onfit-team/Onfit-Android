@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Community
 
 data class CommunityItem(
     val imageResId: Int,

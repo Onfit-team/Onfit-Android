@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.adapter
 
 import android.app.AlertDialog
 import android.util.TypedValue
@@ -9,6 +9,8 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.HomeRegister.model.OutfitItem
+import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem>) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {

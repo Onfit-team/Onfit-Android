@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.databinding.SimiliarStyleItemBinding
-import com.example.onfit.data.model.SimItem
+import com.example.onfit.Home.model.SimItem
 
 class LatestStyleAdapter(private val itemList: List<SimItem>) :
     RecyclerView.Adapter<LatestStyleAdapter.ImageViewHolder>() {

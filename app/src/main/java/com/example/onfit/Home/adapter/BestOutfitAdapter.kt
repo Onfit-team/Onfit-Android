@@ -1,10 +1,10 @@
-package com.example.onfit
+package com.example.onfit.Home.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.Home.model.BestItem
 import com.example.onfit.databinding.BestOutfitItemBinding
-import com.example.onfit.data.model.BestItem
 
 class BestOutfitAdapter(private val itemList: List<BestItem>) :
     RecyclerView.Adapter<BestOutfitAdapter.ImageViewHolder>() {

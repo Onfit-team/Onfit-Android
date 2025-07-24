@@ -1,10 +1,10 @@
-package com.example.onfit
+package com.example.onfit.Home.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.Home.model.SimItem
 import com.example.onfit.databinding.SimiliarStyleItemBinding
-import com.example.onfit.data.model.SimItem
 
 class SimiliarStyleAdapter(private val itemList: List<SimItem>) :
     RecyclerView.Adapter<SimiliarStyleAdapter.ImageViewHolder>() {

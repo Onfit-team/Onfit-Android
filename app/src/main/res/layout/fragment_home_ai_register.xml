@@ -8,7 +8,7 @@
     android:padding="16dp"
     android:orientation="horizontal"
     android:background="@color/white"
-    tools:context=".OutfitRegisterActivity">
+    tools:context=".HomeRegister.fragment.HomeAiRegisterFragment">
 
     <ScrollView
         android:layout_marginTop="24dp"

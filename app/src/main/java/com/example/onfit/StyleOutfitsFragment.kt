@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.onfit.Community.ClothesDetailActivity
 
 class StyleOutfitsFragment : Fragment() {
 

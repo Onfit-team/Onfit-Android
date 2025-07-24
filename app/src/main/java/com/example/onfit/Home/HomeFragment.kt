@@ -1,23 +1,26 @@
-package com.example.onfit
+package com.example.onfit.Home
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.onfit.LatestStyleAdapter
+import com.example.onfit.R
+import com.example.onfit.Home.model.BestItem
+import com.example.onfit.Home.model.SimItem
 import com.example.onfit.databinding.FragmentHomeBinding
+import com.example.onfit.Home.adapter.BestOutfitAdapter
+import com.example.onfit.Home.adapter.SimiliarStyleAdapter
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.onfit.data.model.BestItem
-import com.example.onfit.data.model.SimItem
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 // fragment_home.xml을 사용하는 HomeFragment 정의
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -127,10 +130,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         // 카메라 버튼 클릭
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            val intent = Intent(requireContext(), RegisterActivity::class.java)
-            startActivity(intent)
+            findNavController().navigate(R.id.homeRegisterFragment)
             dialog.dismiss()
         }
+
+
 
         // 사진첩 버튼 클릭
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
