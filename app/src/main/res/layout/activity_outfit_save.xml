@@ -139,64 +139,27 @@
                 android:layout_marginTop="10dp">
 
                 <LinearLayout
-                    android:id="@+id/outfit_save_spinner1"
-                    android:layout_width="153dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/outfit_save_spinner_background"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/outfit_save_spinner_background">
 
-                    <TextView
-                        android:id="@+id/outfit_save_spinner1_tv"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="상의"
-                        android:textSize="15sp"
-                        android:textColor="@color/black"/>
-
-                    <ImageView
-                        android:id="@+id/outfit_save_spinner1_iv"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginLeft="7dp"
-                        android:src="@drawable/arrow_down"
-                        android:contentDescription="드롭다운 화살표"/>
+                    <Spinner
+                        android:id="@+id/outfit_save_spinner1"
+                        android:layout_width="170dp"
+                        android:layout_height="48dp" />
                 </LinearLayout>
 
+
                 <LinearLayout
-                    android:id="@+id/outfit_save_spinner2"
-                    android:layout_width="153dp"
-                    android:layout_height="48dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/outfit_save_spinner_background"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:background="@drawable/outfit_save_spinner_background">
 
-                    <TextView
-                        android:id="@+id/outfit_save_spinner2_tv"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="반팔티"
-                        android:textSize="15sp"
-                        android:textColor="@color/black"/>
-
-                    <ImageView
-                        android:id="@+id/outfit_save_spinner2_iv"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginLeft="7dp"
-                        android:src="@drawable/arrow_down"
-                        android:contentDescription="드롭다운 화살표"/>
+                    <Spinner
+                        android:id="@+id/outfit_save_spinner2"
+                        android:layout_width="170dp"
+                        android:layout_height="48dp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -236,64 +199,26 @@
                 android:layout_marginTop="12dp">
 
                 <LinearLayout
-                    android:id="@+id/outfit_save_spinner3"
-                    android:layout_width="153dp"
-                    android:layout_height="48dp"
-                    android:background="@drawable/outfit_save_spinner_background"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/outfit_save_spinner_background">
 
-                    <TextView
-                        android:id="@+id/outfit_save_spinner3_tv"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="여름"
-                        android:textSize="15sp"
-                        android:textColor="@color/black"/>
-
-                    <ImageView
-                        android:id="@+id/outfit_save_spinner3_iv"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginLeft="7dp"
-                        android:src="@drawable/arrow_down"
-                        android:contentDescription="드롭다운 화살표"/>
+                    <Spinner
+                        android:id="@+id/outfit_save_spinner3"
+                        android:layout_width="170dp"
+                        android:layout_height="48dp" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/outfit_save_spinner4"
-                    android:layout_width="153dp"
-                    android:layout_height="48dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
-                    android:background="@drawable/outfit_save_spinner_background"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:background="@drawable/outfit_save_spinner_background">
 
-                    <TextView
-                        android:id="@+id/outfit_save_spinner4_tv"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="베이지/브라운"
-                        android:textSize="15sp"
-                        android:textColor="@color/black"/>
-
-                    <ImageView
-                        android:id="@+id/outfit_save_spinner4_iv"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginLeft="7dp"
-                        android:src="@drawable/arrow_down"
-                        android:contentDescription="드롭다운 화살표"/>
+                    <Spinner
+                        android:id="@+id/outfit_save_spinner4"
+                        android:layout_width="170dp"
+                        android:layout_height="48dp" />
                 </LinearLayout>
             </LinearLayout>
 
