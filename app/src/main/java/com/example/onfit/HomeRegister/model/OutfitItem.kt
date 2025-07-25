@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.model
 
 data class OutfitItem(
     val imageResId: Int,

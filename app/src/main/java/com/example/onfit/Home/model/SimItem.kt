@@ -1,4 +1,4 @@
-package com.example.onfit.data.model
+package com.example.onfit.Home.model
 
 data class SimItem(
     val imageResId: Int,   // drawable 리소스 ID

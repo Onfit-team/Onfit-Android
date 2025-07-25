@@ -1,7 +1,8 @@
-package com.example.onfit
+package com.example.onfit.Community
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.onfit.R
 
 class ClothesDetailActivity : AppCompatActivity() {
 

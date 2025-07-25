@@ -1,14 +1,22 @@
-package com.example.onfit
+package com.example.onfit.Community
 
-import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.*
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import com.example.onfit.AddItemActivity
+import com.example.onfit.R
 
 class ClothesDetailFragment : Fragment() {
 
@@ -81,18 +89,18 @@ class ClothesDetailFragment : Fragment() {
 
     private fun showDeleteConfirmDialog() {
         // 커스텀 다이얼로그 생성
-        val dialog = android.app.Dialog(requireContext())
-        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
 
         // 메인 레이아웃 (하얀색 배경, 294*132)
         val mainLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(30, 60, 30, 60)
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER
 
             // 외부 배경 (하얀색, border radius 8.09dp)
-            val outerDrawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(android.graphics.Color.WHITE)
+            val outerDrawable = GradientDrawable().apply {
+                setColor(Color.WHITE)
                 cornerRadius = 8.09f * resources.displayMetrics.density
             }
             background = outerDrawable
@@ -109,9 +117,9 @@ class ClothesDetailFragment : Fragment() {
         val messageText = TextView(requireContext()).apply {
             text = "이 아이템을 삭제하겠습니까?"
             textSize = 17f
-            setTextColor(android.graphics.Color.BLACK)
-            gravity = android.view.Gravity.CENTER
-            typeface = android.graphics.Typeface.DEFAULT_BOLD // PretendardSemiBold 대신
+            setTextColor(Color.BLACK)
+            gravity = Gravity.CENTER
+            typeface = Typeface.DEFAULT_BOLD // PretendardSemiBold 대신
 
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -125,7 +133,7 @@ class ClothesDetailFragment : Fragment() {
         // 버튼 컨테이너
         val buttonLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER
 
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -139,13 +147,13 @@ class ClothesDetailFragment : Fragment() {
         // 예 버튼 (127*38 dp)
         val yesButton = Button(requireContext()).apply {
             text = "예"
-            setTextColor(android.graphics.Color.WHITE)
+            setTextColor(Color.WHITE)
             textSize = 16.17f // PretendardSemiBold 16.17sp
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            typeface = Typeface.DEFAULT_BOLD
 
             // 파란색 배경 (border radius 4.04dp)
-            val buttonDrawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(android.graphics.Color.parseColor("#007AFF"))
+            val buttonDrawable = GradientDrawable().apply {
+                setColor(Color.parseColor("#007AFF"))
                 cornerRadius = 4.04f * resources.displayMetrics.density
             }
             background = buttonDrawable
@@ -168,13 +176,13 @@ class ClothesDetailFragment : Fragment() {
         // 아니오 버튼 (127*38 dp)
         val noButton = Button(requireContext()).apply {
             text = "아니오"
-            setTextColor(android.graphics.Color.WHITE)
+            setTextColor(Color.WHITE)
             textSize = 16.17f // PretendardSemiBold 16.17sp
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            typeface = Typeface.DEFAULT_BOLD
 
             // 파란색 배경 (border radius 4.04dp)
-            val buttonDrawable = android.graphics.drawable.GradientDrawable().apply {
-                setColor(android.graphics.Color.parseColor("#007AFF"))
+            val buttonDrawable = GradientDrawable().apply {
+                setColor(Color.parseColor("#007AFF"))
                 cornerRadius = 4.04f * resources.displayMetrics.density
             }
             background = buttonDrawable
@@ -205,7 +213,7 @@ class ClothesDetailFragment : Fragment() {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         }
 
         dialog.show()
