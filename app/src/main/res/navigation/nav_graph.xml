@@ -7,7 +7,7 @@
     <!-- 홈프래그먼트 -->
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.onfit.HomeFragment"
+        android:name="com.example.onfit.Home.HomeFragment"
         android:label="홈"/>
 
     <fragment
@@ -22,7 +22,7 @@
 
     <fragment
         android:id="@+id/communityFragemnt"
-        android:name="com.example.onfit.CommunityFragment"
+        android:name="com.example.onfit.Community.CommunityFragment"
         android:label="커뮤니티"/>
 
     <fragment
@@ -32,8 +32,28 @@
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
-        android:name="com.example.onfit.Wardrobe.fragment.StyleOutfitsFragment"
+        android:name="com.example.onfit.StyleOutfitsFragment"
         android:label="스타일별 Outfit"/>
+
+    <fragment
+        android:id="@+id/homeRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeRegisterFragment"
+        android:label="Outfit 등록" />
+
+    <fragment
+        android:id="@+id/homeSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeSaveFragment"
+        android:label="Outfit 미리보기" />
+
+    <fragment
+        android:id="@+id/homeAiRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiRegisterFragment"
+        android:label="AI 추출 아이템" />
+
+    <fragment
+        android:id="@+id/homeAiSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
+        android:label="세부 저장 화면" />
 
     <fragment
         android:id="@+id/wardrobeSearchFragment"
@@ -52,22 +72,6 @@
             android:id="@+id/action_clothesDetailFragment_to_addItemFragment"
             app:destination="@id/addItemFragment" />
     </fragment>
-
-    <fragment
-        android:id="@+id/addItemFragment"
-        android:name="com.example.onfit.Wardrobe.fragment.AddItemFragment"
-        android:label="AddItemFragment"
-        tools:layout="@layout/fragment_add_item">
-        <argument
-            android:name="edit_mode"
-            app:argType="boolean"
-            android:defaultValue="false" />
-        <argument
-            android:name="image_res_id"
-            app:argType="integer"
-            android:defaultValue="0" />
-    </fragment>
-
 
     <fragment
         android:id="@+id/addItemFragment"
