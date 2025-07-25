@@ -17,7 +17,7 @@
 
     <fragment
         android:id="@+id/calendarFragemnt"
-        android:name="com.example.onfit.calendar.CalendarFragment"
+        android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"/>
 
     <fragment

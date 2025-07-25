@@ -1,77 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/bottom_sheet_root"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bottom_sheet_bg"
+    android:background="@drawable/bottom_sheet_background"
     android:padding="24dp">
 
     <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="아이템 등록하기"
         android:textSize="17sp"
         android:fontFamily="@font/pretendardbold"
-        android:layout_marginBottom="16dp"
-        android:layout_gravity="center"/>
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="24dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="center"
+        android:orientation="horizontal"
         android:layout_marginBottom="8dp">
 
+        <!-- 카메라 버튼 -->
         <LinearLayout
-            android:id="@+id/camera_btn"
-            android:layout_width="91dp"
-            android:layout_height="87dp"
+            android:id="@+id/camera_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:background="@drawable/gray_background"
             android:layout_marginRight="15dp"
-            android:padding="10dp">
+            android:clickable="true"
+            android:focusable="true">
 
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/video"/>
+            <LinearLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/gray_background"
+                android:layout_marginBottom="8dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="카메라"
-                android:fontFamily="@font/pretendardsemibold"
-                android:textColor="#BCBCBC"
-                android:textSize="13sp"/>
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_camera"
+                    android:contentDescription="카메라" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="카메라"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/intersemibold"
+                    android:textColor="#A0A0A0"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- 사진첩 버튼 -->
         <LinearLayout
-            android:id="@+id/gallery_btn"
-            android:layout_width="91dp"
-            android:layout_height="87dp"
+            android:id="@+id/gallery_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:background="@drawable/gray_background"
             android:layout_marginLeft="15dp"
-            android:padding="10dp">
+            android:clickable="true"
+            android:focusable="true">
 
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/gallery"/>
+            <LinearLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/gray_background"
+                android:layout_marginBottom="8dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="사진첩"
-                android:fontFamily="@font/pretendardsemibold"
-                android:textColor="#BCBCBC"
-                android:textSize="13sp"/>
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_gallery"
+                    android:contentDescription="사진첩" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="사진첩"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/intersemibold"
+                    android:textColor="#A0A0A0"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center" />
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
 </LinearLayout>

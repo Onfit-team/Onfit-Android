@@ -1,4 +1,4 @@
-package com.example.onfit.calendar
+package com.example.onfit.calendar.adapter
 
 import android.view.LayoutInflater
 import android.view.View

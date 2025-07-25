@@ -18,7 +18,7 @@ import android.widget.RelativeLayout
 import com.example.onfit.R
 import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
-class WardrobeFragment : Fragment() {
+open class WardrobeFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: WardrobeAdapter
