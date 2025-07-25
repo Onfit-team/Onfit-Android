@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
     <!-- 홈프래그먼트 -->
@@ -33,5 +34,54 @@
         android:id="@+id/styleOutfitsFragment"
         android:name="com.example.onfit.StyleOutfitsFragment"
         android:label="스타일별 Outfit"/>
+
+    <fragment
+        android:id="@+id/wardrobeSearchFragment"
+        android:name="com.example.onfit.WardrobeSearchFragment"
+        android:label="WardrobeSearchFragment" />
+
+    <fragment
+        android:id="@+id/clothesDetailFragment"
+        android:name="com.example.onfit.ClothesDetailFragment"
+        android:label="ClothesDetailFragment"
+        tools:layout="@layout/fragment_clothes_detail">
+        <argument
+            android:name="image_res_id"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_clothesDetailFragment_to_addItemFragment"
+            app:destination="@id/addItemFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addItemFragment"
+        android:name="com.example.onfit.AddItemFragment"
+        android:label="AddItemFragment"
+        tools:layout="@layout/fragment_add_item">
+        <argument
+            android:name="edit_mode"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <argument
+            android:name="image_res_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/addItemFragment"
+        android:name="com.example.onfit.AddItemFragment"
+        android:label="AddItemFragment"
+        tools:layout="@layout/fragment_add_item">
+        <argument
+            android:name="edit_mode"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <argument
+            android:name="image_res_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 
 </navigation>

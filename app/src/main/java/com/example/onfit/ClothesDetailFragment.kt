@@ -1,7 +1,5 @@
 package com.example.onfit
 
-import android.app.AlertDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.*
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 
 class ClothesDetailFragment : Fragment() {
 
@@ -38,20 +37,19 @@ class ClothesDetailFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // 이미 존재하는 fragment_clothes_detail 레이아웃 사용
         return inflater.inflate(R.layout.fragment_clothes_detail, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 뒤로가기 버튼 (있다면)
+        // 뒤로가기 버튼
         val backButton = view.findViewById<ImageButton>(R.id.ic_back)
         backButton?.setOnClickListener {
-            requireActivity().finish()
+            findNavController().navigateUp()
         }
 
-        // 편집 버튼 클릭 리스너
+        // 편집 버튼 클릭 리스너 - AddItemFragment로 이동
         val editButton = view.findViewById<ImageButton>(R.id.ic_edit)
         editButton?.setOnClickListener {
             navigateToAddItem()
@@ -63,20 +61,30 @@ class ClothesDetailFragment : Fragment() {
             showDeleteConfirmDialog()
         }
 
-        // 이미지 설정 (실제 레이아웃의 ID로 변경 필요)
-        val clothesImageView = view.findViewById<ImageView>(R.id.clothes_image) // 또는 실제 ID
+        // 이미지 설정
+        val clothesImageView = view.findViewById<ImageView>(R.id.clothes_image)
         clothesImageView?.setImageResource(imageResId)
+    }
 
-        // 여기에 상세 페이지 로직 추가
-        // 옷 정보, 태그, 버튼들 등
+    override fun onResume() {
+        super.onResume()
+        // 바텀네비게이션 숨기기
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 바텀네비게이션 다시 보이기
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
     private fun navigateToAddItem() {
-        // AddItemActivity로 이동 (편집 모드)
-        val intent = Intent(requireContext(), AddItemActivity::class.java)
-        intent.putExtra("edit_mode", true) // 편집 모드임을 전달
-        intent.putExtra("image_res_id", imageResId) // 현재 이미지 정보 전달
-        startActivity(intent)
+        // AddItemFragment로 이동 (편집 모드)
+        val bundle = Bundle().apply {
+            putBoolean("edit_mode", true) // 편집 모드임을 전달
+            putInt("image_res_id", imageResId) // 현재 이미지 정보 전달
+        }
+        findNavController().navigate(R.id.addItemFragment, bundle)
     }
 
     private fun showDeleteConfirmDialog() {
@@ -111,7 +119,7 @@ class ClothesDetailFragment : Fragment() {
             textSize = 17f
             setTextColor(android.graphics.Color.BLACK)
             gravity = android.view.Gravity.CENTER
-            typeface = android.graphics.Typeface.DEFAULT_BOLD // PretendardSemiBold 대신
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
 
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -140,7 +148,7 @@ class ClothesDetailFragment : Fragment() {
         val yesButton = Button(requireContext()).apply {
             text = "예"
             setTextColor(android.graphics.Color.WHITE)
-            textSize = 16.17f // PretendardSemiBold 16.17sp
+            textSize = 16.17f
             typeface = android.graphics.Typeface.DEFAULT_BOLD
 
             // 파란색 배경 (border radius 4.04dp)
@@ -169,7 +177,7 @@ class ClothesDetailFragment : Fragment() {
         val noButton = Button(requireContext()).apply {
             text = "아니오"
             setTextColor(android.graphics.Color.WHITE)
-            textSize = 16.17f // PretendardSemiBold 16.17sp
+            textSize = 16.17f
             typeface = android.graphics.Typeface.DEFAULT_BOLD
 
             // 파란색 배경 (border radius 4.04dp)
@@ -212,12 +220,7 @@ class ClothesDetailFragment : Fragment() {
     }
 
     private fun deleteItem() {
-        // 실제 삭제 로직 구현
-        // 예: 데이터베이스에서 삭제, 서버에 삭제 요청 등
-
         Toast.makeText(requireContext(), "아이템이 삭제되었습니다", Toast.LENGTH_SHORT).show()
-
-        // 이전 화면으로 돌아가기
-        requireActivity().finish()
+        findNavController().navigateUp()
     }
 }

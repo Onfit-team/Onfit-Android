@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.navigation.fragment.findNavController
 
 class StyleOutfitsFragment : Fragment() {
 
@@ -80,16 +81,13 @@ class StyleOutfitsFragment : Fragment() {
         rvOutfitItems.adapter = wardrobeAdapter
     }
 
+
     private fun navigateToClothesDetail(imageResId: Int) {
-        // WardrobeFragment와 동일한 방식으로 ClothesDetailActivity로 이동
-        try {
-            val intent = Intent(requireContext(), ClothesDetailActivity::class.java)
-            intent.putExtra("image_res_id", imageResId)
-            startActivity(intent)
-        } catch (e: Exception) {
-            // ClothesDetailActivity가 없는 경우 무시
-            e.printStackTrace()
+        // ClothesDetailFragment로 이동 (Fragment Navigation 사용)
+        val bundle = Bundle().apply {
+            putInt("image_res_id", imageResId) // 이미지 리소스 ID 전달
         }
+        findNavController().navigate(R.id.clothesDetailFragment, bundle)
     }
 
     private fun setupStyleFilters() {

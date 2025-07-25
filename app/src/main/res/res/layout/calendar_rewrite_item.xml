@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <FrameLayout
+        android:layout_width="109dp"
+        android:layout_height="106dp"
+        android:layout_marginLeft="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <ImageView
+            android:id="@+id/item_calendar_rewrite_iv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/calendar_save_image2"
+            android:background="@drawable/rounded_gray_bg"
+            android:clipToOutline="true"
+            android:outlineProvider="background" />
+
+        <ImageButton
+            android:id="@+id/item_calendar_rewrite_remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/x_circle"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_gravity="top|end"/>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

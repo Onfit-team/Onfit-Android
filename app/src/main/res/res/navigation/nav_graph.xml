@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+    <!-- 홈프래그먼트 -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.onfit.HomeFragment"
+        android:label="홈"/>
+
+    <fragment
+        android:id="@+id/wardrobeFragemnt"
+        android:name="com.example.onfit.WardrobeFragment"
+        android:label="옷장"/>
+
+    <fragment
+        android:id="@+id/calendarFragemnt"
+        android:name="com.example.onfit.CalendarFragment"
+        android:label="캘린더"/>
+
+    <fragment
+        android:id="@+id/communityFragemnt"
+        android:name="com.example.onfit.CommunityFragment"
+        android:label="커뮤니티"/>
+
+    <fragment
+        android:id="@+id/mypageFragemnt"
+        android:name="com.example.onfit.MyPageFragment"
+        android:label="마이페이지"/>
+
+    <fragment
+        android:id="@+id/styleOutfitsFragment"
+        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:label="스타일별 Outfit"/>
+
+</navigation>

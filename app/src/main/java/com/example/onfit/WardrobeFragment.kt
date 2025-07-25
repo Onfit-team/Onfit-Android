@@ -1,6 +1,5 @@
 package com.example.onfit
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +8,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
@@ -16,6 +16,8 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RelativeLayout
+import com.example.onfit.WardrobeSearchFragment
+import com.example.onfit.ClothesDetailFragment
 
 class WardrobeFragment : Fragment() {
 
@@ -76,7 +78,7 @@ class WardrobeFragment : Fragment() {
             bottomSheet.show(parentFragmentManager, bottomSheet.tag)
         }
 
-        // 검색 아이콘 클릭 리스너 추가
+        // 검색 아이콘 클릭 리스너 - Fragment로 변경
         val searchIcon = view.findViewById<ImageButton>(R.id.ic_search)
         searchIcon?.setOnClickListener {
             navigateToWardrobeSearch()
@@ -84,9 +86,8 @@ class WardrobeFragment : Fragment() {
     }
 
     private fun navigateToWardrobeSearch() {
-        // WardrobeSearchActivity로 이동
-        val intent = Intent(requireContext(), WardrobeSearchActivity::class.java)
-        startActivity(intent)
+        // WardrobeSearchFragment로 이동 (변경됨)
+        findNavController().navigate(R.id.wardrobeSearchFragment)
     }
 
     private fun initializeViews(view: View) {
@@ -105,10 +106,11 @@ class WardrobeFragment : Fragment() {
     }
 
     private fun navigateToClothesDetail(imageResId: Int) {
-        // ClothesDetailActivity로 이동
-        val intent = Intent(requireContext(), ClothesDetailActivity::class.java)
-        intent.putExtra("image_res_id", imageResId) // 이미지 리소스 ID 전달
-        startActivity(intent)
+        // ClothesDetailFragment로 이동 (변경됨)
+        val bundle = Bundle().apply {
+            putInt("image_res_id", imageResId) // 이미지 리소스 ID 전달
+        }
+        findNavController().navigate(R.id.clothesDetailFragment, bundle)
     }
 
     private fun setupTopCategoryButtons(view: View) {

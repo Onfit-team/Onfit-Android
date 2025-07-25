@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.google.android.flexbox.FlexboxLayout
 
 class WardrobeSearchFragment : Fragment() {
@@ -52,6 +53,18 @@ class WardrobeSearchFragment : Fragment() {
         setupListeners()
         setupSpinners()
         setupButtons()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 바텀네비게이션 숨기기
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 바텀네비게이션 다시 보이기
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
     private fun initViews(view: View) {
@@ -109,9 +122,10 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        // Back button - Activity 종료로 변경
+        // Back button - Navigation으로 뒤로가기 (수정됨)
         icBack.setOnClickListener {
-            requireActivity().finish()
+            findNavController().navigateUp()
+            // 또는 parentFragmentManager.popBackStack() 사용
         }
 
         // Brand dropdown
@@ -152,6 +166,95 @@ class WardrobeSearchFragment : Fragment() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 selectedColor = ""
             }
+        }
+
+        // 색상 스피너 컨테이너와 화살표 클릭 이벤트 추가
+        setupColorSpinnerClick()
+    }
+
+    private fun setupColorSpinnerClick() {
+        // 색상 스피너가 포함된 LinearLayout 찾기
+        val colorSpinnerContainer = spinnerColor.parent as? LinearLayout
+
+        // 드롭다운 위치 조정
+        spinnerColor.setOnTouchListener { _, _ ->
+            spinnerColor.post {
+                adjustColorDropdownPosition(spinnerColor, colorSpinnerContainer)
+            }
+            false
+        }
+
+        // 전체 컨테이너 클릭 시 스피너 열기
+        colorSpinnerContainer?.setOnClickListener {
+            spinnerColor.performClick()
+        }
+
+        // 컨테이너 내의 ImageView(화살표) 클릭 시도 스피너 열기
+        colorSpinnerContainer?.let { container ->
+            for (i in 0 until container.childCount) {
+                val child = container.getChildAt(i)
+                if (child is ImageView) {
+                    child.setOnClickListener {
+                        spinnerColor.performClick()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun adjustColorDropdownPosition(spinner: Spinner, spinnerContainer: LinearLayout?) {
+        if (spinnerContainer == null) return
+
+        try {
+            val popupField = Spinner::class.java.getDeclaredField("mPopup")
+            popupField.isAccessible = true
+            val popupWindow = popupField.get(spinner) ?: return
+
+            // 스피너와 컨테이너의 실제 위치 계산
+            val spinnerLocation = IntArray(2)
+            val containerLocation = IntArray(2)
+
+            spinner.getLocationOnScreen(spinnerLocation)
+            spinnerContainer.getLocationOnScreen(containerLocation)
+
+            // 가로: 스피너가 컨테이너 왼쪽 경계로부터 얼마나 떨어져 있는지 계산
+            // 빨간색 박스(컨테이너)의 왼쪽 경계에서 시작하도록 조정
+            val horizontalOffsetToContainerLeft = spinnerLocation[0] - containerLocation[0]
+
+            // 세로: -16dp 적용 (박스 위로 살짝 올리기)
+            val verticalOffset = -(16 * resources.displayMetrics.density).toInt()
+
+            android.util.Log.d("ColorSpinner", "Spinner pos: ${spinnerLocation[0]}, Container pos: ${containerLocation[0]}")
+            android.util.Log.d("ColorSpinner", "Container width: ${spinnerContainer.width}")
+            android.util.Log.d("ColorSpinner", "Horizontal offset to container left: $horizontalOffsetToContainerLeft")
+
+            // 컨테이너 너비로 드롭다운 너비 설정 (빨간색 박스와 동일한 너비)
+            val containerWidth = spinnerContainer.width
+            val setWidthMethod = popupWindow.javaClass.getMethod("setWidth", Int::class.java)
+            setWidthMethod.invoke(popupWindow, containerWidth)
+
+            // 높이 제한
+            val maxHeight = (250 * resources.displayMetrics.density).toInt()
+            val setHeightMethod = popupWindow.javaClass.getMethod("setHeight", Int::class.java)
+            setHeightMethod.invoke(popupWindow, maxHeight)
+
+            // 가로 위치: 빨간색 박스(컨테이너)의 왼쪽 경계에서 시작
+            val setHorizontalOffsetMethod = popupWindow.javaClass.getMethod("setHorizontalOffset", Int::class.java)
+            setHorizontalOffsetMethod.invoke(popupWindow, -horizontalOffsetToContainerLeft)
+
+            // 세로 위치: -16dp 적용
+            try {
+                val setVerticalOffsetMethod = popupWindow.javaClass.getMethod("setVerticalOffset", Int::class.java)
+                setVerticalOffsetMethod.invoke(popupWindow, verticalOffset)
+                android.util.Log.d("ColorSpinner", "Vertical offset applied: $verticalOffset")
+            } catch (e: Exception) {
+                android.util.Log.e("ColorSpinner", "Vertical offset failed: ${e.message}")
+            }
+
+            android.util.Log.d("ColorSpinner", "Color dropdown positioned at container left edge")
+
+        } catch (e: Exception) {
+            android.util.Log.e("ColorSpinner", "Failed to adjust color dropdown: ${e.message}")
         }
     }
 
@@ -366,8 +469,9 @@ class WardrobeSearchFragment : Fragment() {
 
         Toast.makeText(requireContext(), filterSummary, Toast.LENGTH_LONG).show()
 
-        // Navigate back to previous screen
-        requireActivity().finish()
+        // Navigate back to previous screen (수정됨)
+        findNavController().navigateUp()
+        // 또는 parentFragmentManager.popBackStack() 사용
     }
 
     // Function to reset all filters
