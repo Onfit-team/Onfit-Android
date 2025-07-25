@@ -22,18 +22,6 @@
             android:name=".CalendarSaveActivity"
             android:exported="false" />
         <activity
-            android:name=".OutfitSaveActivity"
-            android:exported="false" />
-        <activity
-            android:name=".OutfitRegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SaveActivity"
-            android:exported="false" />
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -49,7 +37,7 @@
             android:name=".WardrobeSearchActivity"
             android:exported="false" />
         <activity
-            android:name=".ClothesDetailActivity"
+            android:name=".Community.ClothesDetailActivity"
             android:exported="false" />
     </application>
 

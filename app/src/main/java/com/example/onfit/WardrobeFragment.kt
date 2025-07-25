@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.RelativeLayout
+import com.example.onfit.Community.ClothesDetailActivity
 
 open class WardrobeFragment : Fragment() {
 
