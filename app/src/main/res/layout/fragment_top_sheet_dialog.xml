@@ -31,7 +31,9 @@
         android:fontFamily="@font/pretendardmedium"
         android:background="@drawable/rounded_gray_bg"
         android:gravity="top|start"
-        android:textColor="#BCBCBC"
+        android:hint="오늘의 Outfit을 기록해보세요."
+        android:textColorHint="#BCBCBC"
+        android:textColor="@color/black"
         android:maxLength="100"
         android:padding="12dp" />
 

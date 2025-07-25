@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:orientation="horizontal"
-    tools:context=".CalendarSaveActivity">
+    tools:context=".RegisterActivity">
 
     <FrameLayout
         android:id="@+id/register_container"

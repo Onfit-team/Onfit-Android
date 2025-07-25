@@ -19,16 +19,11 @@ class TopSheetDialogFragment : DialogFragment() {
         fun onMemoDone(memoText: String)
     }
 
-    private var listener: OnMemoDoneListener? = null
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnMemoDoneListener) {
-            listener = context
-        } else {
-            throw RuntimeException("$context must implement OnMemoDoneListener")
-        }
+    fun setOnMemoDoneListener(listener: OnMemoDoneListener) {
+        this.listener = listener
     }
+
+    private var listener: OnMemoDoneListener? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = Dialog(requireContext(), R.style.TopSheetDialog)
