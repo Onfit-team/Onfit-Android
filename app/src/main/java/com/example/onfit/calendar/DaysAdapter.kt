@@ -1,13 +1,11 @@
-package com.example.onfit
+package com.example.onfit.calendar
 
-import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.onfit.DayData
+import com.example.onfit.R
 
 class DaysAdapter(
     private val days: List<DayData>,

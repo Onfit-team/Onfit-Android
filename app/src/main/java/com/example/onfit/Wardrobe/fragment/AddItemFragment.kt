@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.R
 
 class AddItemFragment : Fragment() {
 

@@ -1,10 +1,11 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.adapter
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.R
 
 class WardrobeAdapter(
     private val imageList: List<Int>,

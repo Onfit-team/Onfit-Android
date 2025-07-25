@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.calendar
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,9 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.onfit.DaysAdapter
 import com.example.onfit.R
-import com.example.onfit.MonthData
 import java.util.*
 
 class CalendarAdapter(

@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.fragment
 
 import android.app.AlertDialog
 import android.os.Bundle
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.onfit.R
 
 class DetailClothesFragment : Fragment() {
 

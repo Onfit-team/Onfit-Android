@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.R
 import com.google.android.flexbox.FlexboxLayout
 
 class WardrobeSearchFragment : Fragment() {
@@ -30,7 +31,7 @@ class WardrobeSearchFragment : Fragment() {
 
     // Data
     private val colorOptions = arrayOf("색상 선택", "블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플")
-    private val brandOptions = arrayOf("아디다스", "나이키", "자라", "유니클로", "H&M", "무인사", "SPAO")
+    private val brandOptions = arrayOf("아디다스", "나이키", "자라", "유니클로", "H&M", "무신사", "SPAO")
 
     private var selectedSeason = ""
     private var selectedColor = ""

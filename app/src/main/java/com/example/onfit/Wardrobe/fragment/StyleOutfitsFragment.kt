@@ -1,6 +1,5 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.fragment
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,8 +12,9 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.R
+import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
 class StyleOutfitsFragment : Fragment() {
 

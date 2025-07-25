@@ -11,12 +11,12 @@
 
     <fragment
         android:id="@+id/wardrobeFragemnt"
-        android:name="com.example.onfit.WardrobeFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.WardrobeFragment"
         android:label="옷장"/>
 
     <fragment
         android:id="@+id/calendarFragemnt"
-        android:name="com.example.onfit.CalendarFragment"
+        android:name="com.example.onfit.calendar.CalendarFragment"
         android:label="캘린더"/>
 
     <fragment
@@ -31,7 +31,7 @@
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
-        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.StyleOutfitsFragment"
         android:label="스타일별 Outfit"/>
 
 </navigation>

@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Wardrobe.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,10 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.RelativeLayout
-import com.example.onfit.WardrobeSearchFragment
-import com.example.onfit.ClothesDetailFragment
+import com.example.onfit.R
+import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
 class WardrobeFragment : Fragment() {
 
