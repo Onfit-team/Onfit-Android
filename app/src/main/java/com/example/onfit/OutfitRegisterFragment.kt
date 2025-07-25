@@ -35,7 +35,13 @@ class OutfitRegisterFragment : Fragment() {
                 OutfitItem(R.drawable.outfit_shoes)
             )
         )
-        adapter = OutfitAdapter(outfitList)
+        adapter = OutfitAdapter(outfitList) {
+            // 여기서 Fragment 전환 처리
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.register_container, OutfitSelectFragment()) // OutfitSelectFragment로 전환
+                .addToBackStack(null)
+                .commit()
+        }
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
 

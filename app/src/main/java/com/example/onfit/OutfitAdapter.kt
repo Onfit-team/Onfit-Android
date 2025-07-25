@@ -10,7 +10,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
-class OutfitAdapter(private val items: MutableList<OutfitItem>) :
+class OutfitAdapter(private val items: MutableList<OutfitItem>,
+                    private val onClosetButtonClick: () -> Unit,) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
@@ -38,8 +39,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>) :
         holder.closetBtn.setImageResource(btnImageRes)
 
         holder.closetBtn.setOnClickListener {
-            item.isClosetButtonActive = false
-            notifyItemChanged(position)
+            if (item.isClosetButtonActive) {
+                item.isClosetButtonActive = false
+                notifyItemChanged(position)
+                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
+            }
         }
 
         // x 버튼 눌렀을 때 아이템 삭제
