@@ -55,6 +55,27 @@
         android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
         android:label="세부 저장 화면" />
 
+
+    <fragment
+        android:id="@+id/homeRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeRegisterFragment"
+        android:label="Outfit 등록" />
+
+    <fragment
+        android:id="@+id/homeSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeSaveFragment"
+        android:label="Outfit 미리보기" />
+
+    <fragment
+        android:id="@+id/homeAiRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiRegisterFragment"
+        android:label="AI 추출 아이템" />
+
+    <fragment
+        android:id="@+id/homeAiSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
+        android:label="세부 저장 화면" />
+
     <fragment
         android:id="@+id/wardrobeSearchFragment"
         android:name="com.example.onfit.Wardrobe.fragment.WardrobeSearchFragment"

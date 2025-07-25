@@ -1,5 +1,6 @@
-package com.example.onfit.Wardrobe.fragment
+package com.example.onfit
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
-import androidx.navigation.fragment.findNavController
-import com.example.onfit.R
-import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
+import com.example.onfit.Community.ClothesDetailActivity
 
 class StyleOutfitsFragment : Fragment() {
 
@@ -81,13 +80,16 @@ class StyleOutfitsFragment : Fragment() {
         rvOutfitItems.adapter = wardrobeAdapter
     }
 
-
     private fun navigateToClothesDetail(imageResId: Int) {
-        // ClothesDetailFragment로 이동 (Fragment Navigation 사용)
-        val bundle = Bundle().apply {
-            putInt("image_res_id", imageResId) // 이미지 리소스 ID 전달
+        // WardrobeFragment와 동일한 방식으로 ClothesDetailActivity로 이동
+        try {
+            val intent = Intent(requireContext(), ClothesDetailActivity::class.java)
+            intent.putExtra("image_res_id", imageResId)
+            startActivity(intent)
+        } catch (e: Exception) {
+            // ClothesDetailActivity가 없는 경우 무시
+            e.printStackTrace()
         }
-        findNavController().navigate(R.id.clothesDetailFragment, bundle)
     }
 
     private fun setupStyleFilters() {
