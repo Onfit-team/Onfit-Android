@@ -10,7 +10,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
-class OutfitAdapter(private val items: MutableList<OutfitItem>,
+class OutfitAdapter(private val items: MutableList<OutfitItem2>,
                     private val onClosetButtonClick: () -> Unit,) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -88,7 +88,7 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>,
 
     override fun getItemCount(): Int = items.size
 
-    fun addItem(item: OutfitItem) {
+    fun addItem(item: OutfitItem2) {
         items.add(item)
         notifyItemInserted(items.size - 1)
     }
