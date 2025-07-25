@@ -1,0 +1,67 @@
+package com.example.onfit
+
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.onfit.databinding.FragmentOutfitRegisterBinding
+
+
+class OutfitRegisterFragment : Fragment() {
+    private var _binding: FragmentOutfitRegisterBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var adapter: OutfitAdapter
+    private val outfitList = mutableListOf<OutfitItem>()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        _binding = FragmentOutfitRegisterBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // 더미 데이터 추가
+        outfitList.addAll(
+            listOf(
+                OutfitItem(R.drawable.outfit_top),
+                OutfitItem(R.drawable.outfit_pants),
+                OutfitItem(R.drawable.outfit_shoes)
+            )
+        )
+        adapter = OutfitAdapter(outfitList)
+        binding.outfitRegisterRv.adapter = adapter
+        binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
+
+        // + 버튼 누르면 이미지 추가
+        binding.outfitRegisterAddButton.setOnClickListener {
+            val newItem = OutfitItem(R.drawable.sun)
+            adapter.addItem(newItem)
+        }
+
+        // OutfitSave 화면으로 이동
+        binding.outfitRegisterSaveBtn.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.register_container, OutfitSaveFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        // 뒤로가기
+        binding.outfitRegisterBackBtn.setOnClickListener {
+            activity?.onBackPressedDispatcher?.onBackPressed()
+        }
+
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
