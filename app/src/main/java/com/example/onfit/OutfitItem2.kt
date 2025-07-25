@@ -1,4 +1,3 @@
-package com.example.onfit
 
 data class OutfitItem2(
     val imageResId: Int,

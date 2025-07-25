@@ -76,13 +76,6 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
-
-            // 다이얼로그 너비를 294dp로 설정
-            val width = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 294f, holder.itemView.context.resources.displayMetrics
-            ).toInt()
-
-            dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 

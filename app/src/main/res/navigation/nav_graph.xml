@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
     <!-- 홈프래그먼트 -->
@@ -11,12 +12,12 @@
 
     <fragment
         android:id="@+id/wardrobeFragemnt"
-        android:name="com.example.onfit.WardrobeFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.WardrobeFragment"
         android:label="옷장"/>
 
     <fragment
         android:id="@+id/calendarFragemnt"
-        android:name="com.example.onfit.CalendarFragment"
+        android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"/>
 
     <fragment
@@ -54,5 +55,58 @@
         android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
         android:label="세부 저장 화면" />
 
+
+    <fragment
+        android:id="@+id/homeRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeRegisterFragment"
+        android:label="Outfit 등록" />
+
+    <fragment
+        android:id="@+id/homeSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeSaveFragment"
+        android:label="Outfit 미리보기" />
+
+    <fragment
+        android:id="@+id/homeAiRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiRegisterFragment"
+        android:label="AI 추출 아이템" />
+
+    <fragment
+        android:id="@+id/homeAiSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
+        android:label="세부 저장 화면" />
+
+    <fragment
+        android:id="@+id/wardrobeSearchFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.WardrobeSearchFragment"
+        android:label="WardrobeSearchFragment" />
+
+    <fragment
+        android:id="@+id/clothesDetailFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.ClothesDetailFragment"
+        android:label="ClothesDetailFragment"
+        tools:layout="@layout/fragment_clothes_detail">
+        <argument
+            android:name="image_res_id"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_clothesDetailFragment_to_addItemFragment"
+            app:destination="@id/addItemFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addItemFragment"
+        android:name="com.example.onfit.Wardrobe.fragment.AddItemFragment"
+        android:label="AddItemFragment"
+        tools:layout="@layout/fragment_add_item">
+        <argument
+            android:name="edit_mode"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <argument
+            android:name="image_res_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 
 </navigation>
