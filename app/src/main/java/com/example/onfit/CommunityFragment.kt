@@ -2,11 +2,16 @@ package com.example.onfit
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.onfit.databinding.FragmentCommunityBinding
@@ -68,24 +73,59 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
 
         // 날짜 설정
         val today = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("MM월 dd일")
+        val formatter = DateTimeFormatter.ofPattern("M월 d일")
         val formattedDate = today.format(formatter)
 
+        val dateTextView = binding.dateTv
+        dateTextView.text = formattedDate
+
+        // 게시 팝업
         binding.shareOutfitIb.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("$formattedDate Outfit") // 제목은 날짜 포함
-                .setMessage("이 Outfit을 게시하시겠습니까?") // 메시지는 따로
-                .setPositiveButton("예") { _, _ ->
-                    // 확인 누르면 상세 화면으로 이동
-                    val intent = Intent(requireContext(), CommunityDetailActivity::class.java)
-                    startActivity(intent)
-                }
-                .setNegativeButton("아니요", null)
-                .show()
+            showPostOutfitDialog()
         }
 
+        // 검색 필터 화면
+        binding.searchIconIv.setOnClickListener {
+            val dialog = TopSearchDialogFragment()
+            dialog.show(parentFragmentManager, "TopSearchDialog")
+        }
+    }
 
+    private fun showPostOutfitDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.outfit_post_dialog, null)
+        val dialog = AlertDialog.Builder(requireContext()).create()
+        dialog.setView(dialogView)
 
+        // 다이얼로그 내부 View 찾기
+        val dateTextView = dialogView.findViewById<TextView>(R.id.post_dialog_outfit_tv)
+        val outfitImageView = dialogView.findViewById<ImageView>(R.id.post_dialog_outfit_image)
+        val yesButton = dialogView.findViewById<AppCompatButton>(R.id.post_dialog_yes_btn)
+        val noButton = dialogView.findViewById<AppCompatButton>(R.id.post_dialog_no_btn)
+
+        // 프래그먼트 내의 date_tv에서 텍스트 가져오기
+        val originalDate = view?.findViewById<TextView>(R.id.date_tv)?.text.toString()
+        dateTextView.text = "$originalDate Outfit을 게시하시겠습니까?"
+
+        // yes 버튼 클릭 처리
+        yesButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // no 버튼 클릭 처리
+        noButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // 다이얼로그 배경 투명하게
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.show()
+
+        // 다이얼로그 너비
+        val width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 350f, resources.displayMetrics
+        ).toInt()
+
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun onDestroyView() {

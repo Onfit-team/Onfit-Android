@@ -19,8 +19,9 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="edit" />
-                            <entry key="sourceFile" value="C:\Users\yang2\Downloads\Onfit2\app\src\main\res\drawable\edit.svg" />
+
+                            <entry key="outputName" value="heart_empty" />
+                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\heart_empty.svg" />
                           </map>
                         </option>
                       </PersistentState>
