@@ -14,7 +14,7 @@ class OutfitRegisterFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: OutfitAdapter
-    private val outfitList = mutableListOf<OutfitItem>()
+    private val outfitList = mutableListOf<OutfitItem2>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,9 +30,9 @@ class OutfitRegisterFragment : Fragment() {
         // 더미 데이터 추가
         outfitList.addAll(
             listOf(
-                OutfitItem(R.drawable.outfit_top),
-                OutfitItem(R.drawable.outfit_pants),
-                OutfitItem(R.drawable.outfit_shoes)
+                OutfitItem2(R.drawable.outfit_top),
+                OutfitItem2(R.drawable.outfit_pants),
+                OutfitItem2(R.drawable.outfit_shoes)
             )
         )
         adapter = OutfitAdapter(outfitList) {
@@ -47,7 +47,7 @@ class OutfitRegisterFragment : Fragment() {
 
         // + 버튼 누르면 이미지 추가
         binding.outfitRegisterAddButton.setOnClickListener {
-            val newItem = OutfitItem(R.drawable.sun)
+            val newItem = OutfitItem2(R.drawable.sun)
             adapter.addItem(newItem)
         }
 

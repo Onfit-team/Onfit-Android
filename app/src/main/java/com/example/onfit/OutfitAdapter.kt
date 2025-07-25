@@ -10,7 +10,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
-class OutfitAdapter(private val items: MutableList<OutfitItem>,
+class OutfitAdapter(private val items: MutableList<OutfitItem2>,
                     private val onClosetButtonClick: () -> Unit,) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -76,19 +76,12 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>,
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
-
-            // 다이얼로그 너비를 294dp로 설정
-            val width = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 294f, holder.itemView.context.resources.displayMetrics
-            ).toInt()
-
-            dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun addItem(item: OutfitItem) {
+    fun addItem(item: OutfitItem2) {
         items.add(item)
         notifyItemInserted(items.size - 1)
     }
