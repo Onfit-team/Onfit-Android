@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.adapter
 
 import android.app.AlertDialog
 import android.util.TypedValue
@@ -9,9 +9,10 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.HomeRegister.model.OutfitItem
+import com.example.onfit.R
 
-class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: () -> Unit,) :
+class OutfitAdapter(private val items: MutableList<OutfitItem>) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
@@ -39,11 +40,8 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         holder.closetBtn.setImageResource(btnImageRes)
 
         holder.closetBtn.setOnClickListener {
-            if (item.isClosetButtonActive) {
-                item.isClosetButtonActive = false
-                notifyItemChanged(position)
-                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
-            }
+            item.isClosetButtonActive = false
+            notifyItemChanged(position)
         }
 
         // x 버튼 눌렀을 때 아이템 삭제
@@ -76,12 +74,19 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
+
+            // 다이얼로그 너비를 294dp로 설정
+            val width = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 294f, holder.itemView.context.resources.displayMetrics
+            ).toInt()
+
+            dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun addItem(item: OutfitItem2) {
+    fun addItem(item: OutfitItem) {
         items.add(item)
         notifyItemInserted(items.size - 1)
     }

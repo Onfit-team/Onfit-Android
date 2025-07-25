@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.Community
 
 import android.os.Bundle
 import android.util.TypedValue
@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.onfit.R
 import com.example.onfit.databinding.ActivityCommunityDetailBinding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
