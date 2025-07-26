@@ -3,6 +3,7 @@ package com.example.onfit.Home
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
@@ -18,6 +19,8 @@ import com.example.onfit.Home.model.SimItem
 import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
+import com.example.onfit.MainActivity
+import com.example.onfit.RegisterActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -130,11 +133,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         // 카메라 버튼 클릭
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            findNavController().navigate(R.id.homeRegisterFragment)
-            dialog.dismiss()
+            val intent = Intent(requireContext(), RegisterActivity::class.java)
+            startActivity(intent)
         }
-
-
 
         // 사진첩 버튼 클릭
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
