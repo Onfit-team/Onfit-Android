@@ -1,7 +1,7 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.adapter
 
+import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.app.AlertDialog
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
                     private val onClosetButtonClick: () -> Unit,) :

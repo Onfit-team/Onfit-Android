@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.fragment
 
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.onfit.R
+import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat

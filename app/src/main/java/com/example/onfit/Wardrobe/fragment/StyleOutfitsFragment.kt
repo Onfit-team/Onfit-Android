@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
 import com.example.onfit.Community.ClothesDetailActivity
+import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
 class StyleOutfitsFragment : Fragment() {
 

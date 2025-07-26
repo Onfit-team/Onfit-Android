@@ -1,11 +1,12 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.example.onfit.databinding.FragmentCalendarSelectBinding
+import com.example.onfit.R
+import com.example.onfit.WardrobeSelectFragment
 import com.example.onfit.databinding.FragmentOutfitSelectBinding
 
 

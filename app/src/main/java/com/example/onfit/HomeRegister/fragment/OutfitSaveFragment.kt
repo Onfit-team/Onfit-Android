@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import com.example.onfit.databinding.FragmentOutfitRegisterBinding
+import com.example.onfit.TopInfoDialogFragment
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 
 class OutfitSaveFragment : Fragment() {
