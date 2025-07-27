@@ -1,22 +1,14 @@
-package com.example.onfit.Wardrobe.fragment
+package com.example.onfit
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.navigation.fragment.findNavController
-import com.example.onfit.R
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class RegisterItemBottomSheet : BottomSheetDialogFragment() {
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // BottomSheetDialog 스타일 강제 적용
-        return BottomSheetDialog(requireContext(), theme)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,42 +21,81 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 갤러리 버튼 클릭 리스너
-        val galleryBtn = view.findViewById<LinearLayout>(R.id.gallery_btn)
-        galleryBtn?.setOnClickListener {
-            android.util.Log.d("RegisterItemBottomSheet", "Gallery button clicked")
+        // 갤러리 옵션 클릭 리스너
+        val galleryOption = view.findViewById<LinearLayout>(R.id.gallery_option)
+        galleryOption?.setOnClickListener {
+            android.util.Log.d("RegisterItemBottomSheet", "Gallery option clicked")
             navigateToAddItemFragment()
-        }
+        } ?: android.util.Log.e("RegisterItemBottomSheet", "gallery_option not found!")
 
-        // 카메라 버튼 클릭 리스너
-        val cameraBtn = view.findViewById<LinearLayout>(R.id.camera_btn)
-        cameraBtn?.setOnClickListener {
-            android.util.Log.d("RegisterItemBottomSheet", "Camera button clicked")
+        // 카메라 옵션 클릭 리스너
+        val cameraOption = view.findViewById<LinearLayout>(R.id.camera_option)
+        cameraOption?.setOnClickListener {
+            android.util.Log.d("RegisterItemBottomSheet", "Camera option clicked")
             navigateToAddItemFragment()
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        // Dialog 스타일 추가 설정
-        val dialog = dialog as? BottomSheetDialog
-        dialog?.let {
-            val bottomSheet = it.findViewById<ViewGroup>(com.google.android.material.R.id.design_bottom_sheet)
-            bottomSheet?.let { sheet ->
-                sheet.background = null // 기본 배경 제거해서 커스텀 배경 적용
-            }
-        }
+        } ?: android.util.Log.e("RegisterItemBottomSheet", "camera_option not found!")
     }
 
     private fun navigateToAddItemFragment() {
         android.util.Log.d("RegisterItemBottomSheet", "navigateToAddItemFragment called")
 
-        // AddItemFragment로 이동 (Navigation 사용)
-        findNavController().navigate(R.id.addItemFragment)
+        try {
+            // BottomSheet 먼저 닫기
+            dismiss()
 
-        // BottomSheet 닫기
-        dismiss()
+            // 부모 Fragment의 NavController를 통한 네비게이션
+            parentFragment?.let { parent ->
+                try {
+                    val bundle = Bundle().apply {
+                        putBoolean("edit_mode", false)
+                    }
+                    parent.findNavController().navigate(R.id.addItemFragment, bundle)
+                    android.util.Log.d("RegisterItemBottomSheet", "Parent fragment navigation successful")
+                    return
+                } catch (e: Exception) {
+                    android.util.Log.w("RegisterItemBottomSheet", "Parent fragment navigation failed: ${e.message}")
+                }
+            }
+
+            // 대안 1: Activity의 NavHostFragment 사용
+            try {
+                val activity = requireActivity()
+                val navHostFragment = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+                val navController = navHostFragment?.findNavController()
+
+                if (navController != null) {
+                    val bundle = Bundle().apply {
+                        putBoolean("edit_mode", false)
+                    }
+                    navController.navigate(R.id.addItemFragment, bundle)
+                    android.util.Log.d("RegisterItemBottomSheet", "Activity NavHostFragment navigation successful")
+                    return
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("RegisterItemBottomSheet", "Activity navigation failed: ${e.message}")
+            }
+
+            // 대안 2: 직접 Fragment 교체
+            try {
+                val addItemFragment = com.example.onfit.Wardrobe.fragment.AddItemFragment()
+                val bundle = Bundle().apply {
+                    putBoolean("edit_mode", false)
+                }
+                addItemFragment.arguments = bundle
+
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, addItemFragment)
+                    .addToBackStack("AddItemFragment")
+                    .commit()
+
+                android.util.Log.d("RegisterItemBottomSheet", "Direct fragment replacement successful")
+            } catch (e: Exception) {
+                android.util.Log.e("RegisterItemBottomSheet", "All navigation methods failed", e)
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("RegisterItemBottomSheet", "Navigation completely failed", e)
+        }
     }
 
     companion object {
