@@ -1,4 +1,4 @@
-package com.example.onfit.Community
+package com.example.onfit.Community.fragment
 
 import android.os.Bundle
 import android.util.TypedValue
@@ -11,7 +11,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.onfit.Community.adapter.StyleGridAdapter
+import com.example.onfit.Community.model.CommunityItem
 import com.example.onfit.R
 import com.example.onfit.TopSearchDialogFragment
 import com.example.onfit.databinding.FragmentCommunityBinding
@@ -108,6 +111,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
 
         // yes 버튼 클릭 처리
         yesButton.setOnClickListener {
+            findNavController().navigate(R.id.action_communityFragment_to_communityDetailFragment)
             dialog.dismiss()
         }
 

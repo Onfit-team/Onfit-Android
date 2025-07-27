@@ -5,19 +5,19 @@
         android:icon="@drawable/home"
         android:title="홈"/>
     <item
-        android:id="@+id/wardrobeFragemnt"
+        android:id="@+id/wardrobeFragment"
         android:icon="@drawable/wardrobe"
         android:title="옷장"/>
     <item
-        android:id="@+id/calendarFragemnt"
+        android:id="@+id/calendarFragment"
         android:icon="@drawable/calendar"
         android:title="캘린더"/>
     <item
-        android:id="@+id/communityFragemnt"
+        android:id="@+id/communityFragment"
         android:icon="@drawable/community"
         android:title="커뮤니티"/>
     <item
-        android:id="@+id/mypageFragemnt"
+        android:id="@+id/mypageFragment"
         android:icon="@drawable/mypage"
         android:title="마이페이지"/>
 </menu>

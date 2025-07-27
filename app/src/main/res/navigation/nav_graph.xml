@@ -11,54 +11,24 @@
         android:label="홈"/>
 
     <fragment
-        android:id="@+id/wardrobeFragemnt"
+        android:id="@+id/wardrobeFragment"
         android:name="com.example.onfit.Wardrobe.fragment.WardrobeFragment"
         android:label="옷장">
         <!-- WardrobeFragment에서 AddItemFragment로 가는 액션 추가 -->
         <action
-            android:id="@+id/action_wardrobeFragemnt_to_addItemFragment"
+            android:id="@+id/action_wardrobeFragment_to_addItemFragment"
             app:destination="@id/addItemFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/calendarFragemnt"
-        android:name="com.example.onfit.CalendarFragment"
+        android:id="@+id/calendarFragment"
+        android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"/>
-
-    <fragment
-        android:id="@+id/communityFragemnt"
-        android:name="com.example.onfit.Community.CommunityFragment"
-        android:label="커뮤니티"/>
-
-    <fragment
-        android:id="@+id/mypageFragemnt"
-        android:name="com.example.onfit.MyPageFragment"
-        android:label="마이페이지"/>
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
         android:name="com.example.onfit.StyleOutfitsFragment"
         android:label="스타일별 Outfit"/>
-
-    <fragment
-        android:id="@+id/homeRegisterFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.HomeRegisterFragment"
-        android:label="Outfit 등록" />
-
-    <fragment
-        android:id="@+id/homeSaveFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.HomeSaveFragment"
-        android:label="Outfit 미리보기" />
-
-    <fragment
-        android:id="@+id/homeAiRegisterFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.HomeAiRegisterFragment"
-        android:label="AI 추출 아이템" />
-
-    <fragment
-        android:id="@+id/homeAiSaveFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.HomeAiSaveFragment"
-        android:label="세부 저장 화면" />
 
     <fragment
         android:id="@+id/wardrobeSearchFragment"
@@ -92,5 +62,20 @@
             app:argType="integer"
             android:defaultValue="0" />
     </fragment>
+
+    <fragment
+        android:id="@+id/communityFragment"
+        android:name="com.example.onfit.Community.fragment.CommunityFragment"
+        android:label="커뮤니티">
+        <action
+            android:id="@+id/action_communityFragment_to_communityDetailFragment"
+            app:destination="@id/communityDetailFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/communityDetailFragment"
+        android:name="com.example.onfit.Community.fragment.CommunityDetailFragment"
+        android:label="커뮤니티 상세" />
+
 
 </navigation>
