@@ -1,4 +1,4 @@
-package com.example.onfit
+package com.example.onfit.HomeRegister.fragment
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.onfit.R
 import com.example.onfit.databinding.FragmentSaveBinding
 
 class SaveFragment : Fragment() {

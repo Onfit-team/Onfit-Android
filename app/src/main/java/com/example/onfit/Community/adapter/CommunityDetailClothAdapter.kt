@@ -1,4 +1,4 @@
-package com.example.onfit.Community
+package com.example.onfit.Community.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

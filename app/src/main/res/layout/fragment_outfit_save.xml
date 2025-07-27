@@ -7,7 +7,7 @@
     android:layout_marginTop="24dp"
     android:fillViewport="true"
     android:scrollbars="none"
-    tools:context=".OutfitSaveFragment">
+    tools:context=".HomeRegister.fragment.OutfitSaveFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -95,6 +95,7 @@
             android:fontFamily="@font/pretendardsemibold"
             android:background="@drawable/rounded_button_gray"
             android:textColor="@android:color/black"
+            style="?android:attr/borderlessButtonStyle"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/outfit_save_fl"/>
@@ -250,6 +251,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:singleSelection="false"
             app:singleLine="false"
+            app:chipSpacingVertical="0dp"
             android:gravity="center_horizontal">
 
             <com.google.android.material.chip.Chip
@@ -257,6 +259,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -264,6 +269,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -271,6 +279,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -278,6 +289,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -285,6 +299,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -292,6 +309,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -299,6 +319,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -306,6 +329,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -313,6 +339,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
         </com.google.android.material.chip.ChipGroup>
 
@@ -339,6 +368,7 @@
             app:singleSelection="false"
             app:chipSpacing="8dp"
             app:singleLine="false"
+            app:chipSpacingVertical="0dp"
             android:gravity="center_horizontal">
 
             <com.google.android.material.chip.Chip
@@ -346,6 +376,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -353,6 +386,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -360,6 +396,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -367,6 +406,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -374,6 +416,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -381,6 +426,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -388,6 +436,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -395,6 +446,9 @@
                 android:textSize="10sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/chip_selector"
+                android:textColor="@color/chip_text_selector_mini"
+                android:fontFamily="@font/pretendardmedium"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
         </com.google.android.material.chip.ChipGroup>
 

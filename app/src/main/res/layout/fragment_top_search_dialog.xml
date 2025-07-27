@@ -40,6 +40,7 @@
         android:layout_height="wrap_content"
         app:singleSelection="false"
         app:singleLine="false"
+        app:chipSpacingVertical="0dp"
         android:gravity="center_horizontal">
 
         <com.google.android.material.chip.Chip
@@ -47,9 +48,9 @@
             android:textSize="11sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:chipBackgroundColor="@color/basic_gray"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
             android:fontFamily="@font/pretendardmedium"
-            android:textColor="@color/black"
             style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
         <com.google.android.material.chip.Chip
@@ -57,81 +58,81 @@
             android:textSize="11sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:chipBackgroundColor="@color/basic_gray"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
             android:fontFamily="@font/pretendardmedium"
-            android:textColor="@color/black"
             style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#미니멀"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#미니멀"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#클래식"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#클래식"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#빈티지"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#빈티지"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#러블리"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#러블리"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#페미닌"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#페미닌"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#보이시"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#보이시"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#모던"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-        </com.google.android.material.chip.ChipGroup>
+        <com.google.android.material.chip.Chip
+            android:text="#모던"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
+    </com.google.android.material.chip.ChipGroup>
 
     <TextView
         android:layout_width="wrap_content"
@@ -143,96 +144,97 @@
         android:fontFamily="@font/pretendardbold"
         android:src="@drawable/vibe_tv"/>
 
-        <!-- 용도 태그들 -->
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/use_chips"
-            android:layout_width="match_parent"
+    <!-- 용도 태그들 -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/use_chips"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="false"
+        app:chipSpacing="8dp"
+        app:singleLine="false"
+        app:chipSpacingVertical="0dp"
+        android:gravity="center_horizontal">
+
+        <com.google.android.material.chip.Chip
+            android:text="#데일리"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:singleSelection="false"
-            app:chipSpacing="8dp"
-            app:singleLine="false"
-            android:gravity="center_horizontal">
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#데일리"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#출근룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#출근룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#데이트룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#데이트룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#나들이룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#나들이룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#여행룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#여행룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#운동룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#운동룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        <com.google.android.material.chip.Chip
+            android:text="#하객룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
-            <com.google.android.material.chip.Chip
-                android:text="#하객룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-
-            <com.google.android.material.chip.Chip
-                android:text="#파티룩"
-                android:textSize="11sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-        </com.google.android.material.chip.ChipGroup>
+        <com.google.android.material.chip.Chip
+            android:text="#파티룩"
+            android:textSize="11sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:chipBackgroundColor="@color/chip_selector"
+            android:textColor="@color/chip_text_selector_mini"
+            android:fontFamily="@font/pretendardmedium"
+            style="@style/Widget.MaterialComponents.Chip.Choice"/>
+    </com.google.android.material.chip.ChipGroup>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/done_btn"
