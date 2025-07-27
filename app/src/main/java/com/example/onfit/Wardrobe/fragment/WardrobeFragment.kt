@@ -16,6 +16,7 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageButton
 import android.widget.RelativeLayout
 import com.example.onfit.R
+import com.example.onfit.RegisterItemBottomSheet
 import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
 open class WardrobeFragment : Fragment() {
