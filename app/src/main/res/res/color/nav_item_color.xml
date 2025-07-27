@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 선택된 탭 (활성 상태) -->
+    <item android:color="@color/black" android:state_checked="true" />
+    <!-- 선택되지 않은 탭 (비활성 상태) -->
+    <item android:color="#BCBCBC" android:state_checked="false" />
+</selector>

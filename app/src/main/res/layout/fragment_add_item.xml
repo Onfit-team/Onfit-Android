@@ -109,6 +109,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
                         android:popupBackground="@drawable/spinner_background" />
 
                     <ImageView
@@ -127,7 +128,6 @@
                     android:background="@drawable/spinner_background"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:paddingLeft="16dp"
                     android:paddingRight="16dp">
 
                     <Spinner
@@ -135,8 +135,10 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
+                        android:paddingLeft="16dp"
                         android:background="@android:color/transparent"
                         android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
                         android:popupBackground="@drawable/spinner_background" />
 
                     <ImageView
@@ -203,6 +205,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
                         android:popupBackground="@drawable/spinner_background" />
 
                     <ImageView
@@ -232,6 +235,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
                         android:popupBackground="@drawable/spinner_background" />
 
                     <ImageView

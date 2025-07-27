@@ -1,7 +1,7 @@
 package com.example.onfit.HomeRegister.adapter
 
+import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.app.AlertDialog
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +9,10 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.onfit.HomeRegister.model.OutfitItem
 import com.example.onfit.R
 
-class OutfitAdapter(private val items: MutableList<OutfitItem>) :
+class OutfitAdapter(private val items: MutableList<OutfitItem2>,
+                    private val onClosetButtonClick: () -> Unit,) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
@@ -40,8 +40,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>) :
         holder.closetBtn.setImageResource(btnImageRes)
 
         holder.closetBtn.setOnClickListener {
-            item.isClosetButtonActive = false
-            notifyItemChanged(position)
+            if (item.isClosetButtonActive) {
+                item.isClosetButtonActive = false
+                notifyItemChanged(position)
+                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
+            }
         }
 
         // x 버튼 눌렀을 때 아이템 삭제
@@ -74,19 +77,12 @@ class OutfitAdapter(private val items: MutableList<OutfitItem>) :
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
-
-            // 다이얼로그 너비를 294dp로 설정
-            val width = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 294f, holder.itemView.context.resources.displayMetrics
-            ).toInt()
-
-            dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun addItem(item: OutfitItem) {
+    fun addItem(item: OutfitItem2) {
         items.add(item)
         notifyItemInserted(items.size - 1)
     }

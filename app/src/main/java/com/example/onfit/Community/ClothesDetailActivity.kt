@@ -3,6 +3,7 @@ package com.example.onfit.Community
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.onfit.R
+import com.example.onfit.Wardrobe.fragment.ClothesDetailFragment
 
 class ClothesDetailActivity : AppCompatActivity() {
 
