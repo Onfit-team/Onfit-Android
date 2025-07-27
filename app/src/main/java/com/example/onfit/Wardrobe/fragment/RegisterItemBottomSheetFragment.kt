@@ -62,7 +62,7 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
                 val activity = requireActivity()
                 val navHostFragment = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
                 val navController = navHostFragment?.findNavController()
-
+                
                 if (navController != null) {
                     val bundle = Bundle().apply {
                         putBoolean("edit_mode", false)
@@ -87,7 +87,7 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
                     .replace(R.id.nav_host_fragment, addItemFragment)
                     .addToBackStack("AddItemFragment")
                     .commit()
-
+                
                 android.util.Log.d("RegisterItemBottomSheet", "Direct fragment replacement successful")
             } catch (e: Exception) {
                 android.util.Log.e("RegisterItemBottomSheet", "All navigation methods failed", e)
