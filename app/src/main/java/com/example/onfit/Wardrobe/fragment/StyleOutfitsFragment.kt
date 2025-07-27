@@ -1,6 +1,5 @@
 package com.example.onfit
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,11 +8,11 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
-import com.example.onfit.Community.ClothesDetailActivity
 import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
 
 class StyleOutfitsFragment : Fragment() {
@@ -73,7 +72,7 @@ class StyleOutfitsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        // 기존 WardrobeAdapter 사용 - 클래스 중복 문제 해결
+        // WardrobeAdapter 사용
         wardrobeAdapter = WardrobeAdapter(allImageList) { imageResId ->
             navigateToClothesDetail(imageResId)
         }
@@ -82,14 +81,14 @@ class StyleOutfitsFragment : Fragment() {
     }
 
     private fun navigateToClothesDetail(imageResId: Int) {
-        // WardrobeFragment와 동일한 방식으로 ClothesDetailActivity로 이동
         try {
-            val intent = Intent(requireContext(), ClothesDetailActivity::class.java)
-            intent.putExtra("image_res_id", imageResId)
-            startActivity(intent)
+            // Navigation Component를 사용하여 ClothesDetailFragment로 이동
+            val bundle = Bundle().apply {
+                putInt("image_res_id", imageResId)
+            }
+            findNavController().navigate(R.id.clothesDetailFragment, bundle)
         } catch (e: Exception) {
-            // ClothesDetailActivity가 없는 경우 무시
-            e.printStackTrace()
+            android.util.Log.e("StyleOutfitsFragment", "Navigation failed", e)
         }
     }
 
@@ -185,10 +184,10 @@ class StyleOutfitsFragment : Fragment() {
     private fun setupBackButton(view: View) {
         view.findViewById<View>(R.id.ic_back)?.setOnClickListener {
             try {
-                requireActivity().onBackPressed()
+                findNavController().navigateUp()
             } catch (e: Exception) {
-                // Fragment가 attach되지 않은 경우 처리
-                e.printStackTrace()
+                // Navigation 실패시 onBackPressed 사용
+                requireActivity().onBackPressed()
             }
         }
     }
@@ -217,7 +216,6 @@ class StyleOutfitsFragment : Fragment() {
         // StyleOutfitsFragment가 시작될 때 bottom navigation 숨기기
         try {
             val activity = requireActivity()
-            // MainActivity에서 실제 사용하는 bottomNavigationView
             val bottomNav = activity.findViewById<View>(R.id.bottomNavigationView)
             bottomNav?.visibility = View.GONE
         } catch (e: Exception) {
