@@ -49,12 +49,12 @@ class CalendarRewriteFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        binding.calendarRewriteSaveBtn.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, CalendarSelectFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+//        binding.calendarRewriteSaveBtn.setOnClickListener {
+//            parentFragmentManager.beginTransaction()
+//                .replace(R.id.register_container, CalendarSelectFragment())
+//                .addToBackStack(null)
+//                .commit()
+//        }
 
         // 날짜 선택 드롭다운
         binding.calendarRewriteDropdownBtn.setOnClickListener {
@@ -82,4 +82,15 @@ class CalendarRewriteFragment : Fragment() {
         _binding = null
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 실행 중 bottom navigation view 보이지 않게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 실행 안 할 때 bottom navigation view 다시 보이게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
+    }
 }

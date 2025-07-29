@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
@@ -74,12 +75,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 putByteArray("outfit_image", byteArray)
             }
 
-            val saveFragment = SaveFragment().apply { arguments = bundle }
-
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, saveFragment)
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.action_registerFragment_to_saveFragment, bundle)
         }
 
         // 뒤로가기 버튼
@@ -95,5 +91,17 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 실행 중 bottom navigation view 보이지 않게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 실행 안 할 때 bottom navigation view 다시 보이게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }
