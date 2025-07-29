@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentSaveBinding
 
@@ -21,8 +22,8 @@ class SaveFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            receivedDate = it.getString("save_date") ?: "날짜 없음"
-            val byteArray = it.getByteArray("outfit_image")
+            receivedDate = arguments?.getString("save_date") ?: "날짜 없음"
+            val byteArray = arguments?.getByteArray("outfit_image")
             outfitImage = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
         }
     }
@@ -46,10 +47,7 @@ class SaveFragment : Fragment() {
 
         // OutfitRegister 화면으로 이동
         binding.saveClosetBtn.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, OutfitRegisterFragment())
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.action_saveFragment_to_outfitRegisterFragment)
         }
 
         return binding.root
@@ -58,5 +56,17 @@ class SaveFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 실행 중 bottom navigation view 보이지 않게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 실행 안 할 때 bottom navigation view 다시 보이게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }

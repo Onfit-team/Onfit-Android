@@ -20,7 +20,6 @@ import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
 import com.example.onfit.MainActivity
-import com.example.onfit.RegisterActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -133,8 +132,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         // 카메라 버튼 클릭
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            val intent = Intent(requireContext(), RegisterActivity::class.java)
-            startActivity(intent)
+            findNavController().navigate(R.id.action_homeFragment_to_registerFragment)
+            dialog.dismiss()
         }
 
         // 사진첩 버튼 클릭
