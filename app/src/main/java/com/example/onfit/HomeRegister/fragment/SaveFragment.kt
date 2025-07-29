@@ -22,9 +22,15 @@ class SaveFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            receivedDate = arguments?.getString("save_date") ?: "날짜 없음"
-            val byteArray = arguments?.getByteArray("outfit_image")
-            outfitImage = BitmapFactory.decodeByteArray(byteArray, 0, byteArray!!.size)
+            // 날짜 데이터 받기
+            receivedDate = it.getString("save_date") ?: "날짜 없음"
+
+            // 이미지 경로 받기
+            val imagePath  = it.getString("outfit_image_path")
+            if (!imagePath.isNullOrEmpty()) {
+                val bitmap = BitmapFactory.decodeFile(imagePath)
+                outfitImage = bitmap
+            }
         }
     }
 

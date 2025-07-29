@@ -1,11 +1,14 @@
 package com.example.onfit.HomeRegister.fragment
 
+import android.app.Activity
+import android.content.Intent
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
@@ -20,6 +23,25 @@ class OutfitRegisterFragment : Fragment() {
     private lateinit var adapter: OutfitAdapter
     private val outfitList = mutableListOf<OutfitItem2>()
 
+    // 갤러리에서 이미지 선택 결과를 받는 Launcher
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val selectedImageUri = result.data?.data
+            if (selectedImageUri != null) {
+                // RecyclerView에 추가할 새로운 아이템 생성
+                val newItem = OutfitItem2(
+                    imageUri = selectedImageUri,
+                    imageResId = null,
+                    isClosetButtonActive = true
+                )
+                // Adapter에 아이템 추가
+                adapter.addItem(newItem)
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,28 +53,33 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 더미 데이터 추가
-        outfitList.addAll(
-            listOf(
-                OutfitItem2(R.drawable.outfit_top),
-                OutfitItem2(R.drawable.outfit_pants),
-                OutfitItem2(R.drawable.outfit_shoes)
+        // 처음 한 번만 더미 데이터 추가
+        if (outfitList.isEmpty()) {
+            outfitList.addAll(
+                listOf(
+                    OutfitItem2(R.drawable.outfit_top),
+                    OutfitItem2(R.drawable.outfit_pants),
+                    OutfitItem2(R.drawable.outfit_shoes)
+                )
             )
-        )
-//        adapter = OutfitAdapter(outfitList) {
-//            // 여기서 Fragment 전환 처리
-//            parentFragmentManager.beginTransaction()
-//                .replace(R.id.register_container, OutfitSelectFragment()) // OutfitSelectFragment로 전환
-//                .addToBackStack(null)
-//                .commit()
-//        }
+        }
+
+        adapter = OutfitAdapter(outfitList,
+            onClosetButtonClick = {
+                // OutfitSelectFragment로 전환
+                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
+            },
+            onCropButtonClick = { position ->
+                // OutfitCropFragment로 전환
+                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment)
+            })
+
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
 
         // + 버튼 누르면 이미지 추가
         binding.outfitRegisterAddButton.setOnClickListener {
-            val newItem = OutfitItem2(R.drawable.sun)
-            adapter.addItem(newItem)
+            openGallery()
         }
 
         // OutfitSave 화면으로 이동
@@ -64,6 +91,13 @@ class OutfitRegisterFragment : Fragment() {
         binding.outfitRegisterBackBtn.setOnClickListener {
             activity?.onBackPressedDispatcher?.onBackPressed()
         }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*" // 갤러리에서 이미지 파일만 보이도록
+        }
+        galleryLauncher.launch(intent)
     }
 
     override fun onDestroyView() {

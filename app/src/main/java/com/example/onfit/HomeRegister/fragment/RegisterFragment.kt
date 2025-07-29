@@ -13,6 +13,8 @@ import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -66,13 +68,17 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"
 
             val bitmap = (binding.registerOutfitIv.drawable as BitmapDrawable).bitmap
-            val stream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
-            val byteArray = stream.toByteArray()
 
+            // 앱의 캐시 디렉토리에 이미지 저장
+            val file = File(requireContext().cacheDir, "selected_outfit.png")
+            FileOutputStream(file).use { fos ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+            }
+
+            // 파일 경로만 전달
             val bundle = Bundle().apply {
                 putString("save_date", formattedDate)
-                putByteArray("outfit_image", byteArray)
+                putString("outfit_image_path", file.absolutePath)
             }
 
             findNavController().navigate(R.id.action_registerFragment_to_saveFragment, bundle)

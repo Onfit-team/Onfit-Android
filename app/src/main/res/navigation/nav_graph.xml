@@ -35,16 +35,32 @@
     <fragment
         android:id="@+id/outfitRegisterFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitRegisterFragment"
-        android:label="옷 저장">
+        android:label="outfitRegisterFragment">
         <action
             android:id="@+id/action_outfitRegisterFragment_to_outfitSaveFragment"
             app:destination="@id/outfitSaveFragment"/>
+        <action
+            android:id="@+id/action_outfitRegisterFragment_to_outfitSelectFragment"
+            app:destination="@id/outfitSelectFragment" />
+        <action
+            android:id="@+id/action_outfitRegisterFragment_to_outfitCropFragment"
+            app:destination="@id/outfitCropFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/outfitSaveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
-        android:label="아이템 저장화면" />
+        android:label="outfitSaveFragment" />
+
+    <fragment
+        android:id="@+id/outfitSelectFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
+        android:label="outfitSelectFragment" />
+
+    <fragment
+        android:id="@+id/outfitCropFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
+        android:label="outfitCropFragment" />
 
 
     <fragment
