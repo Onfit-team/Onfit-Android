@@ -2,6 +2,8 @@ package com.example.onfit.HomeRegister.fragment
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.os.Bundle
@@ -9,12 +11,24 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
+import com.example.onfit.HomeRegister.model.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 
 class OutfitRegisterFragment : Fragment() {
@@ -96,6 +110,12 @@ class OutfitRegisterFragment : Fragment() {
             }
         }
 
+        // SaveFragment에서 전달받은 이미지 경로 가져오기
+        val imagePath = arguments?.getString("outfit_image_path")
+        if (!imagePath.isNullOrEmpty()) {
+            uploadImageToServer(File(imagePath))
+        }
+
         // OutfitSave 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
             findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
@@ -104,6 +124,72 @@ class OutfitRegisterFragment : Fragment() {
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
             findNavController().popBackStack()
+        }
+    }
+
+    // Bitmap을 bbox로 잘라내는 함수
+    private fun cropBitmap(original: Bitmap, bbox: List<Float>): Bitmap {
+        val x = bbox[0].toInt().coerceIn(0, original.width)
+        val y = bbox[1].toInt().coerceIn(0, original.height)
+        val width = (bbox[2] - bbox[0]).toInt().coerceAtMost(original.width - x)
+        val height = (bbox[3] - bbox[1]).toInt().coerceAtMost(original.height - y)
+
+        return Bitmap.createBitmap(original, x, y, width, height)
+    }
+
+    // Bitmap → Uri 변환
+    private fun bitmapToUri(bitmap: Bitmap): Uri {
+        val file = File(requireContext().cacheDir, "crop_${System.currentTimeMillis()}.png")
+        FileOutputStream(file).use { fos ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+        }
+        return Uri.fromFile(file)
+    }
+
+    // API 호출 후 RecyclerView에 아이템 추가
+    private fun uploadImageToServer(file: File) {
+        // 임시 토큰
+        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1Mzg1NTk1MywiZXhwIjoxNzU0NDYwNzUzfQ.CWiyun2RiZYJuzGahIm66NwrW1MD8iFiAmePlJvGSLE"
+
+        val mediaType = "image/*".toMediaTypeOrNull()
+        val requestFile: RequestBody = file.asRequestBody(mediaType)
+        val body = MultipartBody.Part.createFormData("photo", file.name, requestFile)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.instance.detectItems(token, body)
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        val crops = response.body()?.result?.crops ?: emptyList()
+
+                        val originalBitmap = BitmapFactory.decodeFile(file.absolutePath)
+
+                        crops.forEach { crop ->
+                            val croppedBitmap = cropBitmap(originalBitmap, crop.bbox)
+                            val croppedUri = bitmapToUri(croppedBitmap)
+
+                            adapter.addItem(
+                                OutfitItem2(
+                                imageUri = croppedUri,
+                                imageResId = null,
+                                isClosetButtonActive = true
+                            ))
+                        }
+                    } else {
+                        // 서버가 응답은 했지만 성공 코드가 아닐 때
+                        val errorMsg = response.errorBody()?.string() ?: "응답 없음"
+                        println("❌ API 오류 발생: $errorMsg")
+                        Toast.makeText(requireContext(), "API 오류: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                // 네트워크/예외 발생 시
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "서버 요청 실패", Toast.LENGTH_SHORT).show()
+                }
+                e.printStackTrace()
+            }
         }
     }
 
