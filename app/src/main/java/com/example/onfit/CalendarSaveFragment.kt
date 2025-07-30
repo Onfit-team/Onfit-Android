@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.databinding.FragmentCalendarSaveBinding
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
@@ -50,7 +49,10 @@ class CalendarSaveFragment : Fragment() {
 
         // CalendarRewriteFragment로 이동
         binding.calendarSaveEditIv.setOnClickListener {
-            findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.register_container, CalendarRewriteFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         // 삭제 다이얼로그
@@ -93,17 +95,5 @@ class CalendarSaveFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }

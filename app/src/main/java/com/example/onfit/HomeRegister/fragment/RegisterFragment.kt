@@ -8,13 +8,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -68,20 +65,21 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"
 
             val bitmap = (binding.registerOutfitIv.drawable as BitmapDrawable).bitmap
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            val byteArray = stream.toByteArray()
 
-            // 앱의 캐시 디렉토리에 이미지 저장
-            val file = File(requireContext().cacheDir, "selected_outfit.png")
-            FileOutputStream(file).use { fos ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
-            }
-
-            // 파일 경로만 전달
             val bundle = Bundle().apply {
                 putString("save_date", formattedDate)
-                putString("outfit_image_path", file.absolutePath)
+                putByteArray("outfit_image", byteArray)
             }
 
-            findNavController().navigate(R.id.action_registerFragment_to_saveFragment, bundle)
+            val saveFragment = SaveFragment().apply { arguments = bundle }
+
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.register_container, saveFragment)
+                .addToBackStack(null)
+                .commit()
         }
 
         // 뒤로가기 버튼
@@ -97,17 +95,5 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }

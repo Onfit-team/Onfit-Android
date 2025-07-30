@@ -2,4 +2,5 @@
     <string name="app_name">Onfit</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="kakao_native_app_key">821b72c06da5a4901379ca5638f0196d</string>
 </resources>

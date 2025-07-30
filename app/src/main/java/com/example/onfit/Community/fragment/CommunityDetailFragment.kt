@@ -21,6 +21,7 @@ class CommunityDetailFragment : Fragment() {
     private var _binding: FragmentCommunityDetailBinding? = null
     private val binding get() = _binding!!
 
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
