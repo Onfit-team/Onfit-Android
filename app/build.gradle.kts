@@ -52,6 +52,9 @@ dependencies {
     // flexbox
     implementation ("com.google.android.flexbox:flexbox:3.0.0")
 
+    // 이미지 크롭 기능
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)

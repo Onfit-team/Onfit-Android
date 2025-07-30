@@ -149,6 +149,18 @@
                       </LayoutPositions>
                     </value>
                   </entry>
+                  <entry key="outfitCropFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
                   <entry key="outfitRegisterFragment">
                     <value>
                       <LayoutPositions>
@@ -160,7 +172,17 @@
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="action_outfitRegisterFragment_to_outfitCropFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_outfitRegisterFragment_to_outfitSaveFragment">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
+                            <entry key="action_outfitRegisterFragment_to_outfitSelectFragment">
                               <value>
                                 <LayoutPositions />
                               </value>
@@ -171,6 +193,18 @@
                     </value>
                   </entry>
                   <entry key="outfitSaveFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="12" />
+                            <option name="y" value="12" />
+                          </Point>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="outfitSelectFragment">
                     <value>
                       <LayoutPositions>
                         <option name="myPosition">

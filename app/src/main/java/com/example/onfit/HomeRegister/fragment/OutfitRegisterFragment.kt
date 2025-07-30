@@ -2,6 +2,7 @@ package com.example.onfit.HomeRegister.fragment
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -82,6 +83,19 @@ class OutfitRegisterFragment : Fragment() {
             openGallery()
         }
 
+        parentFragmentManager.setFragmentResultListener("crop_result", viewLifecycleOwner) { _, bundle ->
+            val uriString = bundle.getString("cropped_image_uri")
+            if (!uriString.isNullOrEmpty()) {
+                val uri = Uri.parse(uriString)
+                val newItem = OutfitItem2(
+                    imageUri = uri,
+                    imageResId = null,
+                    isClosetButtonActive = true
+                )
+                adapter.addItem(newItem)
+            }
+        }
+
         // OutfitSave 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
             findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
@@ -89,7 +103,7 @@ class OutfitRegisterFragment : Fragment() {
 
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
+            findNavController().popBackStack()
         }
     }
 
