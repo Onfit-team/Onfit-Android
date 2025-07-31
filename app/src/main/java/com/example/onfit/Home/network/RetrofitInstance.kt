@@ -22,4 +22,9 @@ object RetrofitInstance {
         retrofit.create(KakaoAuthService::class.java)
     }
 
+    val locationApi: LocationApiService by lazy {
+        retrofit.create(LocationApiService::class.java)
+    }
+
+
 }

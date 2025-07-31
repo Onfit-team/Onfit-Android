@@ -12,30 +12,30 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.KakaoLogin.adapter.LocationSearchAdapter
-import com.example.onfit.KakaoLogin.api.KakaoAuthService
 import com.example.onfit.KakaoLogin.model.LocationSearchResponse
-import com.example.onfit.KakaoLogin.model.SignUpRequest
 import com.example.onfit.KakaoLogin.util.NicknameProvider
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.KakaoLogin.viewmodel.LocationViewModel
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLocationSettingBinding
-import com.example.onfit.network.RetrofitInstance
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class LocationSettingFragment : Fragment() {
 
+    private val locationViewModel: LocationViewModel by viewModels()
+
     private var _binding: FragmentLocationSettingBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: LocationSearchAdapter
     private var selectedLocation: LocationSearchResponse.Result? = null
-    private val api: KakaoAuthService by lazy { RetrofitInstance.kakaoApi }
 
     private var searchJob: Job? = null
 
@@ -85,7 +85,7 @@ class LocationSettingFragment : Fragment() {
                 searchJob = lifecycleScope.launch {
                     delay(300)
                     if (!newText.isNullOrBlank() && newText.length >= 2) {
-                        searchLocation(newText)
+                        locationViewModel.searchLocation(newText)
                     } else {
                         adapter.submitList(emptyList())
                         binding.btnSave.isEnabled = false
@@ -95,32 +95,26 @@ class LocationSettingFragment : Fragment() {
             }
         })
 
+        locationViewModel.locationListLiveData.observe(viewLifecycleOwner) { list ->
+            adapter.submitList(list)
+            binding.btnSave.isEnabled = false
+        }
+
+        locationViewModel.errorLiveData.observe(viewLifecycleOwner) { error ->
+            showErrorDialog(error)
+        }
+
+        locationViewModel.navigateToHome.observe(viewLifecycleOwner) { go ->
+            if (go == true) {
+                findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
+            }
+        }
+
         binding.btnSave.setOnClickListener {
             selectedLocation?.let { location ->
                 val token = TokenProvider.getToken(requireContext())
                 val nickname = NicknameProvider.nickname
-
-                Log.e("SignUpLog", "요청 nickname: $nickname")
-                Log.e("SignUpLog", "요청 location: ${location.fullAddress}")
-                Log.e("SignUpLog", "전송 토큰: $token")
-
-                val request = SignUpRequest(
-                    nickname = nickname,
-                    location = location.fullAddress
-                )
-
-                lifecycleScope.launch {
-                    try {
-                        val response = api.signUp("Bearer $token", request)
-                        if (response.isSuccessful) {
-                            findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
-                        } else {
-                            showErrorDialog("위치 저장 실패\n잠시 후 다시 시도해주세요.")
-                        }
-                    } catch (e: Exception) {
-                        showErrorDialog("네트워크 오류 발생\n인터넷 연결을 확인해주세요.")
-                    }
-                }
+                locationViewModel.sendSelectedLocation(token, nickname, location.fullAddress)
             }
         }
 
@@ -145,24 +139,6 @@ class LocationSettingFragment : Fragment() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
-        }
-    }
-
-    private suspend fun searchLocation(query: String) {
-        try {
-            val response = api.searchLocation(query)
-            if (response.isSuccessful) {
-                val results = response.body()?.result ?: emptyList()
-                Log.d("LocationLog", "위치 응답 원문: ${response.body()}")
-                adapter.submitList(results)
-                binding.btnSave.isEnabled = false
-            } else {
-                Log.e("LocationLog", "서버 응답 실패: ${response.code()} ${response.message()}")
-                showErrorDialog("검색 실패\n잠시 후 다시 시도해주세요.")
-            }
-        } catch (e: Exception) {
-            Log.e("LocationLog", "네트워크 오류: ${e.message}")
-            showErrorDialog("네트워크 오류\n인터넷 연결을 확인해주세요.")
         }
     }
 

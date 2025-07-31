@@ -20,6 +20,7 @@ import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
 import com.example.onfit.Home.viewmodel.HomeViewModel
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.RegisterActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -28,19 +29,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    // 날짜 API 연동용 ViewModel
     private val viewModel: HomeViewModel by viewModels()
-
     private var isShortText = false
 
-    // 옷 추천 이미지 리스트
     private val clothSuggestList = listOf(
-        R.drawable.cloth1,
-        R.drawable.cloth2,
-        R.drawable.cloth3
+        R.drawable.cloth1, R.drawable.cloth2, R.drawable.cloth3
     )
 
-    // 비슷한 스타일 아이템
     private val similiarClothList = listOf(
         SimItem(R.drawable.simcloth1, "딱 좋음"),
         SimItem(R.drawable.simcloth2, "조금 추움"),
@@ -50,7 +45,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         SimItem(R.drawable.simcloth3, "많이 더움")
     )
 
-    // 최신 스타일 아이템
     private val latestStyleList = listOf(
         SimItem(R.drawable.simcloth2, "4월 20일"),
         SimItem(R.drawable.simcloth3, "4월 19일"),
@@ -60,7 +54,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         SimItem(R.drawable.simcloth1, "4월 15일")
     )
 
-    // 베스트 OUTFIT 아이템
     private val bestStyleList = listOf(
         BestItem(R.drawable.bestcloth1, "TOP 1", "큐야"),
         BestItem(R.drawable.bestcloth2, "TOP 2", "별이"),
@@ -71,25 +64,48 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentHomeBinding.bind(view)
 
-        // ✅ 날짜 API 호출 및 UI 연결
-        viewModel.fetchDate()
+        val token = TokenProvider.getToken(requireContext())
 
-        viewModel.dateLiveData.observe(viewLifecycleOwner) { date ->
-            binding.dateTv.text = date
+        // ✅ 홈 진입 시 현재 날씨 자동 호출
+        viewModel.fetchCurrentWeather(token)
+
+        // ✅ 내일 날씨 버튼 클릭 시
+        binding.weatherBtn.setOnClickListener {
+            viewModel.fetchTomorrowWeather(token)
+        }
+
+        viewModel.weatherLiveData.observe(viewLifecycleOwner) { weatherResult ->
+            val location = weatherResult.location
+            val weather = weatherResult.weather
+
+            binding.locateTv.text = "${location.sido} ${location.sigungu} ${location.dong}"
+            binding.weatherInformTv.text = when (weather.status) {
+                "Storm" -> "뇌우"
+                "Snow" -> "눈"
+                "Rain" -> "비"
+                "Fog" -> "안개"
+                "CloudFew" -> "구름 조금"
+                "CloudMany" -> "구름 많음"
+                "CloudBroken" -> "흐림"
+                "Sun" -> "맑음"
+                else -> "알 수 없음"
+            }
+            binding.tempTv.text = "평균 기온 ${weather.tempAvg}°C"
         }
 
         viewModel.errorLiveData.observe(viewLifecycleOwner) { error ->
             Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
         }
 
-        // 초기 옷 추천 이미지 세팅
-        setRandomImages()
-
-        binding.refreshIcon.setOnClickListener {
-            setRandomImages()
+        // 날짜 표시
+        viewModel.fetchDate()
+        viewModel.dateLiveData.observe(viewLifecycleOwner) { date ->
+            binding.dateTv.text = date
         }
 
-        // 리사이클러뷰 세팅
+        setRandomImages()
+        binding.refreshIcon.setOnClickListener { setRandomImages() }
+
         binding.similarStyleRecyclerView.apply {
             adapter = SimiliarStyleAdapter(similiarClothList)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -105,10 +121,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
 
-        // 스크롤 시 등록 텍스트 애니메이션 변경
         val scrollView = binding.homeSv
         val registerTv = binding.homeRegisterTv
-
         scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             if (scrollY > 50 && !isShortText) {
                 animateTextChange(registerTv, "+")
@@ -119,22 +133,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
-        // 등록 버튼 클릭 → 바텀시트 열기
         binding.homeRegisterBtn.setOnClickListener {
             showBottomSheet()
         }
     }
 
-    // 옷 추천 이미지 무작위 세팅
     private fun setRandomImages() {
         val mix = clothSuggestList.shuffled().take(3)
-
         binding.suggestedCloth1Iv.setImageResource(mix[0])
         binding.suggestedCloth2Iv.setImageResource(mix[1])
         binding.suggestedCloth3Iv.setImageResource(mix[2])
     }
 
-    // 바텀시트 다이얼로그
     private fun showBottomSheet() {
         val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
         val dialog = BottomSheetDialog(requireContext())
@@ -153,21 +163,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         dialog.show()
     }
 
-    // 텍스트 부드럽게 전환 애니메이션
     private fun animateTextChange(textView: TextView, newText: String) {
         val fadeOut = ObjectAnimator.ofFloat(textView, "alpha", 1f, 0f)
         val fadeIn = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f)
-
         fadeOut.duration = 150
         fadeIn.duration = 150
-
         fadeOut.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
                 textView.text = newText
                 fadeIn.start()
             }
         })
-
         fadeOut.start()
     }
 
