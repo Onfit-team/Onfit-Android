@@ -1,12 +1,13 @@
 package com.example.onfit.KakaoLogin.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.onfit.R
 import com.example.onfit.KakaoLogin.model.LocationSearchResponse
+import com.example.onfit.R
 
 class LocationSearchAdapter(
     private var locationList: List<LocationSearchResponse.Result>,
@@ -19,6 +20,7 @@ class LocationSearchAdapter(
         private val tvAddress: TextView = itemView.findViewById(R.id.tvAddress)
 
         fun bind(item: LocationSearchResponse.Result, isSelected: Boolean) {
+            Log.d("LocationLog", "풀주소: ${item.fullAddress}")
             tvAddress.text = item.fullAddress
 
             // 선택된 아이템이면 배경색 다르게 처리

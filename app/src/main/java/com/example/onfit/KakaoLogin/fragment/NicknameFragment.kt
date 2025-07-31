@@ -1,6 +1,7 @@
 package com.example.onfit.KakaoLogin.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,8 +43,10 @@ class NicknameFragment : Fragment() {
             val input = it.toString()
             isNicknameAvailable = false
             val isValid = isValidNickname(input)
+
             binding.btnCheckNickname.isEnabled = isValid
-            binding.btnNext.isEnabled = false
+            binding.btnNext.isEnabled = false // 항상 비활성화
+            Log.d("NicknameLog", "닉네임 입력 바뀜: '$input' → btnCheckNickname: $isValid, btnNext: false")
         }
 
         // 뒤로가기
@@ -84,8 +87,10 @@ class NicknameFragment : Fragment() {
         binding.btnNext.setOnClickListener {
             if (isNicknameAvailable) {
                 NicknameProvider.nickname = nickname
+                Log.d("NicknameLog", "가입하기 버튼 클릭 → 닉네임 등록됨: $nickname")
                 findNavController().navigate(R.id.action_nicknameFragment_to_locationSettingFragment)
             } else {
+                Log.d("NicknameLog", "가입하기 버튼 클릭 → 중복확인 안됨!")
                 showErrorDialog("닉네임 중복 확인을 해주세요.")
             }
         }
@@ -108,8 +113,9 @@ class NicknameFragment : Fragment() {
             .setPositiveButton("확인") { dialog, _ -> dialog.dismiss() }
             .show()
 
-        // 사용 가능할 때만 가입하기 버튼 활성화
+        // ✅ 버튼 활성화 여부 로그 추가
         binding.btnNext.isEnabled = isAvailable
+        Log.d("NicknameLog", "중복확인 결과: isAvailable = $isAvailable → btnNext: ${binding.btnNext.isEnabled}")
     }
 
     private fun showErrorDialog(message: String) {
