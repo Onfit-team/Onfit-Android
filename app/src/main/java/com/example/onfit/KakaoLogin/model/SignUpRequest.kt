@@ -1,14 +1,6 @@
 package com.example.onfit.KakaoLogin.model
 
 data class SignUpRequest(
-    val nickname: String,
-    val location: LocationBody
+    val nickname: String? = null,
+    val location: String? = null
 )
-
-data class LocationBody(
-    val sido: String,
-    val sigungu: String,
-    val dong: String,
-    val code: String
-)
-

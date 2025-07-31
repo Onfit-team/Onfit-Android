@@ -6,60 +6,64 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
-    <!-- 위치 권한 요청 버튼 -->
-    <Button
-        android:id="@+id/btnRequestPermission"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="위치 권한 요청"
+    <!-- 뒤로가기 -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_back"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 위치 검색 입력창 -->
-    <EditText
-        android:id="@+id/editSearch"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="동/읍/면 입력"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btnRequestPermission"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- 🔽 자동 검색 버튼 추가 -->
-    <Button
-        android:id="@+id/btnAutoSearch"
+    <!-- 위치 제목 -->
+    <TextView
+        android:id="@+id/tvLocationTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="자동 검색"
-        android:layout_marginTop="12dp"
-        app:layout_constraintTop_toBottomOf="@id/editSearch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:text="위치"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/btnBack"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        android:layout_marginStart="16dp" />
 
-    <!-- 위치 결과 리스트 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerLocationResults"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btnAutoSearch"
-        app:layout_constraintBottom_toTopOf="@+id/btnSaveLocation"
+    <!-- 검색 입력창 -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:queryHint="동/읍/면을 입력하세요"
+        app:layout_constraintTop_toBottomOf="@id/btnBack"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp" />
+
+    <!-- 검색 결과 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLocationList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/searchView"
+        app:layout_constraintBottom_toTopOf="@+id/btnSave"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp" />
 
     <!-- 저장 버튼 -->
     <Button
-        android:id="@+id/btnSaveLocation"
+        android:id="@+id/btnSave"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:text="저장"
-        android:layout_marginTop="24dp"
+        android:text="저장하기"
+        android:enabled="false"
+        android:background="@drawable/bg_button_rectangle"
+        android:backgroundTint="@null"
+        android:textColor="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:backgroundTint="@color/black"
-        android:textColor="@android:color/white" />
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

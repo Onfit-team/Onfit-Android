@@ -24,9 +24,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.bottomNavigationView.setupWithNavController(navController)
 
-        // ✅ 로그인 및 회원가입 단계에서는 바텀 네비게이션 숨김
+        // 로그인 및 회원가입 단계에서는 바텀 네비게이션 숨김
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
+                R.id.loginStartFragment,
                 R.id.loginFragment,
                 R.id.termsFragment,
                 R.id.nicknameFragment,

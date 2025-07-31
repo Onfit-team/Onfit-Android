@@ -3,7 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/loginStartFragment">
+
+    <fragment
+        android:id="@+id/loginStartFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.LoginStartFragment"
+        android:label="로그인 시작"
+        tools:layout="@layout/fragment_login_start">
+        <action
+            android:id="@+id/action_loginStartFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
 
     <!-- 로그인 -->
     <fragment
@@ -14,9 +24,12 @@
         <action
             android:id="@+id/action_loginFragment_to_termsFragment"
             app:destination="@id/termsFragment" />
+
+        <!-- ✅ 닉네임 설정 화면으로 이동 추가 -->
+        <action
+            android:id="@+id/action_loginFragment_to_nicknameFragment"
+            app:destination="@id/nicknameFragment" />
     </fragment>
-
-
 
     <!-- 약관 동의 -->
     <fragment
@@ -102,21 +115,21 @@
             android:defaultValue="0" />
     </fragment>
 
-    <!-- ✅ 캘린더 -->
+    <!--  캘린더 -->
     <fragment
         android:id="@+id/calendarFragment"
         android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"
         tools:layout="@layout/fragment_calendar" />
 
-    <!-- ✅ 스타일별 Outfit -->
+    <!--  스타일별 Outfit -->
     <fragment
         android:id="@+id/styleOutfitsFragment"
         android:name="com.example.onfit.StyleOutfitsFragment"
         android:label="스타일별 Outfit"
         tools:layout="@layout/fragment_style_outfits" />
 
-    <!-- ✅ 커뮤니티 -->
+    <!--  커뮤니티 -->
     <fragment
         android:id="@+id/communityFragment"
         android:name="com.example.onfit.Community.fragment.CommunityFragment"
@@ -133,7 +146,7 @@
         android:label="커뮤니티 상세"
         tools:layout="@layout/fragment_community_detail" />
 
-    <!-- ✅ 홈으로 글로벌 이동 -->
+    <!--  홈으로 글로벌 이동 -->
     <action
         android:id="@+id/action_global_homeFragment"
         app:destination="@id/homeFragment"
@@ -141,5 +154,33 @@
         app:popUpToInclusive="true"
         app:launchSingleTop="true" />
 
+    <!-- 약관 상세 -->
+    <fragment
+        android:id="@+id/termsDetailFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.TermsDetailFragment"
+        android:label="약관 상세"
+        tools:layout="@layout/fragment_terms_detail" />
+
+    <action
+        android:id="@+id/action_termsFragment_to_termsDetailFragment_service"
+        app:destination="@id/termsDetailFragment"
+        app:enterAnim="@anim/slide_in_from_top"
+        app:exitAnim="@anim/slide_out_to_top">
+        <argument
+            android:name="type"
+            app:argType="string"
+            android:defaultValue="service" />
+    </action>
+
+    <action
+        android:id="@+id/action_termsFragment_to_termsDetailFragment_policy"
+        app:destination="@id/termsDetailFragment"
+        app:enterAnim="@anim/slide_in_from_top"
+        app:exitAnim="@anim/slide_out_to_top">
+        <argument
+            android:name="type"
+            app:argType="string"
+            android:defaultValue="policy" />
+    </action>
 
 </navigation>

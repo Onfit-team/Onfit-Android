@@ -1,26 +1,25 @@
 package com.example.onfit.KakaoLogin.fragment
 
-import com.example.onfit.R
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import android.view.*
-import android.widget.Toast
-import androidx.core.content.ContextCompat
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.KakaoLogin.adapter.LocationSearchAdapter
-import com.example.onfit.KakaoLogin.model.LocationBody
+import com.example.onfit.KakaoLogin.api.KakaoAuthService
+import com.example.onfit.KakaoLogin.model.LocationSearchResponse
 import com.example.onfit.KakaoLogin.model.SignUpRequest
 import com.example.onfit.KakaoLogin.util.TokenProvider
-import com.example.onfit.KakaoLogin.util.NicknameProvider
+import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLocationSettingBinding
 import com.example.onfit.network.RetrofitInstance
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.example.onfit.KakaoLogin.model.LocationItem
 
 class LocationSettingFragment : Fragment() {
 
@@ -28,9 +27,10 @@ class LocationSettingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: LocationSearchAdapter
+    private var selectedLocation: LocationSearchResponse.Result? = null
+    private val api: KakaoAuthService by lazy { RetrofitInstance.kakaoApi }
 
-    private var selectedLocation: LocationItem? = null
-
+    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,92 +43,79 @@ class LocationSettingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = LocationSearchAdapter { selected ->
-            selectedLocation = selected // 전체 객체 저장
-            binding.editSearch.setText(selected.fullAddress)
+        // RecyclerView 설정
+        adapter = LocationSearchAdapter(emptyList()) { selected ->
+            selectedLocation = selected
+            binding.btnSave.isEnabled = true
         }
 
+        binding.rvLocationList.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvLocationList.adapter = adapter
 
-        binding.recyclerLocationResults.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerLocationResults.adapter = adapter
-
-        binding.btnAutoSearch.setOnClickListener {
-            val keyword = binding.editSearch.text.toString().trim()
-            if (keyword.isNotEmpty()) {
-                searchLocation(keyword)
-            } else {
-                Toast.makeText(requireContext(), "검색어를 입력하세요", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        binding.btnSaveLocation.setOnClickListener {
-            val nickname = NicknameProvider.nickname
-            val token = TokenProvider.token
-            val location = selectedLocation
-
-            if (nickname.isNullOrEmpty() || location == null) {
-                Toast.makeText(requireContext(), "닉네임과 위치를 모두 입력해주세요", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val request = SignUpRequest(
-                nickname = nickname,
-                location = LocationBody(
-                    sido = location.sido!!,
-                    sigungu = location.sigungu!!,
-                    dong = location.dong!!,
-                    code = location.code!!
-                )
-            )
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    val response = RetrofitInstance.kakaoApi.signUp("Bearer $token", request)
-                    if (response.isSuccessful) {
-                        Toast.makeText(requireContext(), "회원가입 완료", Toast.LENGTH_SHORT).show()
-                        findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
+        // 검색 입력 이벤트
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchJob?.cancel()
+                searchJob = lifecycleScope.launch {
+                    delay(300) // 디바운싱
+                    if (!newText.isNullOrBlank()) {
+                        searchLocation(newText)
                     } else {
-                        val errorBody = response.errorBody()?.string()
-                        Log.e("회원가입 실패", "code=${response.code()}, error=$errorBody")
-                        Toast.makeText(requireContext(), "회원가입 실패", Toast.LENGTH_SHORT).show()
+                        adapter.submitList(emptyList())
+                        binding.btnSave.isEnabled = false
                     }
-                } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "네트워크 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                return true
+            }
+        })
+
+        // 저장 버튼 클릭
+        binding.btnSave.setOnClickListener {
+            selectedLocation?.let { location ->
+                val token = TokenProvider.getToken(requireContext())
+                val request = SignUpRequest(location = location.fullAddress)
+                lifecycleScope.launch {
+                    try {
+                        val response = api.signUp("Bearer $token", request)
+                        if (response.isSuccessful) {
+                            findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
+                        } else {
+                            showErrorDialog("위치 저장 실패\n잠시 후 다시 시도해주세요.")
+                        }
+                    } catch (e: Exception) {
+                        showErrorDialog("네트워크 오류 발생\n인터넷 연결을 확인해주세요.")
+                    }
                 }
             }
         }
 
-
-
-        binding.btnRequestPermission.setOnClickListener {
-            requestLocationPermission()
+        // 뒤로가기
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
         }
     }
 
-    private fun searchLocation(query: String) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val response = RetrofitInstance.kakaoApi.searchLocation(query)
-                if (response.isSuccessful) {
-                    val results = response.body()?.result ?: emptyList()
-                    adapter.submitList(results)
-                } else {
-                    Toast.makeText(requireContext(), "검색 실패", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "오류: ${e.message}", Toast.LENGTH_SHORT).show()
+    private suspend fun searchLocation(query: String) {
+        try {
+            val response = api.searchLocation(query)
+            if (response.isSuccessful) {
+                val results = response.body()?.result ?: emptyList()
+                adapter.submitList(results)
+                binding.btnSave.isEnabled = false // 검색만 했을 때는 비활성화
+            } else {
+                showErrorDialog("검색 실패\n잠시 후 다시 시도해주세요.")
             }
+        } catch (e: Exception) {
+            showErrorDialog("네트워크 오류\n인터넷 연결을 확인해주세요.")
         }
     }
 
-
-    private fun requestLocationPermission() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1001)
-        } else {
-            Toast.makeText(requireContext(), "이미 권한 있음", Toast.LENGTH_SHORT).show()
-        }
+    private fun showErrorDialog(message: String) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setMessage(message)
+            .setPositiveButton("확인", null)
+            .show()
     }
 
     override fun onDestroyView() {

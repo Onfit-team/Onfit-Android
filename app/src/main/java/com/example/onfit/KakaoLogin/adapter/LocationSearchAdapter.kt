@@ -1,43 +1,60 @@
 package com.example.onfit.KakaoLogin.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.onfit.KakaoLogin.model.LocationItem
-import com.example.onfit.databinding.ItemLocationSearchBinding
+import com.example.onfit.R
+import com.example.onfit.KakaoLogin.model.LocationSearchResponse
 
 class LocationSearchAdapter(
-    private val onItemClick: (LocationItem) -> Unit
-) : RecyclerView.Adapter<LocationSearchAdapter.ViewHolder>() {
+    private var locationList: List<LocationSearchResponse.Result>,
+    private val onItemClick: (LocationSearchResponse.Result) -> Unit
+) : RecyclerView.Adapter<LocationSearchAdapter.LocationViewHolder>() {
 
-    private var items: List<LocationItem> = emptyList()
+    private var selectedIndex: Int = RecyclerView.NO_POSITION
 
-    fun submitList(newItems: List<LocationItem>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
+    inner class LocationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvAddress: TextView = itemView.findViewById(R.id.tvAddress)
 
-    inner class ViewHolder(private val binding: ItemLocationSearchBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: LocationSearchResponse.Result, isSelected: Boolean) {
+            tvAddress.text = item.fullAddress
 
-        fun bind(item: LocationItem) {
-            binding.tvAddress.text = item.fullAddress
-            binding.root.setOnClickListener {
+            // 선택된 아이템이면 배경색 다르게 처리
+            itemView.setBackgroundColor(
+                if (isSelected)
+                    itemView.context.getColor(R.color.light_gray)
+                else
+                    itemView.context.getColor(android.R.color.transparent)
+            )
+
+            itemView.setOnClickListener {
+                val previousIndex = selectedIndex
+                selectedIndex = bindingAdapterPosition
+                notifyItemChanged(previousIndex)
+                notifyItemChanged(selectedIndex)
                 onItemClick(item)
             }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemLocationSearchBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return ViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_location_search, parent, false) // ✅ 파일명 반영
+        return LocationViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position])
+    override fun onBindViewHolder(holder: LocationViewHolder, position: Int) {
+        val item = locationList[position]
+        holder.bind(item, position == selectedIndex)
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount(): Int = locationList.size
+
+    fun submitList(newList: List<LocationSearchResponse.Result>) {
+        locationList = newList
+        selectedIndex = RecyclerView.NO_POSITION
+        notifyDataSetChanged()
+    }
 }
