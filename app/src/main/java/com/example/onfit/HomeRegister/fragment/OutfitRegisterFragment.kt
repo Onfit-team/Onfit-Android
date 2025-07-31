@@ -68,16 +68,7 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 처음 한 번만 더미 데이터 추가
-        if (outfitList.isEmpty()) {
-            outfitList.addAll(
-                listOf(
-                    OutfitItem2(R.drawable.outfit_top),
-                    OutfitItem2(R.drawable.outfit_pants),
-                    OutfitItem2(R.drawable.outfit_shoes)
-                )
-            )
-        }
+
 
         adapter = OutfitAdapter(outfitList,
             onClosetButtonClick = {
@@ -149,7 +140,7 @@ class OutfitRegisterFragment : Fragment() {
     // API 호출 후 RecyclerView에 아이템 추가
     private fun uploadImageToServer(file: File) {
         // 임시 토큰
-        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1Mzg1NTk1MywiZXhwIjoxNzU0NDYwNzUzfQ.CWiyun2RiZYJuzGahIm66NwrW1MD8iFiAmePlJvGSLE"
+        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1MzkzNDc2OSwiZXhwIjoxNzU0NTM5NTY5fQ.ED8Z2CkRwHB6cSue__7d1LCihZQ2eTU6zhqe0jWSF_M"
 
         val mediaType = "image/*".toMediaTypeOrNull()
         val requestFile: RequestBody = file.asRequestBody(mediaType)
@@ -209,11 +200,5 @@ class OutfitRegisterFragment : Fragment() {
         super.onResume()
         // 실행 중 bottom navigation view 보이지 않게
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }
