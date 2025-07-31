@@ -3,15 +3,18 @@ package com.example.onfit.HomeRegister.fragment
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
+import com.google.android.material.chip.Chip
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -34,6 +37,13 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 갤러리에서
+        val selectedImageUri = arguments?.getString("selectedImage")
+        selectedImageUri?.let {
+            val uri = Uri.parse(it)
+            binding.registerOutfitIv.setImageURI(uri)
+        }
+
         // 날짜 오늘 날짜로 기본 설정
         val today = Calendar.getInstance().time
         val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
@@ -48,6 +58,29 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 }
             })
             dialog.show(parentFragmentManager, "TopSheet")
+        }
+
+        // 칩 3개까지만 선택(분위기)
+        val chipGroup1 = binding.registerVibeChips
+        chipGroup1.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.size > 3) {
+                // 방금 선택한 Chip의 체크를 해제
+                val lastCheckedChipId = checkedIds.last()
+                group.findViewById<Chip>(lastCheckedChipId)?.isChecked = false
+
+                Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        // 칩 3개까지만 선택(욛도)
+        val chipGroup2 = binding.registerUseChips
+        chipGroup2.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.size > 3) {
+                // 방금 선택한 Chip의 체크를 해제
+                val lastCheckedChipId = checkedIds.last()
+                group.findViewById<Chip>(lastCheckedChipId)?.isChecked = false
+
+                Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // 날짜 수정
@@ -86,7 +119,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
 
         // 뒤로가기 버튼
         binding.registerBackBtn.setOnClickListener {
-            activity?.finish()
+            findNavController().popBackStack()
         }
     }
 

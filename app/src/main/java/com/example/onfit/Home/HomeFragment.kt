@@ -4,11 +4,15 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,6 +33,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private var isShortText = false
+
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
+    private var selectedImageUri: Uri? = null
 
     //홈 화면 옷 리스트
     private val clothSuggestList = listOf(
@@ -70,6 +77,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.suggestedCloth1Iv.setImageResource(mix[0])
         binding.suggestedCloth2Iv.setImageResource(mix[1])
         binding.suggestedCloth3Iv.setImageResource(mix[2])
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // 갤러리 Launcher
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == AppCompatActivity.RESULT_OK) {
+                selectedImageUri = result.data?.data
+
+                // RegisterFragment로 이동하면서 선택한 이미지 URI 전달
+                selectedImageUri?.let { uri ->
+                    val bundle = Bundle().apply {
+                        putString("selectedImage", uri.toString())
+                    }
+                    findNavController().navigate(R.id.action_homeFragment_to_registerFragment, bundle)
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -138,7 +164,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         // 사진첩 버튼 클릭
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-            Toast.makeText(requireContext(), "사진첩 클릭됨", Toast.LENGTH_SHORT).show()
+            openGallery()
             dialog.dismiss()
         }
         dialog.show()
@@ -159,6 +185,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         })
         fadeOut.start()
+    }
+
+    // gallery_btn 클릭 시 실행
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply {
+            type = "image/*"
+        }
+        pickImageLauncher.launch(intent)
     }
 
     override fun onDestroyView() {
