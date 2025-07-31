@@ -1,11 +1,10 @@
 package com.example.onfit
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.navigation.fragment.NavHostFragment         // ✅ 여기에 주목
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.onfit.databinding.ActivityMainBinding
 
@@ -19,12 +18,26 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // NavHostFragment를 직접 가져와서 NavController 얻기
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // BottomNavigationView와 NavController를 연결 → 자동으로 Fragment 전환
         binding.bottomNavigationView.setupWithNavController(navController)
+
+        // 로그인 및 회원가입 단계에서는 바텀 네비게이션 숨김
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.loginStartFragment,
+                R.id.loginFragment,
+                R.id.termsFragment,
+                R.id.nicknameFragment,
+                R.id.locationSettingFragment -> {
+                    binding.bottomNavigationView.visibility = View.GONE
+                }
+                else -> {
+                    binding.bottomNavigationView.visibility = View.VISIBLE
+                }
+            }
+        }
     }
 }

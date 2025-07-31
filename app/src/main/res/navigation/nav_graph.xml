@@ -3,113 +3,94 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
-    <!-- 홈프래그먼트 -->
+    app:startDestination="@id/loginStartFragment">
+
+    <fragment
+        android:id="@+id/loginStartFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.LoginStartFragment"
+        android:label="로그인 시작"
+        tools:layout="@layout/fragment_login_start">
+        <action
+            android:id="@+id/action_loginStartFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+    <!-- 로그인 -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.LoginFragment"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_loginFragment_to_termsFragment"
+            app:destination="@id/termsFragment" />
+
+        <!-- ✅ 닉네임 설정 화면으로 이동 추가 -->
+        <action
+            android:id="@+id/action_loginFragment_to_nicknameFragment"
+            app:destination="@id/nicknameFragment" />
+    </fragment>
+
+    <!-- 약관 동의 -->
+    <fragment
+        android:id="@+id/termsFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.TermsFragment"
+        android:label="약관 동의"
+        tools:layout="@layout/fragment_terms">
+        <action
+            android:id="@+id/action_termsFragment_to_nicknameFragment"
+            app:destination="@id/nicknameFragment" />
+    </fragment>
+
+    <!-- 닉네임 설정 -->
+    <fragment
+        android:id="@+id/nicknameFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.NicknameFragment"
+        android:label="닉네임 설정"
+        tools:layout="@layout/fragment_nickname">
+        <action
+            android:id="@+id/action_nicknameFragment_to_locationSettingFragment"
+            app:destination="@id/locationSettingFragment" />
+    </fragment>
+
+    <!-- 위치 설정 -->
+    <fragment
+        android:id="@+id/locationSettingFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.LocationSettingFragment"
+        android:label="위치 설정"
+        tools:layout="@layout/fragment_location_setting">
+        <action
+            android:id="@+id/action_locationSettingFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+    </fragment>
+
+    <!-- 홈 -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.onfit.Home.HomeFragment"
-        android:label="홈">
-        <action
-            android:id="@+id/action_homeFragment_to_registerFragment"
-            app:destination="@id/registerFragment" />
-    </fragment>
+        android:label="홈"
+        tools:layout="@layout/fragment_home" />
 
-    <fragment
-        android:id="@+id/registerFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.RegisterFragment"
-        android:label="아웃핏 등록 화면" >
-        <action
-            android:id="@+id/action_registerFragment_to_saveFragment"
-            app:destination="@id/saveFragment"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/saveFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.SaveFragment"
-        android:label="아웃핏 저장 화면">
-        <action
-            android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
-            app:destination="@id/outfitRegisterFragment"/>
-    </fragment>
-
-    <fragment
-        android:id="@+id/outfitRegisterFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.OutfitRegisterFragment"
-        android:label="outfitRegisterFragment">
-        <action
-            android:id="@+id/action_outfitRegisterFragment_to_outfitSaveFragment"
-            app:destination="@id/outfitSaveFragment"/>
-        <action
-            android:id="@+id/action_outfitRegisterFragment_to_outfitSelectFragment"
-            app:destination="@id/outfitSelectFragment" />
-        <action
-            android:id="@+id/action_outfitRegisterFragment_to_outfitCropFragment"
-            app:destination="@id/outfitCropFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/outfitSaveFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
-        android:label="outfitSaveFragment" />
-
-    <fragment
-        android:id="@+id/outfitSelectFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
-        android:label="outfitSelectFragment" />
-
-    <fragment
-        android:id="@+id/outfitCropFragment"
-        android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment" />
-
-
+    <!-- 옷장 -->
     <fragment
         android:id="@+id/wardrobeFragment"
         android:name="com.example.onfit.Wardrobe.fragment.WardrobeFragment"
-        android:label="옷장">
-        <!-- WardrobeFragment에서 AddItemFragment로 가는 액션 추가 -->
+        android:label="옷장" >
         <action
             android:id="@+id/action_wardrobeFragment_to_addItemFragment"
             app:destination="@id/addItemFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/calendarFragment"
-        android:name="com.example.onfit.calendar.fragment.CalendarFragment"
-        android:label="캘린더">
-        <action
-            android:id="@+id/action_calendarFragment_to_calendarSaveFragment"
-            app:destination="@id/calendarSaveFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/calendarSaveFragment"
-        android:name="com.example.onfit.CalendarSaveFragment"
-        android:label="아웃핏 저장화면">
-        <action
-            android:id="@+id/action_calendarSaveFragment_to_calendarRewriteFragment"
-            app:destination="@id/calendarRewriteFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/calendarRewriteFragment"
-        android:name="com.example.onfit.CalendarRewriteFragment"
-        android:label="아웃핏 상세화면 수정"/>
-
-    <fragment
-        android:id="@+id/styleOutfitsFragment"
-        android:name="com.example.onfit.StyleOutfitsFragment"
-        android:label="스타일별 Outfit"/>
-
-    <fragment
         android:id="@+id/wardrobeSearchFragment"
         android:name="com.example.onfit.Wardrobe.fragment.WardrobeSearchFragment"
-        android:label="WardrobeSearchFragment" />
+        android:label="검색"
+        tools:layout="@layout/fragment_wardrobe_search" />
 
     <fragment
         android:id="@+id/clothesDetailFragment"
         android:name="com.example.onfit.Wardrobe.fragment.ClothesDetailFragment"
-        android:label="ClothesDetailFragment"
+        android:label="의상 상세"
         tools:layout="@layout/fragment_clothes_detail">
         <argument
             android:name="image_res_id"
@@ -122,7 +103,7 @@
     <fragment
         android:id="@+id/addItemFragment"
         android:name="com.example.onfit.Wardrobe.fragment.AddItemFragment"
-        android:label="AddItemFragment"
+        android:label="아이템 추가"
         tools:layout="@layout/fragment_add_item">
         <argument
             android:name="edit_mode"
@@ -134,10 +115,26 @@
             android:defaultValue="0" />
     </fragment>
 
+    <!--  캘린더 -->
+    <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.example.onfit.calendar.fragment.CalendarFragment"
+        android:label="캘린더"
+        tools:layout="@layout/fragment_calendar" />
+
+    <!--  스타일별 Outfit -->
+    <fragment
+        android:id="@+id/styleOutfitsFragment"
+        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:label="스타일별 Outfit"
+        tools:layout="@layout/fragment_style_outfits" />
+
+    <!--  커뮤니티 -->
     <fragment
         android:id="@+id/communityFragment"
         android:name="com.example.onfit.Community.fragment.CommunityFragment"
-        android:label="커뮤니티">
+        android:label="커뮤니티"
+        tools:layout="@layout/fragment_community">
         <action
             android:id="@+id/action_communityFragment_to_communityDetailFragment"
             app:destination="@id/communityDetailFragment" />
@@ -146,7 +143,44 @@
     <fragment
         android:id="@+id/communityDetailFragment"
         android:name="com.example.onfit.Community.fragment.CommunityDetailFragment"
-        android:label="커뮤니티 상세" />
+        android:label="커뮤니티 상세"
+        tools:layout="@layout/fragment_community_detail" />
 
+    <!--  홈으로 글로벌 이동 -->
+    <action
+        android:id="@+id/action_global_homeFragment"
+        app:destination="@id/homeFragment"
+        app:popUpTo="@id/homeFragment"
+        app:popUpToInclusive="true"
+        app:launchSingleTop="true" />
+
+    <!-- 약관 상세 -->
+    <fragment
+        android:id="@+id/termsDetailFragment"
+        android:name="com.example.onfit.KakaoLogin.fragment.TermsDetailFragment"
+        android:label="약관 상세"
+        tools:layout="@layout/fragment_terms_detail" />
+
+    <action
+        android:id="@+id/action_termsFragment_to_termsDetailFragment_service"
+        app:destination="@id/termsDetailFragment"
+        app:enterAnim="@anim/slide_in_from_top"
+        app:exitAnim="@anim/slide_out_to_top">
+        <argument
+            android:name="type"
+            app:argType="string"
+            android:defaultValue="service" />
+    </action>
+
+    <action
+        android:id="@+id/action_termsFragment_to_termsDetailFragment_policy"
+        app:destination="@id/termsDetailFragment"
+        app:enterAnim="@anim/slide_in_from_top"
+        app:exitAnim="@anim/slide_out_to_top">
+        <argument
+            android:name="type"
+            app:argType="string"
+            android:defaultValue="policy" />
+    </action>
 
 </navigation>
