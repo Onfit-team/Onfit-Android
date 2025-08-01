@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -67,7 +68,7 @@ class OutfitRegisterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        // 더미데이터 세팅
 
 
         adapter = OutfitAdapter(outfitList,
@@ -104,6 +105,7 @@ class OutfitRegisterFragment : Fragment() {
         // SaveFragment에서 전달받은 이미지 경로 가져오기
         val imagePath = arguments?.getString("outfit_image_path")
         if (!imagePath.isNullOrEmpty()) {
+            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
             uploadImageToServer(File(imagePath))
         }
 

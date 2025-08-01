@@ -2,9 +2,11 @@ package com.example.onfit.HomeRegister.fragment
 
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +17,8 @@ import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import com.google.android.material.chip.Chip
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -37,11 +41,11 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 갤러리에서
-        val selectedImageUri = arguments?.getString("selectedImage")
-        selectedImageUri?.let {
-            val uri = Uri.parse(it)
-            binding.registerOutfitIv.setImageURI(uri)
+        // 갤러리에서 선택한 사진 받아오기
+        val imagePath = arguments?.getString("selectedImagePath")
+        imagePath?.let {
+            val bitmap = BitmapFactory.decodeFile(it)
+            binding.registerOutfitIv.setImageBitmap(bitmap)
         }
 
         // 날짜 오늘 날짜로 기본 설정
@@ -60,19 +64,15 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             dialog.show(parentFragmentManager, "TopSheet")
         }
 
-        // 칩 3개까지만 선택(분위기)
-        val chipGroup1 = binding.registerVibeChips
-        chipGroup1.setOnCheckedStateChangeListener { group, checkedIds ->
-            if (checkedIds.size > 3) {
-                // 방금 선택한 Chip의 체크를 해제
-                val lastCheckedChipId = checkedIds.last()
-                group.findViewById<Chip>(lastCheckedChipId)?.isChecked = false
-
-                Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
-            }
+        // 날씨 칩 묶기
+        val chipGroup1 = binding.registerWeatherChips
+        val selectedWeatherTags = chipGroup1.checkedChipIds.mapNotNull { chipId ->
+            val chip = chipGroup1.findViewById<Chip>(chipId)
+            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
         }
-        // 칩 3개까지만 선택(욛도)
-        val chipGroup2 = binding.registerUseChips
+
+        // 칩 3개까지만 선택(분위기)
+        val chipGroup2 = binding.registerVibeChips
         chipGroup2.setOnCheckedStateChangeListener { group, checkedIds ->
             if (checkedIds.size > 3) {
                 // 방금 선택한 Chip의 체크를 해제
@@ -82,6 +82,40 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
             }
         }
+
+        // 분위기 칩 묶기
+        val selectedVibeTags = chipGroup2.checkedChipIds.mapNotNull { chipId ->
+            val chip = chipGroup2.findViewById<Chip>(chipId)
+            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
+        }
+
+        // 칩 3개까지만 선택(욛도)
+        val chipGroup3 = binding.registerUseChips
+        chipGroup3.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.size > 3) {
+                // 방금 선택한 Chip의 체크를 해제
+                val lastCheckedChipId = checkedIds.last()
+                group.findViewById<Chip>(lastCheckedChipId)?.isChecked = false
+
+                Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // 용도 칩 묶기
+        val selectedUseTags = chipGroup3.checkedChipIds.mapNotNull { chipId ->
+            val chip = chipGroup3.findViewById<Chip>(chipId)
+            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
+        }
+
+//        val feelsLikeTemp = selectedWeatherTags.firstOrNull() ?: 0
+//        val jsonBody = JSONObject().apply {
+//            put("date", formattedDate)
+//            put("mainImage", imageUrl)
+//            put("memo", memoText)
+//            put("feelsLikeTemp", feelsLikeTemp)
+//            put("moodTags", JSONArray(selectedVibeTags))
+//            put("purposeTags", JSONArray(selectedUseTags))
+//        }
 
         // 날짜 수정
         binding.registerDropdownBtn.setOnClickListener {
@@ -97,23 +131,36 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
 
         // 저장 버튼 누르면 날짜, 이미지 Bundle로 전달
         binding.registerSaveBtn.setOnClickListener {
+            // 날짜 변환(API 용)
             val parts = binding.registerDateTv.text.toString().split(".")
+            val formattedDateForAPI = "${parts[0]}-${parts[1]}-${parts[2]}"
+
+            // 메모 텍스트
+            val memoText = binding.registerMemoEt.text.toString()
+
+            //  이미지 URL
+
+
+            // Json body 생성
+//            val jsonBody = JSONObject().apply {
+//                put("date", formattedDateForAPI)
+//                put("mainImage", imageUrl) // URL 변수 사용
+//                put("memo", memoText)
+//                put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
+//                put("moodTags", JSONArray(selectedVibeTags))
+//                put("purposeTags", JSONArray(selectedUseTags))
+//            }
+
+            // 날짜 변환(Bundle용)
             val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"
-
-            val bitmap = (binding.registerOutfitIv.drawable as BitmapDrawable).bitmap
-
-            // 앱의 캐시 디렉토리에 이미지 저장
-            val file = File(requireContext().cacheDir, "selected_outfit.png")
-            FileOutputStream(file).use { fos ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
-            }
+            // Fragment에서 전달받은 이미지 파일 경로 사용
+            val imagePath = arguments?.getString("selectedImagePath")
 
             // 파일 경로만 전달
             val bundle = Bundle().apply {
                 putString("save_date", formattedDate)
-                putString("outfit_image_path", file.absolutePath)
+                putString("outfit_image_path", imagePath)
             }
-
             findNavController().navigate(R.id.action_registerFragment_to_saveFragment, bundle)
         }
 

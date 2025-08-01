@@ -3,6 +3,7 @@ package com.example.onfit.Home
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,6 +26,8 @@ import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
 import com.example.onfit.MainActivity
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -87,10 +90,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             if (result.resultCode == AppCompatActivity.RESULT_OK) {
                 selectedImageUri = result.data?.data
 
-                // RegisterFragment로 이동하면서 선택한 이미지 URI 전달
+                // RegisterFragment로 이동하면서 선택한 이미지 URI -> File로 변환하여 파일 경로 전달
                 selectedImageUri?.let { uri ->
+                    // uri -> 캐시 파일 변환
+                    val cacheFile = uriToCacheFile(requireContext(), uri)
+
+                    // RegisterFragment로 파일 경로 전달
                     val bundle = Bundle().apply {
-                        putString("selectedImage", uri.toString())
+                        putString("selectedImagePath", cacheFile.absolutePath)
                     }
                     findNavController().navigate(R.id.action_homeFragment_to_registerFragment, bundle)
                 }
@@ -185,6 +192,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         })
         fadeOut.start()
+    }
+
+    private fun uriToCacheFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val file = File(context.cacheDir, "selected_outfit.png") // 파일 이름 고정
+        val outputStream = FileOutputStream(file)
+
+        inputStream?.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        return file
     }
 
     // gallery_btn 클릭 시 실행
