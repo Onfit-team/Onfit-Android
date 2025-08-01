@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -15,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.LatestStyleAdapter
@@ -24,8 +26,15 @@ import com.example.onfit.Home.model.SimItem
 import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
-import com.example.onfit.MainActivity
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
@@ -92,14 +101,58 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                 // RegisterFragment로 이동하면서 선택한 이미지 URI -> File로 변환하여 파일 경로 전달
                 selectedImageUri?.let { uri ->
+                    Log.d("HomeFragment", "선택된 이미지 URI: $uri")
                     // uri -> 캐시 파일 변환
                     val cacheFile = uriToCacheFile(requireContext(), uri)
+                    Log.d("HomeFragment", "파일 존재 여부: ${cacheFile.exists()}")
+                    Log.d("HomeFragment", "파일 크기: ${cacheFile.length()}")
 
-                    // RegisterFragment로 파일 경로 전달
-                    val bundle = Bundle().apply {
-                        putString("selectedImagePath", cacheFile.absolutePath)
+                    // 이미지 업로드 API 호출
+                    uploadImageToServer(cacheFile)
+                }
+            }
+        }
+    }
+
+    // API에 파일 업로드하고 Url 받아오기
+    private fun uploadImageToServer(file: File) {
+        Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
+        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1NDA0NTA2NiwiZXhwIjoxNzU0NjQ5ODY2fQ.jF6SDERUqPs2_Qiv204CpgxN037D8mGaYq1g7a0fDb8"
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val api = RetrofitClient.instance.create(ApiService::class.java)
+                val response = api.uploadImage(token, body)
+
+                val rawResponse = response.body()
+                Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        val imageUrl = response.body()!!.result?.imageUrl
+                        Log.d("HomeFragment", "이미지 업로드 성공: $imageUrl")
+
+                        // 3️RegisterFragment로 URL 전달
+                        val bundle = Bundle().apply {
+                            putString("selectedImagePath", file.absolutePath)
+                            putString("uploadedImageUrl", imageUrl) // URL 전달
+                        }
+                        findNavController().navigate(R.id.action_homeFragment_to_registerFragment, bundle)
+
+                    } else {
+                        val errorMsg = response.errorBody()?.string()
+                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg")
+                        Toast.makeText(requireContext(), "업로드 실패", Toast.LENGTH_SHORT).show()
                     }
-                    findNavController().navigate(R.id.action_homeFragment_to_registerFragment, bundle)
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // 백그라운드에서는 Toast 호출 금지
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "서버 오류", Toast.LENGTH_SHORT).show()
                 }
             }
         }

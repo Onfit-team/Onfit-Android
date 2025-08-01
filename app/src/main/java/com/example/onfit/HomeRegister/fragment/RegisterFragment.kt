@@ -12,16 +12,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import com.google.android.material.chip.Chip
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -41,7 +44,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 갤러리에서 선택한 사진 받아오기
+        // HomeFragment 갤러리에서 선택한 사진 받아오기
         val imagePath = arguments?.getString("selectedImagePath")
         imagePath?.let {
             val bitmap = BitmapFactory.decodeFile(it)
@@ -64,12 +67,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             dialog.show(parentFragmentManager, "TopSheet")
         }
 
-        // 날씨 칩 묶기
-        val chipGroup1 = binding.registerWeatherChips
-        val selectedWeatherTags = chipGroup1.checkedChipIds.mapNotNull { chipId ->
-            val chip = chipGroup1.findViewById<Chip>(chipId)
-            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
-        }
 
         // 칩 3개까지만 선택(분위기)
         val chipGroup2 = binding.registerVibeChips
@@ -81,12 +78,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
 
                 Toast.makeText(requireContext(), "최대 3개까지만 선택할 수 있어요!", Toast.LENGTH_SHORT).show()
             }
-        }
-
-        // 분위기 칩 묶기
-        val selectedVibeTags = chipGroup2.checkedChipIds.mapNotNull { chipId ->
-            val chip = chipGroup2.findViewById<Chip>(chipId)
-            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
         }
 
         // 칩 3개까지만 선택(욛도)
@@ -101,22 +92,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             }
         }
 
-        // 용도 칩 묶기
-        val selectedUseTags = chipGroup3.checkedChipIds.mapNotNull { chipId ->
-            val chip = chipGroup3.findViewById<Chip>(chipId)
-            chip?.tag?.toString()?.toIntOrNull() // tag를 Int로 변환
-        }
-
-//        val feelsLikeTemp = selectedWeatherTags.firstOrNull() ?: 0
-//        val jsonBody = JSONObject().apply {
-//            put("date", formattedDate)
-//            put("mainImage", imageUrl)
-//            put("memo", memoText)
-//            put("feelsLikeTemp", feelsLikeTemp)
-//            put("moodTags", JSONArray(selectedVibeTags))
-//            put("purposeTags", JSONArray(selectedUseTags))
-//        }
-
         // 날짜 수정
         binding.registerDropdownBtn.setOnClickListener {
             val parts = binding.registerDateTv.text.toString().split(".")
@@ -129,27 +104,68 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             }, year, month, day).show()
         }
 
-        // 저장 버튼 누르면 날짜, 이미지 Bundle로 전달
+
+        // 저장 버튼 누르면 날짜, 이미지 Bundle로 전달, 코디 등록 API 연동
         binding.registerSaveBtn.setOnClickListener {
             // 날짜 변환(API 용)
             val parts = binding.registerDateTv.text.toString().split(".")
             val formattedDateForAPI = "${parts[0]}-${parts[1]}-${parts[2]}"
 
+            //  이미지 URL
+            val imageUrl = arguments?.getString("uploadedImageUrl")
+
             // 메모 텍스트
             val memoText = binding.registerMemoEt.text.toString()
 
-            //  이미지 URL
+            // 날씨 칩 묶기
+            val chipGroup1 = binding.registerWeatherChips
+            val selectedWeatherTags = chipGroup1.checkedChipIds.mapNotNull { chipId ->
+                chipGroup1.findViewById<Chip>(chipId).tag?.toString()?.toIntOrNull()
+            }
 
+            // 분위기 칩 묶기
+            val selectedVibeTags = chipGroup2.checkedChipIds.mapNotNull { chipId ->
+                chipGroup2.findViewById<Chip>(chipId).tag?.toString()?.toIntOrNull()
+            }
+
+            // 용도 칩 묶기
+            val selectedUseTags = chipGroup3.checkedChipIds.mapNotNull { chipId ->
+                chipGroup3.findViewById<Chip>(chipId).tag?.toString()?.toIntOrNull()
+            }
+
+            val finalMoodTags = selectedVibeTags.take(3)
+            val finalPurposeTags = selectedUseTags.take(3)
 
             // Json body 생성
-//            val jsonBody = JSONObject().apply {
-//                put("date", formattedDateForAPI)
-//                put("mainImage", imageUrl) // URL 변수 사용
-//                put("memo", memoText)
-//                put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
-//                put("moodTags", JSONArray(selectedVibeTags))
-//                put("purposeTags", JSONArray(selectedUseTags))
-//            }
+            val jsonBody = JSONObject().apply {
+                put("date", formattedDateForAPI)
+                put("mainImage", imageUrl) // 서버에서 받은 이미지 Url 생성
+                put("memo", memoText)
+                put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
+                put("moodTags", JSONArray(selectedVibeTags))
+                put("purposeTags", JSONArray(selectedUseTags))
+                put("locationId", 1) // 임시 위치값
+            }
+
+            // RequestBody로 변환
+            val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+            // Retrofit API 호출
+            lifecycleScope.launch {
+                try {
+                    val api = RetrofitClient.instance.create(ApiService::class.java)
+                    val response = api.registerOutfit("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1NDA0NTA2NiwiZXhwIjoxNzU0NjQ5ODY2fQ.jF6SDERUqPs2_Qiv204CpgxN037D8mGaYq1g7a0fDb8", requestBody)
+
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        Toast.makeText(requireContext(), "아웃핏 등록 성공!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(requireContext(), "서버 오류 발생", Toast.LENGTH_SHORT).show()
+                }
+            }
 
             // 날짜 변환(Bundle용)
             val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"

@@ -69,7 +69,13 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // 더미데이터 세팅
-
+        outfitList.addAll(
+            listOf(
+                OutfitItem2(R.drawable.outfit_top),
+                OutfitItem2(R.drawable.outfit_pants),
+                OutfitItem2(R.drawable.outfit_shoes)
+            )
+        )
 
         adapter = OutfitAdapter(outfitList,
             onClosetButtonClick = {
