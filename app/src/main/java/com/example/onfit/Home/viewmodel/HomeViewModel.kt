@@ -24,7 +24,7 @@ class HomeViewModel : ViewModel() {
                 val date = response.body()?.result?.date
                 date?.let {
                     val parsed = LocalDate.parse(it)  // 문자열 → LocalDate
-                    val formatter = DateTimeFormatter.ofPattern("M월 d일")  // "7월 28일" 형식
+                    val formatter = DateTimeFormatter.ofPattern("M월 d일 ")  // "7월 28일" 형식
                     val formatted = parsed.format(formatter)
 
                     dateLiveData.postValue(formatted)  // 변환된 값 저장

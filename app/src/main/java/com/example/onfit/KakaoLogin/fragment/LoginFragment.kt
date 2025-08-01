@@ -52,10 +52,10 @@ class LoginFragment : Fragment() {
                             val result = json.getJSONObject("result")
                             val token = result.getString("token")
 
-                            // ✅ 토큰 저장
+                            // 토큰 저장
                             TokenProvider.saveToken(requireContext(), token)
 
-                            // ✅ 약관 동의 화면으로 이동 (nickname 여부 상관없이)
+                            // 약관 동의 화면으로 이동 (nickname 여부 상관없이)
                             findNavController().navigate(R.id.action_loginFragment_to_termsFragment)
                         } else {
                             showErrorDialog("로그인 실패: ${json.getString("message")}")
