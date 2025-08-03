@@ -113,7 +113,7 @@ class NicknameFragment : Fragment() {
             .setPositiveButton("확인") { dialog, _ -> dialog.dismiss() }
             .show()
 
-        // ✅ 버튼 활성화 여부 로그 추가
+        // 버튼 활성화 여부 로그 추가
         binding.btnNext.isEnabled = isAvailable
         Log.d("NicknameLog", "중복확인 결과: isAvailable = $isAvailable → btnNext: ${binding.btnNext.isEnabled}")
     }

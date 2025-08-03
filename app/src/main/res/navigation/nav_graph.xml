@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginStartFragment">
-
+    app:startDestination="@id/homeFragment">
+<!-- loginStartFragment -->
     <fragment
         android:id="@+id/loginStartFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.LoginStartFragment"
@@ -15,23 +15,18 @@
             app:destination="@id/loginFragment" />
     </fragment>
 
-    <!-- 로그인 -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.LoginFragment"
         tools:layout="@layout/fragment_login">
-
         <action
             android:id="@+id/action_loginFragment_to_termsFragment"
             app:destination="@id/termsFragment" />
-
-        <!-- ✅ 닉네임 설정 화면으로 이동 추가 -->
         <action
             android:id="@+id/action_loginFragment_to_nicknameFragment"
             app:destination="@id/nicknameFragment" />
     </fragment>
 
-    <!-- 약관 동의 -->
     <fragment
         android:id="@+id/termsFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.TermsFragment"
@@ -42,7 +37,6 @@
             app:destination="@id/nicknameFragment" />
     </fragment>
 
-    <!-- 닉네임 설정 -->
     <fragment
         android:id="@+id/nicknameFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.NicknameFragment"
@@ -53,29 +47,40 @@
             app:destination="@id/locationSettingFragment" />
     </fragment>
 
-    <!-- 위치 설정 -->
     <fragment
         android:id="@+id/locationSettingFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.LocationSettingFragment"
         android:label="위치 설정"
         tools:layout="@layout/fragment_location_setting">
+        <!-- fromHome 인자 정의 -->
+        <argument
+            android:name="fromHome"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_locationSettingFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
     </fragment>
 
-    <!-- 홈 -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.example.onfit.Home.HomeFragment"
         android:label="홈"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <!-- 액션에도 인자 전달되도록 수정 -->
+        <action
+            android:id="@+id/action_homeFragment_to_locationSettingFragment"
+            app:destination="@id/locationSettingFragment">
+            <argument
+                android:name="fromHome"
+                app:argType="boolean" />
+        </action>
+    </fragment>
 
-    <!-- 옷장 -->
     <fragment
         android:id="@+id/wardrobeFragment"
         android:name="com.example.onfit.Wardrobe.fragment.WardrobeFragment"
-        android:label="옷장" >
+        android:label="옷장">
         <action
             android:id="@+id/action_wardrobeFragment_to_addItemFragment"
             app:destination="@id/addItemFragment" />
@@ -115,21 +120,18 @@
             android:defaultValue="0" />
     </fragment>
 
-    <!--  캘린더 -->
     <fragment
         android:id="@+id/calendarFragment"
         android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"
         tools:layout="@layout/fragment_calendar" />
 
-    <!--  스타일별 Outfit -->
     <fragment
         android:id="@+id/styleOutfitsFragment"
         android:name="com.example.onfit.StyleOutfitsFragment"
         android:label="스타일별 Outfit"
         tools:layout="@layout/fragment_style_outfits" />
 
-    <!--  커뮤니티 -->
     <fragment
         android:id="@+id/communityFragment"
         android:name="com.example.onfit.Community.fragment.CommunityFragment"
@@ -146,7 +148,7 @@
         android:label="커뮤니티 상세"
         tools:layout="@layout/fragment_community_detail" />
 
-    <!--  홈으로 글로벌 이동 -->
+    <!-- 글로벌 홈 이동 -->
     <action
         android:id="@+id/action_global_homeFragment"
         app:destination="@id/homeFragment"
@@ -154,7 +156,6 @@
         app:popUpToInclusive="true"
         app:launchSingleTop="true" />
 
-    <!-- 약관 상세 -->
     <fragment
         android:id="@+id/termsDetailFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.TermsDetailFragment"

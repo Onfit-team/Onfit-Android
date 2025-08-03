@@ -19,8 +19,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="outputName" value="graybg" />
-                            <entry key="sourceFile" value="C:\Users\jerry\Downloads\graybg.svg" />
+                            <entry key="outputName" value="weather_sun_bg" />
+                            <entry key="sourceFile" value="C:\Users\jerry\Desktop\image\새 폴더\weather_sun_bg.svg" />
                           </map>
                         </option>
                       </PersistentState>
