@@ -5,91 +5,86 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.LatestStyleAdapter
 import com.example.onfit.R
-import com.example.onfit.Home.model.BestItem
-import com.example.onfit.Home.model.SimItem
-import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
+import com.example.onfit.Home.model.BestItem
+import com.example.onfit.Home.model.SimItem
 import com.example.onfit.Home.viewmodel.HomeViewModel
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.RegisterActivity
+import com.example.onfit.databinding.FragmentHomeBinding
+import com.example.onfit.network.RetrofitInstance
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    // 날짜 API 연동용 ViewModel
     private val viewModel: HomeViewModel by viewModels()
-
     private var isShortText = false
 
-    // 옷 추천 이미지 리스트
     private val clothSuggestList = listOf(
-        R.drawable.cloth1,
-        R.drawable.cloth2,
-        R.drawable.cloth3
+        R.drawable.cloth1, R.drawable.cloth2, R.drawable.cloth3
     )
 
-    // 비슷한 스타일 아이템
     private val similiarClothList = listOf(
-        SimItem(R.drawable.simcloth1, "딱 좋음"),
-        SimItem(R.drawable.simcloth2, "조금 추움"),
-        SimItem(R.drawable.simcloth3, "많이 더움"),
         SimItem(R.drawable.simcloth1, "딱 좋음"),
         SimItem(R.drawable.simcloth2, "조금 추움"),
         SimItem(R.drawable.simcloth3, "많이 더움")
     )
 
-    // 최신 스타일 아이템
     private val latestStyleList = listOf(
         SimItem(R.drawable.simcloth2, "4월 20일"),
         SimItem(R.drawable.simcloth3, "4월 19일"),
-        SimItem(R.drawable.simcloth1, "4월 18일"),
-        SimItem(R.drawable.simcloth2, "4월 17일"),
-        SimItem(R.drawable.simcloth3, "4월 16일"),
-        SimItem(R.drawable.simcloth1, "4월 15일")
+        SimItem(R.drawable.simcloth1, "4월 18일")
     )
 
-    // 베스트 OUTFIT 아이템
     private val bestStyleList = listOf(
         BestItem(R.drawable.bestcloth1, "TOP 1", "큐야"),
         BestItem(R.drawable.bestcloth2, "TOP 2", "별이"),
         BestItem(R.drawable.bestcloth3, "TOP 3", "금이")
     )
 
+    override fun onResume() {
+        super.onResume()
+        fetchCurrentWeather()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentHomeBinding.bind(view)
 
-        // ✅ 날짜 API 호출 및 UI 연결
         viewModel.fetchDate()
-
-        viewModel.dateLiveData.observe(viewLifecycleOwner) { date ->
-            binding.dateTv.text = date
+        viewModel.dateLiveData.observe(viewLifecycleOwner) {
+            updateCombinedInfo(it, TokenProvider.getLocation(requireContext()))
+        }
+        viewModel.errorLiveData.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
         }
 
-        viewModel.errorLiveData.observe(viewLifecycleOwner) { error ->
-            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
-        }
-
-        // 초기 옷 추천 이미지 세팅
         setRandomImages()
+        binding.refreshIcon.setOnClickListener { setRandomImages() }
 
-        binding.refreshIcon.setOnClickListener {
-            setRandomImages()
-        }
-
-        // 리사이클러뷰 세팅
         binding.similarStyleRecyclerView.apply {
             adapter = SimiliarStyleAdapter(similiarClothList)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -105,36 +100,175 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
 
-        // 스크롤 시 등록 텍스트 애니메이션 변경
-        val scrollView = binding.homeSv
-        val registerTv = binding.homeRegisterTv
-
-        scrollView.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+        binding.homeSv.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             if (scrollY > 50 && !isShortText) {
-                animateTextChange(registerTv, "+")
+                animateTextChange(binding.homeRegisterTv, "+")
                 isShortText = true
             } else if (scrollY <= 50 && isShortText) {
-                animateTextChange(registerTv, "+ 등록하기")
+                animateTextChange(binding.homeRegisterTv, "+ 등록하기")
                 isShortText = false
             }
         }
 
-        // 등록 버튼 클릭 → 바텀시트 열기
+        binding.locationBtn.setOnClickListener {
+            val action = HomeFragmentDirections.actionHomeFragmentToLocationSettingFragment(true)
+            findNavController().navigate(action)
+        }
+
+        binding.weatherBtn.setOnClickListener {
+            fetchTomorrowWeather()
+        }
+
         binding.homeRegisterBtn.setOnClickListener {
             showBottomSheet()
         }
     }
 
-    // 옷 추천 이미지 무작위 세팅
+    private fun fetchCurrentWeather() {
+        val token = TokenProvider.getToken(requireContext())
+        val location = TokenProvider.getLocation(requireContext())
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.api.getCurrentWeather("Bearer $token")
+                if (response.isSuccessful) {
+                    val weather = response.body()?.result?.weather
+                    val tempMax = weather?.tempMax?.toInt() ?: 0
+                    val tempMin = weather?.tempMin?.toInt() ?: 0
+                    val precipitation = weather?.precipitation?.toInt() ?: 0
+                    val tempAvg = weather?.tempAvg?.toInt() ?: 0
+                    val status = weather?.status ?: "Unknown"
+
+                    updateCombinedInfo(getTodayDateString(), location)
+
+                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                    binding.tempTv.text = "${tempAvg}°C"
+
+                    val fullText = "오늘 ${tempAvg}°C, 딱 맞는 스타일이에요!"
+                    val targetText = "${tempAvg}°C"
+                    val spannable = SpannableString(fullText)
+                    val startIndex = fullText.indexOf(targetText)
+                    val endIndex = startIndex + targetText.length
+                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    binding.weatherTitle.text = spannable
+                    updateWeatherImages(status)
+                } else {
+                    binding.weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
+                    binding.tempTv.text = ""
+                }
+            } catch (e: Exception) {
+                binding.weatherInformTv.text = "날씨 오류: ${e.message}"
+                binding.tempTv.text = ""
+            }
+        }
+    }
+
+    private fun fetchTomorrowWeather() {
+        val token = TokenProvider.getToken(requireContext())
+        val location = TokenProvider.getLocation(requireContext())
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitInstance.api.getTomorrowWeather("Bearer $token")
+                if (response.isSuccessful) {
+                    val weather = response.body()?.result?.weather
+                    val tempMax = weather?.tempMax?.toInt() ?: 0
+                    val tempMin = weather?.tempMin?.toInt() ?: 0
+                    val precipitation = weather?.precipitation?.toInt() ?: 0
+                    val tempAvg = weather?.tempAvg?.toInt() ?: 0
+                    val status = weather?.status ?: "Unknown"
+
+                    updateCombinedInfo(getTomorrowDateString(), location)
+
+                    binding.tempTv.text = "${tempAvg}°C"
+                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+
+                    val fullText = "내일 ${tempAvg}°C, 어떤 스타일일까요?"
+                    val targetText = "${tempAvg}°C"
+                    val spannable = SpannableString(fullText)
+                    val startIndex = fullText.indexOf(targetText)
+                    val endIndex = startIndex + targetText.length
+                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    binding.weatherTitle.text = spannable
+                    updateWeatherImages(status)
+                } else {
+                    binding.weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
+                    binding.tempTv.text = ""
+                }
+            } catch (e: Exception) {
+                binding.weatherInformTv.text = "내일 날씨 오류: ${e.message}"
+                binding.tempTv.text = ""
+            }
+        }
+    }
+
+    private fun updateWeatherImages(status: String) {
+        when (status) {
+            "Storm" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_storm)
+                binding.sunnyIv.setImageResource(R.drawable.weather_storm_bg)
+            }
+            "Snow" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_snow)
+                binding.sunnyIv.setImageResource(R.drawable.weather_snow_bg)
+            }
+            "Rain" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_rain)
+                binding.sunnyIv.setImageResource(R.drawable.weather_rain_bg)
+            }
+            "Fog" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_fog)
+                binding.sunnyIv.setImageResource(R.drawable.weather_fog_bg)
+            }
+            "CloudFew" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_cloudfew)
+                binding.sunnyIv.setImageResource(R.drawable.weather_manycloud_bg)
+            }
+            "CloudMany" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_manycloud)
+                binding.sunnyIv.setImageResource(R.drawable.weather_manycloud_bg)
+            }
+            "CloudBroken" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_brokencloud)
+                binding.sunnyIv.setImageResource(R.drawable.weather_brokencloud_bg)
+            }
+            "Sun" -> {
+                binding.sunIv.setImageResource(R.drawable.weather_sun)
+                binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg)
+            }
+            else -> {
+                // 기본값
+                binding.sunIv.setImageResource(R.drawable.weather_sun)
+                binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg)
+            }
+        }
+    }
+
+
+    private fun updateCombinedInfo(date: String, location: String) {
+        binding.combinedInfoTv.text = "$date $location 날씨"
+    }
+
+    private fun getTodayDateString(): String {
+        val calendar = Calendar.getInstance()
+        val format = SimpleDateFormat("M월 d일", Locale.KOREA)
+        return format.format(calendar.time)
+    }
+
+    private fun getTomorrowDateString(): String {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DATE, 1)
+        val format = SimpleDateFormat("M월 d일", Locale.KOREA)
+        return format.format(calendar.time)
+    }
+
     private fun setRandomImages() {
         val mix = clothSuggestList.shuffled().take(3)
-
         binding.suggestedCloth1Iv.setImageResource(mix[0])
         binding.suggestedCloth2Iv.setImageResource(mix[1])
         binding.suggestedCloth3Iv.setImageResource(mix[2])
     }
 
-    // 바텀시트 다이얼로그
     private fun showBottomSheet() {
         val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
         val dialog = BottomSheetDialog(requireContext())
@@ -153,7 +287,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         dialog.show()
     }
 
-    // 텍스트 부드럽게 전환 애니메이션
     private fun animateTextChange(textView: TextView, newText: String) {
         val fadeOut = ObjectAnimator.ofFloat(textView, "alpha", 1f, 0f)
         val fadeIn = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f)
