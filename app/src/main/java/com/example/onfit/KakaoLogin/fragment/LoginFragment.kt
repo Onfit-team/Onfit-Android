@@ -1,6 +1,7 @@
 package com.example.onfit.KakaoLogin.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,8 @@ import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLoginBinding
 import org.json.JSONObject
+import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
 
 class LoginFragment : Fragment() {
 
@@ -30,45 +33,66 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 쿠키 초기화 (로그인 캐시 제거)
+        CookieManager.getInstance().removeAllCookies(null)
+        CookieManager.getInstance().flush()
+
+        // WebView 설정
         binding.webView.settings.javaScriptEnabled = true
+        binding.webView.settings.domStorageEnabled = true
         binding.webView.webChromeClient = WebChromeClient()
+        CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webView, true)
+
+        // WebViewClient 설정
         binding.webView.webViewClient = object : WebViewClient() {
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                Log.d("LoginWebView", "onPageFinished URL: $url")
 
-                view?.evaluateJavascript(
-                    "(function() { return document.body.innerText; })();"
-                ) { html ->
-                    try {
-                        val cleanJson = html
-                            .trim('"')
-                            .replace("\\n", "")
-                            .replace("\\", "")
+                // 로그인 완료 후 리디렉트 URL 도달 시 JSON 파싱
+                if (url != null && url.contains("/user/auth/kakao/callback")) {
+                    view?.evaluateJavascript(
+                        "(function() { return document.body.innerText; })();"
+                    ) { html ->
+                        Log.d("LoginWebView", "최종 응답: $html")
 
-                        val json = JSONObject(cleanJson)
-                        val isSuccess = json.getBoolean("isSuccess")
+                        try {
+                            val cleanJson = html
+                                .trim('"')
+                                .replace("\\n", "")
+                                .replace("\\", "")
 
-                        if (isSuccess) {
-                            val result = json.getJSONObject("result")
-                            val token = result.getString("token")
+                            val json = JSONObject(cleanJson)
+                            val isSuccess = json.getBoolean("isSuccess")
 
-                            // 토큰 저장
-                            TokenProvider.saveToken(requireContext(), token)
+                            if (isSuccess) {
+                                val result = json.getJSONObject("result")
+                                val token = result.getString("token")
 
-                            // 약관 동의 화면으로 이동 (nickname 여부 상관없이)
-                            findNavController().navigate(R.id.action_loginFragment_to_termsFragment)
-                        } else {
-                            showErrorDialog("로그인 실패: ${json.getString("message")}")
+                                // 토큰 저장
+                                TokenProvider.saveToken(requireContext(), token)
+                                Log.d("LoginWebView", "토큰 저장됨: $token")
+
+                                // 약관 동의 화면으로 이동
+                                findNavController().navigate(R.id.action_loginFragment_to_termsFragment)
+
+                            } else {
+                                val message = json.optString("message", "로그인 실패")
+                                showErrorDialog("로그인 실패: $message")
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e("LoginWebView", "JSON 파싱 오류", e)
+                            showErrorDialog("로그인 처리 중 오류가 발생했습니다.")
                         }
-
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        showErrorDialog("로그인 처리 중 오류가 발생했습니다.")
                     }
                 }
             }
         }
 
+        // 로그인 페이지 로딩
         binding.webView.loadUrl("http://15.164.35.198:3000/user/auth/kakao")
     }
 
