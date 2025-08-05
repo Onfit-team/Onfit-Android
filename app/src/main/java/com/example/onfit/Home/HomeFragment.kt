@@ -222,7 +222,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
             "CloudFew" -> {
                 binding.sunIv.setImageResource(R.drawable.weather_cloudfew)
-                binding.sunnyIv.setImageResource(R.drawable.weather_manycloud_bg)
+                binding.sunnyIv.setImageResource(R.drawable.weather_cloudfew_bg)
             }
             "CloudMany" -> {
                 binding.sunIv.setImageResource(R.drawable.weather_manycloud)
