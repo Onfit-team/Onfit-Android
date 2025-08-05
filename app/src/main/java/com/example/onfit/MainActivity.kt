@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.loginStartFragment,
                 R.id.loginFragment,
                 R.id.termsFragment,
+                R.id.termsDetailFragment,
                 R.id.nicknameFragment,
                 R.id.locationSettingFragment -> {
                     binding.bottomNavigationView.visibility = View.GONE
