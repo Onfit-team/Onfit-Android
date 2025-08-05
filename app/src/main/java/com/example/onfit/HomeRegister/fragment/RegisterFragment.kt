@@ -162,6 +162,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
+                    Log.e("RegisterOutfit", "API 호출 실패: ${e.message}", e)
                     e.printStackTrace()
                     Toast.makeText(requireContext(), "서버 오류 발생", Toast.LENGTH_SHORT).show()
                 }
