@@ -80,6 +80,9 @@ dependencies {
 
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
+    // 이미지 크롭 기능
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)

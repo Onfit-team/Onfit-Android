@@ -39,6 +39,20 @@ class OutfitRegisterFragment : Fragment() {
     private lateinit var adapter: OutfitAdapter
     private val outfitList = mutableListOf<OutfitItem2>()
 
+    // 갤러리에서 이미지 선택 결과를 받는 Launcher
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val selectedImageUri = result.data?.data
+            if (selectedImageUri != null) {
+                // 여기서 선택된 이미지 URI를 사용 가능
+                // 예: 선택한 이미지를 ImageView에 표시
+                binding.selectedImageView.setImageURI(selectedImageUri)
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -57,6 +71,19 @@ class OutfitRegisterFragment : Fragment() {
                 OutfitItem2(R.drawable.outfit_shoes)
             )
         )
+
+        parentFragmentManager.setFragmentResultListener("crop_result", viewLifecycleOwner) { _, bundle ->
+            val imagePath = bundle.getString("cropped_image_path")
+            if (!imagePath.isNullOrEmpty()) {
+                val uri = Uri.fromFile(File(imagePath))
+                val newItem = OutfitItem2(
+                    imageUri = uri,
+                    imageResId = null,
+                    isClosetButtonActive = true
+                )
+                adapter.addItem(newItem) // RecyclerView에 아이템 추가
+            }
+        }
 
         adapter = OutfitAdapter(outfitList,
             onClosetButtonClick = {
@@ -86,10 +113,7 @@ class OutfitRegisterFragment : Fragment() {
 
         // OutfitSave 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, OutfitSaveFragment())
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
         }
 
         // 뒤로가기

@@ -105,6 +105,12 @@
         <action
             android:id="@+id/action_outfitRegisterFragment_to_outfitSelectFragment"
             app:destination="@id/outfitSelectFragment"/>
+        <action
+            android:id="@+id/action_outfitRegisterFragment_to_outfitCropFragment"
+            app:destination="@id/outfitCropFragment"/>
+        <action
+            android:id="@+id/action_outfitRegisterFragment_to_outfitSaveFragment"
+            app:destination="@id/outfitSaveFragment"/>
     </fragment>
 
     <fragment
@@ -112,7 +118,15 @@
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
         android:label="outfitSelectFragment"></fragment>
 
+    <fragment
+        android:id="@+id/outfitCropFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
+        android:label="outfitCropFragment"></fragment>
 
+    <fragment
+        android:id="@+id/outfitSaveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
+        android:label="outfitSaveFragment"></fragment>
 
     <fragment
         android:id="@+id/wardrobeFragment"
