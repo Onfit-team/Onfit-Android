@@ -150,7 +150,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             // RequestBody로 변환
             val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
-            // Retrofit API 호출
+            // Retrofit API 호출(발급받은 임시 토큰 사용)
             lifecycleScope.launch {
                 try {
                     val api = RetrofitClient.instance.create(ApiService::class.java)

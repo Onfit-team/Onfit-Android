@@ -145,7 +145,7 @@ class OutfitRegisterFragment : Fragment() {
         return Uri.fromFile(file)
     }
 
-    // API 호출 후 RecyclerView에 아이템 추가
+    // API 호출 후 RecyclerView에 아이템 추가(발급받은 임시 토큰 사용)
     private fun uploadImageToServer(file: File) {
         // 임시 토큰
         val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1MzkzNDc2OSwiZXhwIjoxNzU0NTM5NTY5fQ.ED8Z2CkRwHB6cSue__7d1LCihZQ2eTU6zhqe0jWSF_M"
