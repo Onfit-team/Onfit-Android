@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentSaveBinding
 import java.io.File
@@ -28,7 +27,6 @@ class SaveFragment : Fragment() {
 
         // UI 관련 코드 X (arguments만 저장)
         arguments?.let {
-            // 날짜 데이터 받기
             receivedDate = it.getString("save_date") ?: "날짜 없음"
             // RegisterFragment로부터 이미지 경로 받기
             imagePath  = it.getString("outfit_image_path")
@@ -74,17 +72,5 @@ class SaveFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }

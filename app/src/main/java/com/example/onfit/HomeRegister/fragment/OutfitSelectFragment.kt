@@ -31,27 +31,15 @@ class OutfitSelectFragment : Fragment() {
             .replace(R.id.outfit_select_fragment_container, WardrobeSelectFragment())
             .commit()
 
-        // 뒤로가기
+        // 뒤로가기 버튼 눌렀을 때 이전 프래그먼트로 돌아감
         binding.outfitSelectBackBtn.setOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
+            parentFragmentManager.popBackStack()
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
-    }
-
-    override fun onPause() {
-        super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
 }

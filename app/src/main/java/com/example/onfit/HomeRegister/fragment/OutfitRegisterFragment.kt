@@ -39,25 +39,6 @@ class OutfitRegisterFragment : Fragment() {
     private lateinit var adapter: OutfitAdapter
     private val outfitList = mutableListOf<OutfitItem2>()
 
-    // 갤러리에서 이미지 선택 결과를 받는 Launcher
-    private val galleryLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val selectedImageUri = result.data?.data
-            if (selectedImageUri != null) {
-                // RecyclerView에 추가할 새로운 아이템 생성
-                val newItem = OutfitItem2(
-                    imageUri = selectedImageUri,
-                    imageResId = null,
-                    isClosetButtonActive = true
-                )
-                // Adapter에 아이템 추가
-                adapter.addItem(newItem)
-            }
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -92,20 +73,8 @@ class OutfitRegisterFragment : Fragment() {
 
         // + 버튼 누르면 이미지 추가
         binding.outfitRegisterAddButton.setOnClickListener {
-            openGallery()
-        }
-
-        parentFragmentManager.setFragmentResultListener("crop_result", viewLifecycleOwner) { _, bundle ->
-            val uriString = bundle.getString("cropped_image_uri")
-            if (!uriString.isNullOrEmpty()) {
-                val uri = Uri.parse(uriString)
-                val newItem = OutfitItem2(
-                    imageUri = uri,
-                    imageResId = null,
-                    isClosetButtonActive = true
-                )
-                adapter.addItem(newItem)
-            }
+            val newItem = OutfitItem2(R.drawable.sun)
+            adapter.addItem(newItem)
         }
 
         // SaveFragment에서 전달받은 이미지 경로 가져오기
@@ -117,14 +86,16 @@ class OutfitRegisterFragment : Fragment() {
 
         // OutfitSave 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.register_container, OutfitSaveFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
-            findNavController().popBackStack()
+            activity?.onBackPressedDispatcher?.onBackPressed()
         }
-    }
 
     // Bitmap을 bbox로 잘라내는 함수
     private fun cropBitmap(original: Bitmap, bbox: List<Float>): Bitmap {

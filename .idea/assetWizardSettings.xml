@@ -19,9 +19,8 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-
-                            <entry key="outputName" value="heart_empty" />
-                            <entry key="sourceFile" value="C:\Users\user\AndroidIcon\heart_empty.svg" />
+                            <entry key="outputName" value="weather_cloudfew" />
+                            <entry key="sourceFile" value="C:\Users\jerry\Downloads\weather_cloudfew.svg" />
                           </map>
                         </option>
                       </PersistentState>

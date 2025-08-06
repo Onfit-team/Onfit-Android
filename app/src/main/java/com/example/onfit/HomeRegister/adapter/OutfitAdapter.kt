@@ -2,11 +2,9 @@ package com.example.onfit.HomeRegister.adapter
 
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.app.AlertDialog
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -14,8 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: () -> Unit,
-                    private val onCropButtonClick: (position: Int) -> Unit) :
+                    private val onClosetButtonClick: () -> Unit,) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
@@ -32,13 +29,7 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
     override fun onBindViewHolder(holder: OutfitViewHolder, position: Int) {
         val item = items[position]
-
-        // imageUri가 있으면 URI로 로드, 없으면 drawable 리소스 사용
-        if (item.imageUri != null) {
-            holder.image.setImageURI(item.imageUri)
-        } else if (item.imageResId != null) {
-            holder.image.setImageResource(item.imageResId)
-        }
+        holder.image.setImageResource(item.imageResId)
 
         // 옷장에 있어요 클릭 시 옷장 프래그먼트로 이동, 버튼 회색으로 비활성화
         val btnImageRes = if (item.isClosetButtonActive) {
@@ -48,20 +39,15 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         }
         holder.closetBtn.setImageResource(btnImageRes)
 
-        // closetBtn 클릭 시 옷장 프래그먼트로 이동 콜백 호출
         holder.closetBtn.setOnClickListener {
             if (item.isClosetButtonActive) {
                 item.isClosetButtonActive = false
                 notifyItemChanged(position)
-                onClosetButtonClick()
+                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
             }
         }
 
-        // cropBtn 클릭 시 크롭 프래그먼트로 이동 콜백 호출
-        holder.cropBtn.setOnClickListener {
-            onCropButtonClick(position)
-        }
-
+        // x 버튼 눌렀을 때 아이템 삭제
         // x 버튼 누를 시 아이템 삭제 팝업
         holder.remove.setOnClickListener {
             val dialogView = LayoutInflater.from(holder.itemView.context)
@@ -70,13 +56,9 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
                 .setView(dialogView)
                 .create()
 
-            // 팝업에서도 imageUri 우선 적용
+            // 이미지 설정
             val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
-            if (item.imageUri != null) {
-                dialogImage.setImageURI(item.imageUri)
-            } else if (item.imageResId != null) {
-                dialogImage.setImageResource(item.imageResId)
-            }
+            dialogImage.setImageResource(item.imageResId)
 
             // 예 버튼 클릭 → 아이템 삭제
             dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {
@@ -95,15 +77,6 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
-
-            // 팝업창 너비를 294dp로 고정
-            val widthInPx = TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                294f,
-                holder.itemView.context.resources.displayMetrics
-            ).toInt()
-
-            dialog.window?.setLayout(widthInPx, WindowManager.LayoutParams.WRAP_CONTENT)
         }
     }
 

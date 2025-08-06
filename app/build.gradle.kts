@@ -1,12 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("androidx.navigation.safeargs")
 }
 
 android {
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
 
     namespace = "com.example.onfit"
@@ -32,11 +34,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 
@@ -52,8 +54,20 @@ dependencies {
     // flexbox
     implementation ("com.google.android.flexbox:flexbox:3.0.0")
 
-    // 이미지 크롭 기능
-    implementation("com.vanniktech:android-image-cropper:4.5.0")
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // JSON 파싱 (Gson)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // 코루틴 (suspend 사용을 위한)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+
+    // 카카오톡 로그인 코드 추가 (최신 안정 버전)
+    implementation("com.kakao.sdk:v2-user:2.20.2")  // ← 명시
+
+    //위치 가져오기
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+
 
     // Retrofit 라이브러리
     implementation("com.squareup.retrofit2:retrofit:2.6.4")
