@@ -12,7 +12,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: () -> Unit,) :
+                    private val onClosetButtonClick: () -> Unit,
+                    private val onCropButtonClick: (position: Int) -> Unit) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)

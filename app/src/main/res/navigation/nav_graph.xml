@@ -75,7 +75,44 @@
                 android:name="fromHome"
                 app:argType="boolean" />
         </action>
+        <action
+            android:id="@+id/action_homeFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.RegisterFragment"
+        android:label="registerFragment">
+        <action
+            android:id="@+id/action_registerFragment_to_saveFragment"
+            app:destination="@id/saveFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/saveFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.SaveFragment"
+        android:label="homeFragment">
+        <action
+            android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
+            app:destination="@id/outfitRegisterFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/outfitRegisterFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitRegisterFragment"
+        android:label="outfitRegisterFragment">
+        <action
+            android:id="@+id/action_outfitRegisterFragment_to_outfitSelectFragment"
+            app:destination="@id/outfitSelectFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/outfitSelectFragment"
+        android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
+        android:label="outfitSelectFragment"></fragment>
+
+
 
     <fragment
         android:id="@+id/wardrobeFragment"

@@ -32,10 +32,7 @@ import com.example.onfit.Home.model.BestItem
 import com.example.onfit.Home.model.SimItem
 import com.example.onfit.Home.viewmodel.HomeViewModel
 import com.example.onfit.KakaoLogin.util.TokenProvider
-import com.example.onfit.RegisterActivity
 import com.example.onfit.databinding.FragmentHomeBinding
-import com.example.onfit.Home.adapter.BestOutfitAdapter
-import com.example.onfit.Home.adapter.SimiliarStyleAdapter
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.OutfitRegister.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -134,7 +131,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         val imageUrl = response.body()!!.result?.imageUrl
                         Log.d("HomeFragment", "이미지 업로드 성공: $imageUrl")
 
-                        // 3️RegisterFragment로 URL 전달
+                        // RegisterFragment로 URL 전달
                         val bundle = Bundle().apply {
                             putString("selectedImagePath", file.absolutePath)
                             putString("uploadedImageUrl", imageUrl) // URL 전달
@@ -363,8 +360,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         dialog.setContentView(view)
 
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            val intent = Intent(requireContext(), RegisterActivity::class.java)
-            startActivity(intent)
+            findNavController().navigate(R.id.action_homeFragment_to_registerFragment)
+            dialog.dismiss()
         }
 
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
