@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
 import com.example.onfit.HomeRegister.model.RetrofitClient
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
 import kotlinx.coroutines.CoroutineScope
@@ -155,8 +156,8 @@ class OutfitRegisterFragment : Fragment() {
     // API 호출 후 RecyclerView에 아이템 추가(발급받은 임시 토큰 사용)
     private fun uploadImageToServer(file: File) {
         // 임시 토큰
-        val token =
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1MzkzNDc2OSwiZXhwIjoxNzU0NTM5NTY5fQ.ED8Z2CkRwHB6cSue__7d1LCihZQ2eTU6zhqe0jWSF_M"
+        val token = TokenProvider.getToken(requireContext())
+        val header = "Bearer $token"
 
         val mediaType = "image/*".toMediaTypeOrNull()
         val requestFile: RequestBody = file.asRequestBody(mediaType)
@@ -167,7 +168,7 @@ class OutfitRegisterFragment : Fragment() {
                 // ✅ 요청 전에 파일 경로와 존재 여부 출력
                 println("📂 파일 경로: ${file.absolutePath}")
                 println("📂 파일 존재 여부: ${file.exists()}")
-                val response = RetrofitClient.instance.detectItems(token, body)
+                val response = RetrofitClient.instance.detectItems(header, body)
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
