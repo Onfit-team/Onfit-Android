@@ -77,7 +77,6 @@ class OutfitCropFragment : Fragment() {
                 Toast.makeText(requireContext(), "이미지를 먼저 크롭하세요", Toast.LENGTH_SHORT).show()
             }
         }
-
         return binding.root
     }
 

@@ -54,6 +54,8 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
             }
         }
 
+        // cropBtn 클릭 시 콜백 호출
+
         // x 버튼 눌렀을 때 아이템 삭제
         // x 버튼 누를 시 아이템 삭제 팝업
         holder.remove.setOnClickListener {

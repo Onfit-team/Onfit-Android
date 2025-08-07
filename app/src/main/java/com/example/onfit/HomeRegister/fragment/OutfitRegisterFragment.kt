@@ -46,10 +46,27 @@ class OutfitRegisterFragment : Fragment() {
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedImageUri = result.data?.data
             if (selectedImageUri != null) {
-                // 여기서 선택된 이미지 URI를 사용 가능
-                // 예: 선택한 이미지를 ImageView에 표시
-                binding.selectedImageView.setImageURI(selectedImageUri)
+                val newItem = OutfitItem2(
+                    imageResId = null,
+                    imageUri = selectedImageUri,
+                    isClosetButtonActive = true)
+                // adapter 아이템 RecyclerView에 추가
+                adapter.addItem(newItem)
             }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // 더미데이터 추가
+        if (outfitList.isEmpty()) {
+            outfitList.addAll(
+                listOf(
+                    OutfitItem2(R.drawable.outfit_top),
+                    OutfitItem2(R.drawable.outfit_pants),
+                    OutfitItem2(R.drawable.outfit_shoes)
+                )
+            )
         }
     }
 
@@ -63,15 +80,8 @@ class OutfitRegisterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // 더미데이터 세팅
-        outfitList.addAll(
-            listOf(
-                OutfitItem2(R.drawable.outfit_top),
-                OutfitItem2(R.drawable.outfit_pants),
-                OutfitItem2(R.drawable.outfit_shoes)
-            )
-        )
 
+        // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
         parentFragmentManager.setFragmentResultListener("crop_result", viewLifecycleOwner) { _, bundle ->
             val imagePath = bundle.getString("cropped_image_path")
             if (!imagePath.isNullOrEmpty()) {
@@ -85,7 +95,8 @@ class OutfitRegisterFragment : Fragment() {
             }
         }
 
-        adapter = OutfitAdapter(outfitList,
+        adapter = OutfitAdapter(
+            outfitList,
             onClosetButtonClick = {
                 // OutfitSelectFragment로 전환
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
@@ -100,8 +111,7 @@ class OutfitRegisterFragment : Fragment() {
 
         // + 버튼 누르면 이미지 추가
         binding.outfitRegisterAddButton.setOnClickListener {
-            val newItem = OutfitItem2(R.drawable.sun)
-            adapter.addItem(newItem)
+            openGallery()
         }
 
         // SaveFragment에서 전달받은 이미지 경로 가져오기
@@ -118,7 +128,7 @@ class OutfitRegisterFragment : Fragment() {
 
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
-            activity?.onBackPressedDispatcher?.onBackPressed()
+            findNavController().popBackStack()
         }
 
     // Bitmap을 bbox로 잘라내는 함수
