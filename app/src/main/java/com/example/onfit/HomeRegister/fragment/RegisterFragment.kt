@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
@@ -155,7 +156,10 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             lifecycleScope.launch {
                 try {
                     val api = RetrofitClient.instance.create(ApiService::class.java)
-                    val response = api.registerOutfit("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1NDA0NTA2NiwiZXhwIjoxNzU0NjQ5ODY2fQ.jF6SDERUqPs2_Qiv204CpgxN037D8mGaYq1g7a0fDb8", requestBody)
+
+                    val token = TokenProvider.getToken(requireContext())
+                    val header = "Bearer $token"
+                    val response = api.registerOutfit(header, requestBody)
 
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
                         Toast.makeText(requireContext(), "아웃핏 등록 성공!", Toast.LENGTH_SHORT).show()

@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
+import android.media.session.MediaSession.Token
 import android.net.Uri
 import android.os.Bundle
 import android.text.Spannable
@@ -114,14 +115,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     // API에 파일 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
         Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
-        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1NDA0NTA2NiwiZXhwIjoxNzU0NjQ5ODY2fQ.jF6SDERUqPs2_Qiv204CpgxN037D8mGaYq1g7a0fDb8"
+        val token = TokenProvider.getToken(requireContext())
+        val header = "Bearer $token"
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val api = RetrofitClient.instance.create(ApiService::class.java)
-                val response = api.uploadImage(token, body)
+                val response = api.uploadImage(header, body)
 
                 // 서버에서 받은 전체 응답 로그로 출력
                 val rawResponse = response.body()
