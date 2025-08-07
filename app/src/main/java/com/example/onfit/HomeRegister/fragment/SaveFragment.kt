@@ -57,7 +57,7 @@ class SaveFragment : Fragment() {
 
         // 뒤로가기
         binding.saveBackBtn.setOnClickListener {
-            requireActivity().supportFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
 
         // OutfitRegister 화면으로 이동

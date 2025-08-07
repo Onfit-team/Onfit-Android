@@ -90,7 +90,6 @@ class OutfitCropFragment : Fragment() {
         FileOutputStream(file).use { fos ->
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
         }
-
         return Uri.fromFile(file)
     }
 

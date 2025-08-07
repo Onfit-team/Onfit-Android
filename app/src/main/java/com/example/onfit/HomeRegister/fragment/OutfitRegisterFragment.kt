@@ -49,24 +49,11 @@ class OutfitRegisterFragment : Fragment() {
                 val newItem = OutfitItem2(
                     imageResId = null,
                     imageUri = selectedImageUri,
-                    isClosetButtonActive = true)
+                    isClosetButtonActive = true
+                )
                 // adapter 아이템 RecyclerView에 추가
                 adapter.addItem(newItem)
             }
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // 더미데이터 추가
-        if (outfitList.isEmpty()) {
-            outfitList.addAll(
-                listOf(
-                    OutfitItem2(R.drawable.outfit_top),
-                    OutfitItem2(R.drawable.outfit_pants),
-                    OutfitItem2(R.drawable.outfit_shoes)
-                )
-            )
         }
     }
 
@@ -81,55 +68,70 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
-        parentFragmentManager.setFragmentResultListener("crop_result", viewLifecycleOwner) { _, bundle ->
-            val imagePath = bundle.getString("cropped_image_path")
-            if (!imagePath.isNullOrEmpty()) {
-                val uri = Uri.fromFile(File(imagePath))
-                val newItem = OutfitItem2(
-                    imageUri = uri,
-                    imageResId = null,
-                    isClosetButtonActive = true
+        // 더미데이터 추가
+        if (outfitList.isEmpty()) {
+            outfitList.addAll(
+                listOf(
+                    OutfitItem2(R.drawable.outfit_top),
+                    OutfitItem2(R.drawable.outfit_pants),
+                    OutfitItem2(R.drawable.outfit_shoes)
                 )
-                adapter.addItem(newItem) // RecyclerView에 아이템 추가
+            )
+
+            // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
+            parentFragmentManager.setFragmentResultListener(
+                "crop_result",
+                viewLifecycleOwner
+            ) { _, bundle ->
+                val imagePath = bundle.getString("cropped_image_path")
+                if (!imagePath.isNullOrEmpty()) {
+                    val uri = Uri.fromFile(File(imagePath))
+                    val newItem = OutfitItem2(
+                        imageUri = uri,
+                        imageResId = null,
+                        isClosetButtonActive = true
+                    )
+                    adapter.addItem(newItem) // RecyclerView에 아이템 추가
+                }
+            }
+
+            adapter = OutfitAdapter(
+                outfitList,
+                onClosetButtonClick = {
+                    // OutfitSelectFragment로 전환
+                    findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
+                },
+                onCropButtonClick = { position ->
+                    // OutfitCropFragment로 전환
+                    findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment)
+                })
+
+            binding.outfitRegisterRv.adapter = adapter
+            binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
+
+            // + 버튼 누르면 이미지 추가
+            binding.outfitRegisterAddButton.setOnClickListener {
+                openGallery()
+            }
+
+            // SaveFragment에서 전달받은 이미지 경로 가져오기
+            val imagePath = arguments?.getString("outfit_image_path")
+            if (!imagePath.isNullOrEmpty()) {
+                Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
+                uploadImageToServer(File(imagePath))
+            }
+
+            // OutfitSave 화면으로 이동
+            binding.outfitRegisterSaveBtn.setOnClickListener {
+                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
+            }
+
+            // 뒤로가기
+            binding.outfitRegisterBackBtn.setOnClickListener {
+                findNavController().popBackStack()
             }
         }
-
-        adapter = OutfitAdapter(
-            outfitList,
-            onClosetButtonClick = {
-                // OutfitSelectFragment로 전환
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
-            },
-            onCropButtonClick = { position ->
-                // OutfitCropFragment로 전환
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment)
-            })
-
-        binding.outfitRegisterRv.adapter = adapter
-        binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
-
-        // + 버튼 누르면 이미지 추가
-        binding.outfitRegisterAddButton.setOnClickListener {
-            openGallery()
-        }
-
-        // SaveFragment에서 전달받은 이미지 경로 가져오기
-        val imagePath = arguments?.getString("outfit_image_path")
-        if (!imagePath.isNullOrEmpty()) {
-            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
-            uploadImageToServer(File(imagePath))
-        }
-
-        // OutfitSave 화면으로 이동
-        binding.outfitRegisterSaveBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
-        }
-
-        // 뒤로가기
-        binding.outfitRegisterBackBtn.setOnClickListener {
-            findNavController().popBackStack()
-        }
+    }
 
     // Bitmap을 bbox로 잘라내는 함수
     private fun cropBitmap(original: Bitmap, bbox: List<Float>): Bitmap {
@@ -153,7 +155,8 @@ class OutfitRegisterFragment : Fragment() {
     // API 호출 후 RecyclerView에 아이템 추가(발급받은 임시 토큰 사용)
     private fun uploadImageToServer(file: File) {
         // 임시 토큰
-        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1MzkzNDc2OSwiZXhwIjoxNzU0NTM5NTY5fQ.ED8Z2CkRwHB6cSue__7d1LCihZQ2eTU6zhqe0jWSF_M"
+        val token =
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsImlhdCI6MTc1MzkzNDc2OSwiZXhwIjoxNzU0NTM5NTY5fQ.ED8Z2CkRwHB6cSue__7d1LCihZQ2eTU6zhqe0jWSF_M"
 
         val mediaType = "image/*".toMediaTypeOrNull()
         val requestFile: RequestBody = file.asRequestBody(mediaType)
@@ -161,6 +164,9 @@ class OutfitRegisterFragment : Fragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // ✅ 요청 전에 파일 경로와 존재 여부 출력
+                println("📂 파일 경로: ${file.absolutePath}")
+                println("📂 파일 존재 여부: ${file.exists()}")
                 val response = RetrofitClient.instance.detectItems(token, body)
 
                 withContext(Dispatchers.Main) {
@@ -175,16 +181,21 @@ class OutfitRegisterFragment : Fragment() {
 
                             adapter.addItem(
                                 OutfitItem2(
-                                imageUri = croppedUri,
-                                imageResId = null,
-                                isClosetButtonActive = true
-                            ))
+                                    imageUri = croppedUri,
+                                    imageResId = null,
+                                    isClosetButtonActive = true
+                                )
+                            )
                         }
                     } else {
                         // 서버가 응답은 했지만 성공 코드가 아닐 때
                         val errorMsg = response.errorBody()?.string() ?: "응답 없음"
                         println("❌ API 오류 발생: $errorMsg")
-                        Toast.makeText(requireContext(), "API 오류: ${response.body()?.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "API 오류: ${response.body()?.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
