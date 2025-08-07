@@ -10,5 +10,6 @@ data class ImageUploadResponse(
 )
 
 data class ImageResult(
+    // 서버가 반환하는 이미지 Url
     @SerializedName("image_url") val imageUrl: String
 )

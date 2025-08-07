@@ -112,7 +112,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             val parts = binding.registerDateTv.text.toString().split(".")
             val formattedDateForAPI = "${parts[0]}-${parts[1]}-${parts[2]}"
 
-            //  이미지 URL
+            //  HomeFragment의 갤러리에서 고른 이미지의 URL
             val imageUrl = arguments?.getString("uploadedImageUrl")
 
             // 메모 텍스트
@@ -143,8 +143,8 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 put("mainImage", imageUrl) // 서버에서 받은 이미지 Url 생성
                 put("memo", memoText)
                 put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
-                put("moodTags", JSONArray(selectedVibeTags))
-                put("purposeTags", JSONArray(selectedUseTags))
+                put("moodTags", JSONArray(finalMoodTags))
+                put("purposeTags", JSONArray(finalPurposeTags))
                 put("locationId", 1) // 임시 위치값
             }
 

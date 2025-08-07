@@ -116,17 +116,17 @@
     <fragment
         android:id="@+id/outfitSelectFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
-        android:label="outfitSelectFragment"></fragment>
+        android:label="outfitSelectFragment" />
 
     <fragment
         android:id="@+id/outfitCropFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment"></fragment>
+        android:label="outfitCropFragment" />
 
     <fragment
         android:id="@+id/outfitSaveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
-        android:label="outfitSaveFragment"></fragment>
+        android:label="outfitSaveFragment" />
 
     <fragment
         android:id="@+id/wardrobeFragment"
@@ -175,7 +175,37 @@
         android:id="@+id/calendarFragment"
         android:name="com.example.onfit.calendar.fragment.CalendarFragment"
         android:label="캘린더"
-        tools:layout="@layout/fragment_calendar" />
+        tools:layout="@layout/fragment_calendar">
+        <action
+            android:id="@+id/action_calendarFragment_to_calendarSaveFragment"
+            app:destination="@id/calendarSaveFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/calendarSaveFragment"
+        android:name="com.example.onfit.CalendarSaveFragment"
+        android:label="아웃핏 저장화면">
+        <argument
+            android:name="selectedDate"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_calendarSaveFragment_to_calendarRewriteFragment"
+            app:destination="@id/calendarRewriteFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/calendarRewriteFragment"
+        android:name="com.example.onfit.CalendarRewriteFragment"
+        android:label="아웃핏 상세화면 수정">
+        <action
+            android:id="@+id/action_calendarRewriteFragment_to_calendarSelectFragment"
+            app:destination="@id/calendarSelectFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/calendarSelectFragment"
+        android:name="com.example.onfit.CalendarSelectFragment"
+        android:label="옷장 아이템 선택 화면" />
 
     <fragment
         android:id="@+id/styleOutfitsFragment"

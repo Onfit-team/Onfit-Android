@@ -104,7 +104,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     Log.d("HomeFragment", "파일 존재 여부: ${cacheFile.exists()}")
                     Log.d("HomeFragment", "파일 크기: ${cacheFile.length()}")
 
-                    // 이미지 업로드 API 호출
+                    // 이미지 업로드 API 호출, Url 받아오기
                     uploadImageToServer(cacheFile)
                 }
             }
@@ -123,6 +123,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val api = RetrofitClient.instance.create(ApiService::class.java)
                 val response = api.uploadImage(token, body)
 
+                // 서버에서 받은 전체 응답 로그로 출력
                 val rawResponse = response.body()
                 Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
 

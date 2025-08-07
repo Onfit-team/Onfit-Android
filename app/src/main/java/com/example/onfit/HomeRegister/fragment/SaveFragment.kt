@@ -44,7 +44,7 @@ class SaveFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // 날짜, 이미지 받아오기
+        // 여기서 UI 초기화. 날짜, 이미지 받아오기
         binding.saveDateTv.text = receivedDate
         imagePath?.let { path ->
             val bitmap = BitmapFactory.decodeFile(path)
@@ -73,5 +73,17 @@ class SaveFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 실행 중 bottom navigation view 보이지 않게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 실행 안 할 때 bottom navigation view 다시 보이게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 }
