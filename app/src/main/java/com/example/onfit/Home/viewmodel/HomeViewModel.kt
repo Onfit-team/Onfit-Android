@@ -1,19 +1,43 @@
 package com.example.onfit.Home.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.MutableLiveData
+import com.example.onfit.Home.model.BestOutfitItem
+import com.example.onfit.Home.model.OutfitItem
 import com.example.onfit.Home.repository.HomeRepository
+import com.example.onfit.network.RetrofitInstance
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+
 class HomeViewModel : ViewModel() {
+
 
     private val repository = HomeRepository()
 
     val dateLiveData = MutableLiveData<String>()
     val errorLiveData = MutableLiveData<String>()
+
+    private val _recentOutfits = MutableLiveData<List<OutfitItem>>()
+    val recentOutfits: LiveData<List<OutfitItem>> = _recentOutfits
+
+    fun fetchRecentOutfits(token: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getRecentOutfits("Bearer $token")
+                if (response.isSuccessful && response.body()?.isSuccess == true) {
+                    _recentOutfits.value = response.body()?.result?.outfits ?: emptyList()
+                } else {
+                    errorLiveData.value = response.body()?.message ?: "최근 outfit 조회 실패"
+                }
+            } catch (e: Exception) {
+                errorLiveData.value = "최근 outfit 오류: ${e.message}"
+            }
+        }
+    }
 
 
     fun fetchDate() {
@@ -36,4 +60,23 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
+
+    private val _bestOutfitList = MutableLiveData<List<BestOutfitItem>>()
+    val bestOutfitList: LiveData<List<BestOutfitItem>> get() = _bestOutfitList
+
+    fun fetchBestOutfits(token: String) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.getTop3BestOutfits("Bearer $token")
+                if (response.isSuccessful && response.body()?.isSuccess == true) {
+                    _bestOutfitList.value = response.body()?.result ?: emptyList()
+                } else {
+                    errorLiveData.value = response.body()?.message ?: "BEST OUTFIT 조회 실패"
+                }
+            } catch (e: Exception) {
+                errorLiveData.value = "BEST OUTFIT 오류: ${e.message}"
+            }
+        }
+    }
+
 }

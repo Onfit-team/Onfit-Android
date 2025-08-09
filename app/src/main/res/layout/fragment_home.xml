@@ -5,338 +5,376 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<androidx.core.widget.NestedScrollView
-    android:id="@+id/home_sv"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/home_sv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <!-- 배경 이미지 -->
-        <ImageView
-            android:id="@+id/sunny_iv"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="440dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/sunny"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_height="wrap_content">
 
-        <!-- 날씨 이미지 -->
-        <ImageView
-            android:id="@+id/sun_iv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/sun"
-            app:tint="@color/gray"
-            android:alpha="0.5"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="32dp" />
+            <!-- 배경 이미지 -->
+            <ImageView
+                android:id="@+id/sunny_iv"
+                android:layout_width="match_parent"
+                android:layout_height="440dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/sunny"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- 로고 -->
-        <ImageView
-            android:id="@+id/Onfit_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/logo"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="15dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            <!-- 날씨 이미지 -->
+            <ImageView
+                android:id="@+id/sun_iv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/sun"
+                app:tint="@color/gray"
+                android:alpha="0.5"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="32dp" />
 
-        <!-- 날짜 -->
-        <TextView
-            android:id="@+id/combined_info_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="8월 1일 경기 성동구의 날씨"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@id/Onfit_tv"
-            app:layout_constraintStart_toStartOf="@id/Onfit_tv" />
+            <!-- 로고 -->
+            <ImageView
+                android:id="@+id/Onfit_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/logo"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="15dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
+            <!-- 날짜 -->
+            <TextView
+                android:id="@+id/combined_info_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="8월 1일 경기 성동구의 날씨"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/Onfit_tv"
+                app:layout_constraintStart_toStartOf="@id/Onfit_tv" />
 
+            <!-- 날씨 정보 -->
+            <TextView
+                android:id="@+id/weather_inform_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="최고 20 C 강수 확률 0%"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_marginTop="5dp"
+                app:layout_constraintTop_toBottomOf="@id/combined_info_tv"
+                app:layout_constraintStart_toStartOf="@id/combined_info_tv" />
 
-        <!-- 날씨 정보 -->
-        <TextView
-            android:id="@+id/weather_inform_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="최고 20 C 강수 확률 0%"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            android:layout_marginTop="5dp"
-            app:layout_constraintTop_toBottomOf="@id/combined_info_tv"
-            app:layout_constraintStart_toStartOf="@id/combined_info_tv" />
+            <!-- 평균 -->
+            <TextView
+                android:id="@+id/weather_average_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="평균"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:layout_marginTop="20dp"
+                app:layout_constraintTop_toBottomOf="@id/weather_inform_tv"
+                app:layout_constraintStart_toStartOf="@id/weather_inform_tv" />
 
-        <!-- 평균 -->
-        <TextView
-            android:id="@+id/weather_average_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="평균"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@id/weather_inform_tv"
-            app:layout_constraintStart_toStartOf="@id/weather_inform_tv" />
+            <!-- 온도 -->
+            <TextView
+                android:id="@+id/temp_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18°C"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="50sp"
+                app:layout_constraintTop_toBottomOf="@id/weather_average_tv"
+                app:layout_constraintStart_toStartOf="@id/weather_average_tv" />
 
-        <!-- 온도 -->
-        <TextView
-            android:id="@+id/temp_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="18°C"
-            android:textColor="@color/white"
-            android:textStyle="bold"
-            android:textSize="50sp"
-            app:layout_constraintTop_toBottomOf="@id/weather_average_tv"
-            app:layout_constraintStart_toStartOf="@id/weather_average_tv" />
+            <!-- 위치변경 버튼 -->
+            <Button
+                android:id="@+id/location_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="위치변경"
+                android:textColor="#007AFF"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                app:layout_constraintStart_toStartOf="@id/temp_tv"
+                app:layout_constraintTop_toBottomOf="@id/temp_tv"
+                android:backgroundTint="@color/white" />
 
-        <!-- 위치변경 버튼 -->
-        <Button
-            android:id="@+id/location_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="위치변경"
-            android:textColor="#007AFF"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            app:layout_constraintStart_toStartOf="@id/temp_tv"
-            app:layout_constraintTop_toBottomOf="@id/temp_tv"
-            android:backgroundTint="@color/white" />
+            <!-- 내일날씨 버튼 -->
+            <Button
+                android:id="@+id/weather_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="내일날씨"
+                android:textColor="#007AFF"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:layout_marginLeft="10dp"
+                app:layout_constraintStart_toEndOf="@id/location_btn"
+                app:layout_constraintTop_toBottomOf="@id/temp_tv"
+                android:backgroundTint="@color/white" />
 
-        <!-- 내일날씨 버튼 -->
-        <Button
-            android:id="@+id/weather_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="내일날씨"
-            android:textColor="#007AFF"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:layout_marginLeft="10dp"
-            app:layout_constraintStart_toEndOf="@id/location_btn"
-            app:layout_constraintTop_toBottomOf="@id/temp_tv"
-            android:backgroundTint="@color/white" />
-
-        <!-- 카드뷰 -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/cardview_cv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/weather_btn">
-
-            <LinearLayout
+            <!-- 카드뷰 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardview_cv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/weather_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="오늘 18°C, 딱 맞는 스타일이에요!"
-                        android:textSize="16sp"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginTop="7dp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/refresh_icon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_alignTop="@id/weather_title"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginEnd="15dp"
-                        android:src="@drawable/refresh" />
-                </RelativeLayout>
-
-                <TextView
-                    android:id="@+id/sub_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="오늘은 일교차가 커요, 겉옷 꼭 챙기세요!"
-                    android:textSize="13sp"
-                    android:textColor="#777777"
-                    android:layout_marginStart="15dp" />
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/weather_btn">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:layout_marginTop="5dp">
+                    android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/suggested_cloth1_iv"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_margin="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/cloth1" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:id="@+id/suggested_cloth2_iv"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_marginLeft="20dp"
-                        android:layout_marginRight="20dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/cloth2" />
+                        <TextView
+                            android:id="@+id/weather_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="오늘 18°C, 딱 맞는 스타일이에요!"
+                            android:textSize="16sp"
+                            android:layout_marginStart="15dp"
+                            android:layout_marginTop="7dp"
+                            android:textStyle="bold" />
 
-                    <ImageView
-                        android:id="@+id/suggested_cloth3_iv"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_margin="4dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/cloth3" />
+                        <ImageView
+                            android:id="@+id/refresh_icon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignTop="@id/weather_title"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="15dp"
+                            android:src="@drawable/refresh" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/sub_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="오늘은 일교차가 커요, 겉옷 꼭 챙기세요!"
+                        android:textSize="13sp"
+                        android:textColor="#777777"
+                        android:layout_marginStart="15dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginTop="5dp">
+
+                        <ImageView
+                            android:id="@+id/suggested_cloth1_iv"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:layout_margin="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/cloth1" />
+
+                        <ImageView
+                            android:id="@+id/suggested_cloth2_iv"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:layout_marginLeft="20dp"
+                            android:layout_marginRight="20dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/cloth2" />
+
+                        <ImageView
+                            android:id="@+id/suggested_cloth3_iv"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            android:layout_margin="4dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/cloth3" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+            </androidx.cardview.widget.CardView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@id/cardview_cv"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@android:color/white"
-            app:shapeAppearance="@style/TopRoundedCard">
-
-            <!-- 내부를 ConstraintLayout으로 감싸고 TextView + RecyclerView 배치 -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                app:layout_constraintTop_toBottomOf="@id/cardview_cv"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white"
+                app:shapeAppearance="@style/TopRoundedCard">
 
-                <TextView
-                    android:id="@+id/sim_text_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="비슷한 날, 수정님의 스타일"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginTop="15dp"
-                    android:layout_marginStart="15dp"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/similarStyleRecyclerView"
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="15dp"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginEnd="15dp"
-                    android:nestedScrollingEnabled="false"
-                    app:layout_constraintTop_toBottomOf="@id/sim_text_tv"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/latest_style_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="수정님의 지난 7일 코디"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginTop="20dp"
-                    app:layout_constraintTop_toBottomOf="@id/similarStyleRecyclerView"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    <TextView
+                        android:id="@+id/sim_text_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="비슷한 날, 수정님의 스타일"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginTop="15dp"
+                        android:layout_marginStart="15dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/latestStyleRecyclerView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="15dp"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginEnd="15dp"
-                    android:nestedScrollingEnabled="false"
-                    app:layout_constraintTop_toBottomOf="@id/latest_style_tv"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/similarStyleRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:nestedScrollingEnabled="false"
+                        app:layout_constraintTop_toBottomOf="@id/sim_text_tv"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
 
-                <TextView
-                    android:id="@+id/best_outfit_tv"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="베스트 OUTFIT 3"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginTop="20dp"
-                    app:layout_constraintTop_toBottomOf="@id/latestStyleRecyclerView"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    <TextView
+                        android:id="@+id/latest_style_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="수정님의 지난 7일 코디"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/similarStyleRecyclerView"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                <ImageButton
-                    android:id="@+id/best_more_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/morebtn"
-                    app:layout_constraintTop_toTopOf="@id/best_outfit_tv"
-                    app:layout_constraintEnd_toEndOf="parent"/>
+                    <!-- 지난 7일 코디: 빈 상태 문구 -->
+                    <TextView
+                        android:id="@+id/latestStyleEmptyTv"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="지난 7일 코디가 아직 없어요"
+                        android:textSize="14sp"
+                        android:textColor="#777777"
+                        android:gravity="center"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/latest_style_tv"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/bestoutfitRecycleView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:overScrollMode="never"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="15dp"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginEnd="15dp"
-                    android:nestedScrollingEnabled="false"
-                    app:layout_constraintTop_toBottomOf="@id/best_outfit_tv"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/latestStyleRecyclerView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="15dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:nestedScrollingEnabled="false"
+                        app:layout_constraintTop_toBottomOf="@id/latest_style_tv"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
 
+                    <!-- ✅ Barrier: latestStyleEmptyTv / latestStyleRecyclerView 중 더 아래쪽 기준 -->
+                    <androidx.constraintlayout.widget.Barrier
+                        android:id="@+id/latestStyleBottomBarrier"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:barrierDirection="bottom"
+                        app:constraint_referenced_ids="latestStyleEmptyTv,latestStyleRecyclerView" />
 
+                    <TextView
+                        android:id="@+id/best_outfit_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="베스트 OUTFIT 3"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="20dp"
+                        app:layout_constraintTop_toBottomOf="@id/latestStyleBottomBarrier"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                    </androidx.recyclerview.widget.RecyclerView>
+                    <ImageButton
+                        android:id="@+id/best_more_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/morebtn"
+                        app:layout_constraintTop_toTopOf="@id/best_outfit_tv"
+                        app:layout_constraintEnd_toEndOf="parent"/>
+
+                    <!-- 베스트 OUTFIT: 빈 상태 문구 -->
+                    <TextView
+                        android:id="@+id/bestOutfitEmptyTv"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="어제의 인기 스타일이 아직 없어요"
+                        android:textSize="14sp"
+                        android:textColor="#777777"
+                        android:gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="25dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/best_outfit_tv"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/bestoutfitRecycleView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:nestedScrollingEnabled="false"
+                        app:layout_constraintTop_toBottomOf="@id/best_outfit_tv"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
-    <!-- 스크롤과 무관하게 항상 화면 오른쪽 아래에 고정된 FAB -->
 
+    <!-- 고정 FAB -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/home_register_btn"
         android:layout_width="wrap_content"
@@ -350,6 +388,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:background="@drawable/home_register_btn">
+
         <TextView
             android:id="@+id/home_register_tv"
             android:layout_width="wrap_content"

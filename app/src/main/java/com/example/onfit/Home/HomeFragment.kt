@@ -19,14 +19,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.onfit.LatestStyleAdapter
-import com.example.onfit.R
 import com.example.onfit.Home.adapter.BestOutfitAdapter
+import com.example.onfit.Home.adapter.LatestStyleAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
-import com.example.onfit.Home.model.BestItem
 import com.example.onfit.Home.model.SimItem
 import com.example.onfit.Home.viewmodel.HomeViewModel
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.R
 import com.example.onfit.RegisterActivity
 import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.network.RetrofitInstance
@@ -53,18 +52,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         SimItem(R.drawable.simcloth3, "많이 더움")
     )
 
-    private val latestStyleList = listOf(
-        SimItem(R.drawable.simcloth2, "4월 20일"),
-        SimItem(R.drawable.simcloth3, "4월 19일"),
-        SimItem(R.drawable.simcloth1, "4월 18일")
-    )
-
-    private val bestStyleList = listOf(
-        BestItem(R.drawable.bestcloth1, "TOP 1", "큐야"),
-        BestItem(R.drawable.bestcloth2, "TOP 2", "별이"),
-        BestItem(R.drawable.bestcloth3, "TOP 3", "금이")
-    )
-
     override fun onResume() {
         super.onResume()
         fetchCurrentWeather()
@@ -74,32 +61,80 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentHomeBinding.bind(view)
 
+        val token = TokenProvider.getToken(requireContext())
+
+
+        // 닉네임 가져와서 sim_text_tv에 표시
+        val nickname = TokenProvider.getNickname(requireContext())
+        if (nickname.isNotEmpty()) {
+            binding.simTextTv.text = "비슷한 날, ${nickname}님의 스타일"
+        } else {
+            binding.simTextTv.text = "비슷한 날, 회원님의 스타일"
+        }
+
+
+        // 지난 7일 스타일
+        viewModel.fetchRecentOutfits(token)
+        viewModel.recentOutfits.observe(viewLifecycleOwner) { outfits ->
+            if (outfits.isNullOrEmpty()) {
+                binding.latestStyleEmptyTv.visibility = View.VISIBLE
+                binding.latestStyleRecyclerView.visibility = View.GONE
+            } else {
+                binding.latestStyleEmptyTv.visibility = View.GONE
+                binding.latestStyleRecyclerView.visibility = View.VISIBLE
+                binding.latestStyleRecyclerView.apply {
+                    adapter = LatestStyleAdapter(outfits)
+                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                }
+            }
+        }
+
+
+        // BEST OUTFIT 3
+        viewModel.fetchBestOutfits(token)
+        viewModel.bestOutfitList.observe(viewLifecycleOwner) { outfitList ->
+            Log.d("BestOutfit", "bestOutfit size=${outfitList.size}")
+
+            // 빈 상태/리스트 토글
+            if (outfitList.isNullOrEmpty()) {
+                binding.bestOutfitEmptyTv.visibility = View.VISIBLE
+                binding.bestoutfitRecycleView.visibility = View.GONE
+            } else {
+                binding.bestOutfitEmptyTv.visibility = View.GONE
+                binding.bestoutfitRecycleView.visibility = View.VISIBLE
+                binding.bestoutfitRecycleView.apply {
+                    adapter = BestOutfitAdapter(outfitList)
+                    layoutManager = LinearLayoutManager(
+                        context,
+                        LinearLayoutManager.HORIZONTAL,
+                        false
+                    )
+                }
+            }
+        }
+
+        // 날짜 표시
         viewModel.fetchDate()
         viewModel.dateLiveData.observe(viewLifecycleOwner) {
             updateCombinedInfo(it, TokenProvider.getLocation(requireContext()))
         }
+
+        // 에러 표시
         viewModel.errorLiveData.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
         }
 
-        setRandomImages()
-        binding.refreshIcon.setOnClickListener { setRandomImages() }
-
+        // 비슷한 스타일 RecyclerView
         binding.similarStyleRecyclerView.apply {
             adapter = SimiliarStyleAdapter(similiarClothList)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
 
-        binding.latestStyleRecyclerView.apply {
-            adapter = LatestStyleAdapter(latestStyleList)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        }
+        // 이미지 추천 3개
+        setRandomImages()
+        binding.refreshIcon.setOnClickListener { setRandomImages() }
 
-        binding.bestoutfitRecycleView.apply {
-            adapter = BestOutfitAdapter(bestStyleList)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        }
-
+        // 스크롤에 따라 FAB 텍스트 변경
         binding.homeSv.setOnScrollChangeListener { _, _, scrollY, _, _ ->
             if (scrollY > 50 && !isShortText) {
                 animateTextChange(binding.homeRegisterTv, "+")
@@ -110,15 +145,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
+        // 위치 버튼
         binding.locationBtn.setOnClickListener {
             val action = HomeFragmentDirections.actionHomeFragmentToLocationSettingFragment(true)
             findNavController().navigate(action)
         }
 
+        // 내일 날씨 버튼
         binding.weatherBtn.setOnClickListener {
             fetchTomorrowWeather()
         }
 
+        // 등록하기 버튼
         binding.homeRegisterBtn.setOnClickListener {
             showBottomSheet()
         }
@@ -149,8 +187,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val startIndex = fullText.indexOf(targetText)
                     val endIndex = startIndex + targetText.length
                     val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    spannable.setSpan(
+                        ForegroundColorSpan(color),
+                        startIndex,
+                        endIndex,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
                     binding.weatherTitle.text = spannable
+
                     updateWeatherImages(status)
                 } else {
                     binding.weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
@@ -179,8 +223,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                     updateCombinedInfo(getTomorrowDateString(), location)
 
-                    binding.tempTv.text = "${tempAvg}°C"
                     binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                    binding.tempTv.text = "${tempAvg}°C"
 
                     val fullText = "내일 ${tempAvg}°C, 어떤 스타일일까요?"
                     val targetText = "${tempAvg}°C"
@@ -188,8 +232,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val startIndex = fullText.indexOf(targetText)
                     val endIndex = startIndex + targetText.length
                     val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                    spannable.setSpan(
+                        ForegroundColorSpan(color),
+                        startIndex,
+                        endIndex,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
                     binding.weatherTitle.text = spannable
+
                     updateWeatherImages(status)
                 } else {
                     binding.weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
@@ -237,13 +287,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg)
             }
             else -> {
-                // 기본값
                 binding.sunIv.setImageResource(R.drawable.weather_sun)
                 binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg)
             }
         }
     }
-
 
     private fun updateCombinedInfo(date: String, location: String) {
         binding.combinedInfoTv.text = "$date $location 날씨"
