@@ -43,7 +43,7 @@ class LocationSearchAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_location_search, parent, false) // ✅ 파일명 반영
+            .inflate(R.layout.item_location_search, parent, false) //
         return LocationViewHolder(view)
     }
 
