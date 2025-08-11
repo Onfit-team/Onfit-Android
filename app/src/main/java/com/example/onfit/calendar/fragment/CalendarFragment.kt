@@ -85,16 +85,6 @@ class CalendarFragment : Fragment() {
         } ?: run {
             Toast.makeText(requireContext(), "버튼을 찾을 수 없습니다!", Toast.LENGTH_SHORT).show()
         }
-
-        // 캘린더 등록 버튼 클릭 시 RegisterFragment로 이동
-        view.findViewById<View>(R.id.calendar_register_btn)?.setOnClickListener {
-            try {
-                findNavController().navigate(R.id.action_calendarFragment_to_registerFragment)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(requireContext(), "이동 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     private fun setupCalendar() {
