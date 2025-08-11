@@ -3,9 +3,11 @@ package com.example.onfit.Home
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -15,6 +17,9 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,11 +34,19 @@ import com.example.onfit.Home.model.SimItem
 import com.example.onfit.Home.viewmodel.HomeViewModel
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
-import com.example.onfit.RegisterActivity
 import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.network.RetrofitInstance
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,6 +57,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private val viewModel: HomeViewModel by viewModels()
     private var isShortText = false
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
+    private var selectedImageUri: Uri? = null
 
     // 서버 추천 로딩 전 초기 플레이스홀더(로컬 이미지)
     private val clothSuggestList = listOf(
@@ -59,6 +74,71 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     // 마지막 평균기온 저장 (refresh 시 재호출에 사용)
     private var lastTempAvg: Double? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // 갤러리 Launcher
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == AppCompatActivity.RESULT_OK) {
+                selectedImageUri = result.data?.data
+
+                // 선택 이미지 URI -> 캐시 파일로 변환 후 업로드
+                selectedImageUri?.let { uri ->
+                    Log.d("HomeFragment", "선택된 이미지 URI: $uri")
+                    val cacheFile = uriToCacheFile(requireContext(), uri)
+                    Log.d("HomeFragment", "파일 존재 여부: ${cacheFile.exists()}")
+                    Log.d("HomeFragment", "파일 크기: ${cacheFile.length()}")
+                    uploadImageToServer(cacheFile)
+                }
+            }
+        }
+    }
+
+    // API에 파일 업로드하고 Url 받아오기
+    private fun uploadImageToServer(file: File) {
+        Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
+        val token = TokenProvider.getToken(requireContext())
+        val header = "Bearer $token"
+        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val api = RetrofitClient.instance.create(ApiService::class.java)
+                val response = api.uploadImage(header, body)
+
+                val rawResponse = response.body()
+                Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        val imageUrl = response.body()!!.result?.imageUrl
+                        Log.d("HomeFragment", "이미지 업로드 성공: $imageUrl")
+
+                        // RegisterFragment로 URL 전달
+                        val bundle = Bundle().apply {
+                            putString("selectedImagePath", file.absolutePath)
+                            putString("uploadedImageUrl", imageUrl)
+                        }
+                        findNavController().navigate(
+                            R.id.action_homeFragment_to_registerFragment,
+                            bundle
+                        )
+                    } else {
+                        val errorMsg = response.errorBody()?.string()
+                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg")
+                        Toast.makeText(requireContext(), "업로드 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "서버 오류", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -356,11 +436,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(view)
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            val intent = Intent(requireContext(), RegisterActivity::class.java)
-            startActivity(intent)
+            // 카메라 → 현재는 등록 화면으로 이동만
+            findNavController().navigate(R.id.action_homeFragment_to_registerFragment)
+            dialog.dismiss()
         }
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-            Toast.makeText(requireContext(), "사진첩 클릭됨", Toast.LENGTH_SHORT).show()
+            openGallery()
             dialog.dismiss()
         }
         dialog.show()
@@ -376,6 +457,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         })
         fadeOut.start()
+    }
+
+    private fun uriToCacheFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val file = File(context.cacheDir, "selected_outfit.png")
+        val outputStream = FileOutputStream(file)
+        inputStream?.use { input ->
+            outputStream.use { output -> input.copyTo(output) }
+        }
+        return file
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+        pickImageLauncher.launch(intent)
     }
 
     override fun onDestroyView() {

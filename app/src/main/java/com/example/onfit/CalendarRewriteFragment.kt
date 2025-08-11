@@ -49,11 +49,14 @@ class CalendarRewriteFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
+        // 옷장 선택 화면으로
+        binding.calendarRewriteFl.setOnClickListener {
+            findNavController().navigate(R.id.action_calendarRewriteFragment_to_calendarSelectFragment)
+        }
+
+        // 저장하면 수정한 정보 담아서 뒤로가기
         binding.calendarRewriteSaveBtn.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, CalendarSelectFragment())
-                .addToBackStack(null)
-                .commit()
+            parentFragmentManager.popBackStack()
         }
 
         // 날짜 선택 드롭다운

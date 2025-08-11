@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.databinding.FragmentCalendarSaveBinding
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
@@ -42,17 +43,18 @@ class CalendarSaveFragment : Fragment() {
         binding.calendarSaveRv.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
+        // 날짜 설정
+        val selectedDate = arguments?.getString("selectedDate")
+        binding.calendarSaveDateTv.text = selectedDate
+
         // 뒤로가기
         binding.calendarSaveBackBtn.setOnClickListener {
-            activity?.finish() // 액티비티 종료
+            findNavController().popBackStack()
         }
 
         // CalendarRewriteFragment로 이동
         binding.calendarSaveEditIv.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.register_container, CalendarRewriteFragment())
-                .addToBackStack(null)
-                .commit()
+            findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
         }
 
         // 삭제 다이얼로그

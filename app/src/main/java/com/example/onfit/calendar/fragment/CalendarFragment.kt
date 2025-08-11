@@ -177,10 +177,9 @@ class CalendarFragment : Fragment() {
     }
 
     private fun navigateToOutfitRegister(dateString: String) {
-        // TODO: 코디 등록 화면으로 이동
-        // findNavController().navigate(
-        //     CalendarFragmentDirections.actionCalendarToOutfitRegister(dateString)
-        // )
+        // 코디 등록 화면으로 이동
+        val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
+        findNavController().navigate(action)
     }
 
     private fun navigateToStyleOutfits() {

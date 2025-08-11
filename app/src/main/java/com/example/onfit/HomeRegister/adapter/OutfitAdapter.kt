@@ -2,9 +2,11 @@ package com.example.onfit.HomeRegister.adapter
 
 import com.example.onfit.HomeRegister.model.OutfitItem2
 import android.app.AlertDialog
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -12,7 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: () -> Unit,) :
+                    private val onClosetButtonClick: () -> Unit,
+                    private val onCropButtonClick: (position: Int) -> Unit) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
@@ -29,7 +32,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
     override fun onBindViewHolder(holder: OutfitViewHolder, position: Int) {
         val item = items[position]
-        holder.image.setImageResource(item.imageResId)
+        if (item.imageUri != null) {
+            holder.image.setImageURI(item.imageUri)
+        } else if (item.imageResId != null) {
+            holder.image.setImageResource(item.imageResId)
+        }
 
         // 옷장에 있어요 클릭 시 옷장 프래그먼트로 이동, 버튼 회색으로 비활성화
         val btnImageRes = if (item.isClosetButtonActive) {
@@ -47,6 +54,8 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
             }
         }
 
+        // cropBtn 클릭 시 콜백 호출
+
         // x 버튼 눌렀을 때 아이템 삭제
         // x 버튼 누를 시 아이템 삭제 팝업
         holder.remove.setOnClickListener {
@@ -58,7 +67,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             // 이미지 설정
             val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
-            dialogImage.setImageResource(item.imageResId)
+            if (item.imageUri != null) {
+                dialogImage.setImageURI(item.imageUri)
+            } else if (item.imageResId != null) {
+                dialogImage.setImageResource(item.imageResId)
+            }
 
             // 예 버튼 클릭 → 아이템 삭제
             dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {
@@ -77,6 +90,14 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
             dialog.show()
+
+            val widthInPx = TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                294f,
+                holder.itemView.context.resources.displayMetrics
+            ).toInt()
+
+            dialog.window?.setLayout(widthInPx, WindowManager.LayoutParams.WRAP_CONTENT)
         }
     }
 
