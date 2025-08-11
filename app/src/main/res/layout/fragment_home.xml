@@ -185,7 +185,9 @@
                         android:textColor="#777777"
                         android:layout_marginStart="15dp" />
 
+                    <!-- 🔹 추천 이미지 컨테이너 -->
                     <LinearLayout
+                        android:id="@+id/suggestedContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -217,6 +219,19 @@
                             android:scaleType="centerCrop"
                             android:src="@drawable/cloth3" />
                     </LinearLayout>
+
+                    <!-- 🔹 추천 없음 안내 문구 -->
+                    <TextView
+                        android:id="@+id/suggestedEmptyTv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="오늘은 추천 아이템이 없어요"
+                        android:textSize="14sp"
+                        android:textColor="#777777"
+                        android:gravity="center"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:visibility="gone" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -225,7 +240,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 app:layout_constraintTop_toBottomOf="@id/cardview_cv"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:minHeight="500dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:cardElevation="4dp"
@@ -263,6 +278,33 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent" />
 
+                    <!-- similarEmptyTv -->
+                    <TextView
+                        android:id="@+id/similarEmptyTv"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="비슷한 날 스타일이 아직 없어요"
+                        android:textSize="14sp"
+                        android:textColor="#777777"
+                        android:gravity="center"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@id/similarStyleRecyclerView"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <!-- Barrier 추가 -->
+                    <androidx.constraintlayout.widget.Barrier
+                        android:id="@+id/similarSectionBottomBarrier"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:barrierDirection="bottom"
+                        app:constraint_referenced_ids="similarEmptyTv,similarStyleRecyclerView" />
+
+                    <!-- latest_style_tv의 Top을 Barrier에 연결 -->
                     <TextView
                         android:id="@+id/latest_style_tv"
                         android:layout_width="wrap_content"
@@ -272,8 +314,9 @@
                         android:textStyle="bold"
                         android:layout_marginStart="15dp"
                         android:layout_marginTop="20dp"
-                        app:layout_constraintTop_toBottomOf="@id/similarStyleRecyclerView"
+                        app:layout_constraintTop_toBottomOf="@id/similarSectionBottomBarrier"
                         app:layout_constraintStart_toStartOf="parent" />
+
 
                     <!-- 지난 7일 코디: 빈 상태 문구 -->
                     <TextView
@@ -333,6 +376,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/morebtn"
+                        android:background="@android:color/transparent"
+                        android:layout_marginEnd="15dp"
                         app:layout_constraintTop_toTopOf="@id/best_outfit_tv"
                         app:layout_constraintEnd_toEndOf="parent"/>
 
