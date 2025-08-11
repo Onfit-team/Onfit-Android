@@ -5,10 +5,14 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -100,8 +104,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
         val token = TokenProvider.getToken(requireContext())
         val header = "Bearer $token"
-        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+        val mime = requireContext().contentResolver.getType(Uri.fromFile(file)) ?: "image/jpeg"
+        val requestFile = file.asRequestBody(mime.toMediaTypeOrNull())
         val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+        // 📌 여기서 요청 정보 로그 찍기
+        Log.d("Upload", "file=${file.name}, size=${file.length()}, mime=$mime")
+        Log.d("Upload", "url=/items/upload, header=$header, fieldName=image")
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -441,7 +450,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             dialog.dismiss()
         }
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-            openGallery()
+            // 권한 확인 → Pictures 스캔 → 갤러리 열기
+            ensurePhotoPermission { rescanPicturesAndOpenGallery() }
             dialog.dismiss()
         }
         dialog.show()
@@ -467,6 +477,48 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             outputStream.use { output -> input.copyTo(output) }
         }
         return file
+    }
+
+    // 1) 권한 체크 (API33+ READ_MEDIA_IMAGES / 이하 READ_EXTERNAL_STORAGE)
+    private fun ensurePhotoPermission(onGranted: () -> Unit) {
+        val perm = if (Build.VERSION.SDK_INT >= 33)
+            android.Manifest.permission.READ_MEDIA_IMAGES
+        else
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+            PackageManager.PERMISSION_GRANTED) {
+            onGranted()
+        } else {
+            requestPermissionLauncher.launch(perm)
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                // 권한이 방금 허용되면 스캔 후 갤러리 열기
+                rescanPicturesAndOpenGallery()
+            } else {
+                Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    // 2) Pictures 폴더 스캔 후 갤러리 열기
+    private fun rescanPicturesAndOpenGallery() {
+        // 에뮬레이터/Device Explorer로 넣은 파일을 인덱싱
+        val picturesPath = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        ).absolutePath
+
+        MediaScannerConnection.scanFile(
+            requireContext(),
+            arrayOf(picturesPath),
+            null
+        ) { _, _ ->
+            // 스캔 콜백에서 갤러리 열기 (스캔 완료 후)
+            requireActivity().runOnUiThread { openGallery() }
+        }
     }
 
     private fun openGallery() {
