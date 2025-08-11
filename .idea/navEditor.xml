@@ -46,6 +46,11 @@
                         </option>
                         <option name="myPositions">
                           <map>
+                            <entry key="">
+                              <value>
+                                <LayoutPositions />
+                              </value>
+                            </entry>
                             <entry key="action_calendarFragment_to_calendarSaveFragment">
                               <value>
                                 <LayoutPositions />

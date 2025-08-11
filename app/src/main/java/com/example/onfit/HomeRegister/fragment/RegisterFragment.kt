@@ -146,7 +146,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
                 put("moodTags", JSONArray(finalMoodTags))
                 put("purposeTags", JSONArray(finalPurposeTags))
-                put("locationId", 1) // 임시 위치값
             }
 
             // RequestBody로 변환
