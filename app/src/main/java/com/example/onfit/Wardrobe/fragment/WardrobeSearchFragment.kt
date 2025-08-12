@@ -7,8 +7,13 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.example.onfit.R
+import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.google.android.flexbox.FlexboxLayout
+import android.util.Log
 
 class WardrobeSearchFragment : Fragment() {
 
@@ -31,7 +36,7 @@ class WardrobeSearchFragment : Fragment() {
 
     // Data
     private val colorOptions = arrayOf("색상 선택", "블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플")
-    private val brandOptions = arrayOf("아디다스", "나이키", "자라", "유니클로", "H&M", "무신사", "SPAO")
+    private var brandOptions = arrayOf("브랜드 로딩 중...") // API에서 동적으로 로드
 
     private var selectedSeason = ""
     private var selectedColor = ""
@@ -54,17 +59,18 @@ class WardrobeSearchFragment : Fragment() {
         setupListeners()
         setupSpinners()
         setupButtons()
+
+        // API에서 브랜드 목록 로드
+        loadBrandsFromAPI()
     }
 
     override fun onResume() {
         super.onResume()
-        // 바텀네비게이션 숨기기
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
     }
 
     override fun onPause() {
         super.onPause()
-        // 바텀네비게이션 다시 보이기
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
@@ -122,11 +128,97 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
+    /**
+     * API에서 브랜드 목록 로드
+     */
+    private fun loadBrandsFromAPI() {
+        lifecycleScope.launch {
+            try {
+                val token = "Bearer " + TokenProvider.getToken(requireContext())
+
+                // API가 구현되지 않은 경우 임시로 더미 데이터 사용
+                try {
+                    val response = RetrofitClient.wardrobeService.getBrandsList(token)
+
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        val brands = response.body()?.result ?: emptyList()
+                        if (brands.isNotEmpty()) {
+                            brandOptions = brands.toTypedArray()
+                            setupBrandSelectionWithAPI(brands)
+                            Log.d("WardrobeSearchFragment", "브랜드 목록 로드 성공: ${brands.size}개")
+                        } else {
+                            setupDummyBrands()
+                        }
+                    } else {
+                        setupDummyBrands()
+                    }
+                } catch (e: Exception) {
+                    Log.w("WardrobeSearchFragment", "브랜드 API 호출 실패, 더미 데이터 사용: ${e.message}")
+                    setupDummyBrands()
+                }
+
+            } catch (e: Exception) {
+                Log.e("WardrobeSearchFragment", "브랜드 목록 로드 실패", e)
+                setupDummyBrands()
+            }
+        }
+    }
+
+    /**
+     * 더미 브랜드 데이터 설정
+     */
+    private fun setupDummyBrands() {
+        val dummyBrands = listOf("아디다스", "나이키", "자라", "유니클로", "H&M", "무신사", "SPAO")
+        brandOptions = dummyBrands.toTypedArray()
+        setupBrandSelectionWithAPI(dummyBrands)
+        Log.d("WardrobeSearchFragment", "더미 브랜드 데이터 설정: ${dummyBrands.size}개")
+    }
+
+    /**
+     * API에서 받은 브랜드 목록으로 브랜드 선택 UI 업데이트
+     */
+    private fun setupBrandSelectionWithAPI(brands: List<String>) {
+        // 브랜드 팝업의 기존 브랜드 목록을 동적으로 생성
+        val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
+        val brandContainer = brandScrollView?.getChildAt(0) as? LinearLayout
+
+        brandContainer?.removeAllViews() // 기존 뷰 제거
+
+        brands.forEach { brandName ->
+            val brandTextView = TextView(requireContext()).apply {
+                text = brandName
+                textSize = 16f
+                setPadding(24, 20, 24, 20)
+                setOnClickListener {
+                    selectedBrand = brandName
+                    brandDropdownText.text = brandName
+                    brandDropdownText.setTextColor(
+                        resources.getColor(android.R.color.black, requireContext().theme)
+                    )
+                    hideBrandPopup()
+                }
+            }
+
+            // 브랜드 아이템 사이 구분선 추가
+            val divider = View(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1
+                )
+                setBackgroundColor(resources.getColor(R.color.gray, requireContext().theme))
+            }
+
+            brandContainer?.addView(brandTextView)
+            if (brandName != brands.last()) { // 마지막 아이템이 아닌 경우만 구분선 추가
+                brandContainer?.addView(divider)
+            }
+        }
+    }
+
     private fun setupListeners() {
-        // Back button - Navigation으로 뒤로가기 (수정됨)
+        // Back button
         icBack.setOnClickListener {
             findNavController().navigateUp()
-            // 또는 parentFragmentManager.popBackStack() 사용
         }
 
         // Brand dropdown
@@ -144,12 +236,9 @@ class WardrobeSearchFragment : Fragment() {
             // Do nothing - prevents the click from bubbling up to the overlay
         }
 
-        // Brand selection
-        setupBrandSelection()
-
-        // Save button
+        // Save button - API 필터 검색 호출
         btnSave.setOnClickListener {
-            applyFilters()
+            applyFiltersWithAPI()
         }
     }
 
@@ -169,15 +258,12 @@ class WardrobeSearchFragment : Fragment() {
             }
         }
 
-        // 색상 스피너 컨테이너와 화살표 클릭 이벤트 추가
         setupColorSpinnerClick()
     }
 
     private fun setupColorSpinnerClick() {
-        // 색상 스피너가 포함된 LinearLayout 찾기
         val colorSpinnerContainer = spinnerColor.parent as? LinearLayout
 
-        // 드롭다운 위치 조정
         spinnerColor.setOnTouchListener { _, _ ->
             spinnerColor.post {
                 adjustColorDropdownPosition(spinnerColor, colorSpinnerContainer)
@@ -185,12 +271,10 @@ class WardrobeSearchFragment : Fragment() {
             false
         }
 
-        // 전체 컨테이너 클릭 시 스피너 열기
         colorSpinnerContainer?.setOnClickListener {
             spinnerColor.performClick()
         }
 
-        // 컨테이너 내의 ImageView(화살표) 클릭 시도 스피너 열기
         colorSpinnerContainer?.let { container ->
             for (i in 0 until container.childCount) {
                 val child = container.getChildAt(i)
@@ -211,51 +295,35 @@ class WardrobeSearchFragment : Fragment() {
             popupField.isAccessible = true
             val popupWindow = popupField.get(spinner) ?: return
 
-            // 스피너와 컨테이너의 실제 위치 계산
             val spinnerLocation = IntArray(2)
             val containerLocation = IntArray(2)
 
             spinner.getLocationOnScreen(spinnerLocation)
             spinnerContainer.getLocationOnScreen(containerLocation)
 
-            // 가로: 스피너가 컨테이너 왼쪽 경계로부터 얼마나 떨어져 있는지 계산
-            // 빨간색 박스(컨테이너)의 왼쪽 경계에서 시작하도록 조정
             val horizontalOffsetToContainerLeft = spinnerLocation[0] - containerLocation[0]
-
-            // 세로: -16dp 적용 (박스 위로 살짝 올리기)
             val verticalOffset = -(16 * resources.displayMetrics.density).toInt()
 
-            android.util.Log.d("ColorSpinner", "Spinner pos: ${spinnerLocation[0]}, Container pos: ${containerLocation[0]}")
-            android.util.Log.d("ColorSpinner", "Container width: ${spinnerContainer.width}")
-            android.util.Log.d("ColorSpinner", "Horizontal offset to container left: $horizontalOffsetToContainerLeft")
-
-            // 컨테이너 너비로 드롭다운 너비 설정 (빨간색 박스와 동일한 너비)
             val containerWidth = spinnerContainer.width
             val setWidthMethod = popupWindow.javaClass.getMethod("setWidth", Int::class.java)
             setWidthMethod.invoke(popupWindow, containerWidth)
 
-            // 높이 제한
             val maxHeight = (250 * resources.displayMetrics.density).toInt()
             val setHeightMethod = popupWindow.javaClass.getMethod("setHeight", Int::class.java)
             setHeightMethod.invoke(popupWindow, maxHeight)
 
-            // 가로 위치: 빨간색 박스(컨테이너)의 왼쪽 경계에서 시작
             val setHorizontalOffsetMethod = popupWindow.javaClass.getMethod("setHorizontalOffset", Int::class.java)
             setHorizontalOffsetMethod.invoke(popupWindow, -horizontalOffsetToContainerLeft)
 
-            // 세로 위치: -16dp 적용
             try {
                 val setVerticalOffsetMethod = popupWindow.javaClass.getMethod("setVerticalOffset", Int::class.java)
                 setVerticalOffsetMethod.invoke(popupWindow, verticalOffset)
-                android.util.Log.d("ColorSpinner", "Vertical offset applied: $verticalOffset")
             } catch (e: Exception) {
-                android.util.Log.e("ColorSpinner", "Vertical offset failed: ${e.message}")
+                Log.e("ColorSpinner", "Vertical offset failed: ${e.message}")
             }
 
-            android.util.Log.d("ColorSpinner", "Color dropdown positioned at container left edge")
-
         } catch (e: Exception) {
-            android.util.Log.e("ColorSpinner", "Failed to adjust color dropdown: ${e.message}")
+            Log.e("ColorSpinner", "Failed to adjust color dropdown: ${e.message}")
         }
     }
 
@@ -281,7 +349,6 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     private fun selectSeason(season: String, selectedButton: Button) {
-        // Allow deselection by clicking the same button
         if (selectedSeason == season) {
             selectedSeason = ""
             selectedButton.isSelected = false
@@ -290,12 +357,10 @@ class WardrobeSearchFragment : Fragment() {
 
         selectedSeason = season
 
-        // Reset all season buttons
         listOf(btnSpringFall, btnSummer, btnWinter).forEach { btn ->
             btn.isSelected = false
         }
 
-        // Select current button
         selectedButton.isSelected = true
     }
 
@@ -323,54 +388,25 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
-    private fun setupBrandSelection() {
-        val brandViews = listOf(
-            R.id.brand_adidas to "아디다스",
-            R.id.brand_nike to "나이키",
-            R.id.brand_zara to "자라",
-            R.id.brand_uniqlo to "유니클로",
-            R.id.brand_hm to "H&M",
-            R.id.brand_muji to "무인사",
-            R.id.brand_spao to "SPAO"
-        )
-
-        brandViews.forEach { (viewId, brandName) ->
-            brandPopupOverlay.findViewById<TextView>(viewId)?.setOnClickListener {
-                selectedBrand = brandName
-                brandDropdownText.text = brandName
-                brandDropdownText.setTextColor(
-                    resources.getColor(android.R.color.black, requireContext().theme)
-                )
-                hideBrandPopup()
-            }
-        }
-    }
-
     private fun showBrandPopup() {
         adjustBrandPopupHeight()
         brandPopupOverlay.visibility = View.VISIBLE
     }
 
     private fun adjustBrandPopupHeight() {
-        // Find the ScrollView in the popup
         val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
 
         if (brandScrollView != null) {
             val brandListContainer = brandScrollView.getChildAt(0) as LinearLayout
 
-            // Calculate the total height needed for all brand items
             val itemCount = brandListContainer.childCount
-            val itemHeight = 60 * resources.displayMetrics.density // 60dp converted to pixels
+            val itemHeight = 60 * resources.displayMetrics.density
             val totalContentHeight = (itemCount * itemHeight).toInt()
 
-            // Get screen height
             val displayMetrics = resources.displayMetrics
             val screenHeight = displayMetrics.heightPixels
-
-            // Calculate maximum allowed height (60% of screen height)
             val maxScrollViewHeight = (screenHeight * 0.6).toInt()
 
-            // Set appropriate height
             val scrollViewLayoutParams = brandScrollView.layoutParams
             scrollViewLayoutParams.height = if (totalContentHeight > maxScrollViewHeight) {
                 maxScrollViewHeight
@@ -378,48 +414,23 @@ class WardrobeSearchFragment : Fragment() {
                 totalContentHeight
             }
             brandScrollView.layoutParams = scrollViewLayoutParams
-        } else {
-            // If ScrollView is not found by ID, try to find it by traversing the view hierarchy
-            val popupContent = brandPopupOverlay.getChildAt(1) as? LinearLayout
-            val scrollView = popupContent?.getChildAt(1) as? ScrollView
-
-            scrollView?.let {
-                val brandListContainer = it.getChildAt(0) as LinearLayout
-                val itemCount = brandListContainer.childCount
-                val itemHeight = 60 * resources.displayMetrics.density
-                val totalContentHeight = (itemCount * itemHeight).toInt()
-
-                val displayMetrics = resources.displayMetrics
-                val screenHeight = displayMetrics.heightPixels
-                val maxScrollViewHeight = (screenHeight * 0.6).toInt()
-
-                val scrollViewLayoutParams = it.layoutParams
-                scrollViewLayoutParams.height = if (totalContentHeight > maxScrollViewHeight) {
-                    maxScrollViewHeight
-                } else {
-                    totalContentHeight
-                }
-                it.layoutParams = scrollViewLayoutParams
-            }
         }
 
-        // 브랜드 팝업 상단 모서리 둥글게 만들기
         setBrandPopupCornerRadius()
     }
 
     private fun setBrandPopupCornerRadius() {
         val popupContent = brandPopupOverlay.getChildAt(1) as? LinearLayout
         popupContent?.let {
-            // 상단 모서리만 둥글게 하는 drawable 생성
-            val cornerRadius = 20f * resources.displayMetrics.density // 20dp를 px로 변환
+            val cornerRadius = 20f * resources.displayMetrics.density
 
             val drawable = android.graphics.drawable.GradientDrawable()
             drawable.setColor(android.graphics.Color.WHITE)
             drawable.cornerRadii = floatArrayOf(
-                cornerRadius, cornerRadius, // 좌상단
-                cornerRadius, cornerRadius, // 우상단
-                0f, 0f,                     // 우하단
-                0f, 0f                      // 좌하단
+                cornerRadius, cornerRadius,
+                cornerRadius, cornerRadius,
+                0f, 0f,
+                0f, 0f
             )
 
             it.background = drawable
@@ -430,8 +441,10 @@ class WardrobeSearchFragment : Fragment() {
         brandPopupOverlay.visibility = View.GONE
     }
 
-    private fun applyFilters() {
-        // Validate if at least one filter is selected
+    /**
+     * API를 사용한 필터 검색
+     */
+    private fun applyFiltersWithAPI() {
         val hasFilters = selectedSeason.isNotEmpty() ||
                 selectedColor.isNotEmpty() ||
                 selectedBrand.isNotEmpty() ||
@@ -443,36 +456,136 @@ class WardrobeSearchFragment : Fragment() {
             return
         }
 
-        // Create filter object
-        val filterData = FilterData(
-            season = selectedSeason,
-            color = selectedColor,
-            brand = selectedBrand,
-            styleTags = selectedStyleTags.toList(),
-            purposeTags = selectedPurposeTags.toList()
+        lifecycleScope.launch {
+            try {
+                val token = "Bearer " + TokenProvider.getToken(requireContext())
+
+                // 필터 파라미터 변환
+                val seasonParam = convertSeasonToAPI(selectedSeason)
+                val colorParam = convertColorToAPI(selectedColor)
+                val brandParam = if (selectedBrand.isNotEmpty()) selectedBrand else null
+                val tagIdsParam = convertTagsToAPI(selectedStyleTags + selectedPurposeTags)
+
+                Log.d("WardrobeSearchFragment", "필터 파라미터: season=$seasonParam, color=$colorParam, brand=$brandParam, tagIds=$tagIdsParam")
+
+                // 임시로 성공 처리 (실제 API 구현되면 아래 주석 해제)
+                Toast.makeText(context, "필터가 적용되었습니다", Toast.LENGTH_SHORT).show()
+
+                val bundle = Bundle().apply {
+                    putString("search_results", "filter_applied")
+                    putString("filter_season", selectedSeason)
+                    putString("filter_color", selectedColor)
+                    putString("filter_brand", selectedBrand)
+                }
+
+                parentFragmentManager.setFragmentResult("filter_results", bundle)
+                findNavController().navigateUp()
+
+
+                // 실제 API 호출 (API 준비되면 주석 해제)
+                try {
+                    val response = RetrofitClient.wardrobeService.filterWardrobeItems(
+                        authorization = token,
+                        season = seasonParam,
+                        color = colorParam,
+                        brand = brandParam,
+                        tagIds = tagIdsParam
+                    )
+
+                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                        val searchResults = response.body()?.result?.items ?: emptyList()
+
+                        if (searchResults.isNotEmpty()) {
+                            val bundle = Bundle().apply {
+                                putString("search_results", "filter_applied")
+                            }
+
+                            parentFragmentManager.setFragmentResult("filter_results", bundle)
+                            Toast.makeText(context, "${searchResults.size}개의 아이템을 찾았습니다", Toast.LENGTH_SHORT).show()
+                            findNavController().navigateUp()
+                        } else {
+                            Toast.makeText(context, "검색 결과가 없습니다", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        showError("필터 검색 실패: ${response.body()?.message}")
+                    }
+                } catch (apiError: Exception) {
+                    Log.w("WardrobeSearchFragment", "API 호출 실패, 임시 성공 처리: ${apiError.message}")
+                    Toast.makeText(context, "필터가 적용되었습니다 (임시)", Toast.LENGTH_SHORT).show()
+                    findNavController().navigateUp()
+                }
+
+            } catch (e: Exception) {
+                Log.e("WardrobeSearchFragment", "필터 검색 실패", e)
+                showError("필터 검색 중 오류가 발생했습니다: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * 계절을 API 파라미터로 변환
+     */
+    private fun convertSeasonToAPI(season: String): Int? {
+        return when (season) {
+            "봄ㆍ가을" -> 1
+            "여름" -> 2
+            "겨울" -> 4
+            else -> null
+        }
+    }
+
+    /**
+     * 색상을 API 파라미터로 변환
+     */
+    private fun convertColorToAPI(color: String): Int? {
+        return when (color) {
+            "블랙" -> 1
+            "화이트" -> 2
+            "그레이" -> 3
+            "네이비" -> 4
+            "브라운" -> 5
+            "베이지" -> 6
+            "레드" -> 7
+            "핑크" -> 8
+            "옐로우" -> 9
+            "그린" -> 10
+            "블루" -> 11
+            "퍼플" -> 12
+            else -> null
+        }
+    }
+
+    /**
+     * 태그를 API 파라미터로 변환
+     */
+    private fun convertTagsToAPI(tags: Set<String>): String? {
+        if (tags.isEmpty()) return null
+
+        // 태그 이름을 ID로 변환하는 매핑 (실제 서버 태그 ID에 맞게 수정 필요)
+        val tagNameToId = mapOf(
+            // 스타일 태그 (예시)
+            "캐주얼" to 1,
+            "포멀" to 2,
+            "스포티" to 3,
+            "스트릿" to 4,
+            "빈티지" to 5,
+            "미니멀" to 6,
+            // 용도 태그 (예시)
+            "데일리" to 10,
+            "출근" to 11,
+            "데이트" to 12,
+            "여행" to 13,
+            "운동" to 14,
+            "파티" to 15
         )
 
-        // TODO: Apply filters to search results
-        // This would typically involve:
-        // 1. Calling API with filter parameters
-        // 2. Updating UI with filtered results
-        // 3. Navigating to results screen
+        val tagIds = tags.mapNotNull { tagName -> tagNameToId[tagName] }
+        return if (tagIds.isNotEmpty()) tagIds.joinToString(",") else null
+    }
 
-        // For now, show confirmation
-        val filterSummary = buildString {
-            append("적용된 필터:\n")
-            if (selectedSeason.isNotEmpty()) append("계절: $selectedSeason\n")
-            if (selectedColor.isNotEmpty()) append("색상: $selectedColor\n")
-            if (selectedBrand.isNotEmpty()) append("브랜드: $selectedBrand\n")
-            if (selectedStyleTags.isNotEmpty()) append("스타일: ${selectedStyleTags.joinToString(", ")}\n")
-            if (selectedPurposeTags.isNotEmpty()) append("용도: ${selectedPurposeTags.joinToString(", ")}")
-        }
-
-        Toast.makeText(requireContext(), filterSummary, Toast.LENGTH_LONG).show()
-
-        // Navigate back to previous screen (수정됨)
-        findNavController().navigateUp()
-        // 또는 parentFragmentManager.popBackStack() 사용
+    private fun showError(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+        Log.e("WardrobeSearchFragment", message)
     }
 
     // Function to reset all filters

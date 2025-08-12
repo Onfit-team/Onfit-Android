@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/communityFragment">
+    app:startDestination="@id/loginStartFragment">
 <!-- loginStartFragment -->
     <fragment
         android:id="@+id/loginStartFragment"
@@ -169,6 +169,14 @@
             android:name="image_res_id"
             app:argType="integer"
             android:defaultValue="0" />
+        <argument
+            android:name="item_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="is_api_item"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
     <fragment
@@ -179,6 +187,9 @@
         <action
             android:id="@+id/action_calendarFragment_to_calendarSaveFragment"
             app:destination="@id/calendarSaveFragment"/>
+        <action
+            android:id="@+id/action_calendarFragment_to_registerFragment"
+            app:destination="@id/registerFragment"/>
     </fragment>
 
     <fragment

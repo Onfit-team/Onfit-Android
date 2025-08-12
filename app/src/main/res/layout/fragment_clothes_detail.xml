@@ -86,8 +86,9 @@
                     android:gravity="center_horizontal"
                     android:fontFamily="@font/pretendardsemibold">
 
-                    <!-- 상의 -->
+                    <!-- 카테고리 정보에 ID 추가 -->
                     <TextView
+                        android:id="@+id/tv_category"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="상의"
@@ -96,17 +97,17 @@
                         android:layout_marginTop="5dp"
                         android:layout_marginBottom="5dp" />
 
-                    <!-- 맨투맨 -->
                     <TextView
+                        android:id="@+id/tv_subcategory"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="맨투맨"
                         android:textSize="15sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="20dp"/>
+                        android:layout_marginBottom="20dp" />
 
-                    <!-- 봄 -->
                     <TextView
+                        android:id="@+id/tv_season"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="봄"
@@ -114,8 +115,8 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="20dp" />
 
-                    <!-- 검은색 -->
                     <TextView
+                        android:id="@+id/tv_color"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="검은색"
@@ -123,41 +124,13 @@
                         android:textStyle="bold"
                         android:layout_marginBottom="20dp" />
 
-                    <!-- 태그들 -->
-                    <TextView
-                        style="?android:attr/borderlessButtonStyle"
+                    <!-- 동적 태그 컨테이너 -->
+                    <LinearLayout
+                        android:id="@+id/tags_container"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="#캐주얼"
-                        android:textSize="12sp"
-                        android:minHeight="20dp"
-                        android:minWidth="55dp"
-                        android:background="@drawable/rounded_button_selector"
-                        android:textColor="@android:color/black"
-                        android:layout_marginBottom="5dp" />
-
-                    <TextView
-                        style="?android:attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="#편안함"
-                        android:textSize="12sp"
-                        android:minHeight="20dp"
-                        android:minWidth="55dp"
-                        android:background="@drawable/rounded_button_selector"
-                        android:textColor="@android:color/black"
-                        android:layout_marginBottom="5dp" />
-
-                    <TextView
-                        style="?android:attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="#활동적"
-                        android:textSize="12sp"
-                        android:minHeight="20dp"
-                        android:minWidth="55dp"
-                        android:background="@drawable/rounded_button_selector"
-                        android:textColor="@android:color/black" />
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal" />
 
                 </LinearLayout>
             </LinearLayout>
