@@ -348,17 +348,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     lastTempAvg = tempAvg
 
                     updateCombinedInfo(getTodayDateString(), location)
-                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
-                    binding.tempTv.text = "${tempAvg.toInt()}°C"
-
-                    val fullText = "오늘 ${tempAvg.toInt()}°C, 딱 맞는 스타일이에요!"
-                    val targetText = "${tempAvg.toInt()}°C"
-                    val spannable = SpannableString(fullText)
-                    val startIndex = fullText.indexOf(targetText)
-                    val endIndex = startIndex + targetText.length
-                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    binding.weatherTitle.text = spannable
+                    _binding?.apply {
+                        weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                        tempTv.text = "${tempAvg.toInt()}°C"
+                        val fullText = "오늘 ${tempAvg.toInt()}°C, 딱 맞는 스타일이에요!"
+                        val targetText = "${tempAvg.toInt()}°C"
+                        val spannable = SpannableString(fullText).apply {
+                            val startIndex = fullText.indexOf(targetText)
+                            val endIndex = startIndex + targetText.length
+                            val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                            setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                        weatherTitle.text = spannable
+                    }
 
                     updateWeatherImages(status)
 
@@ -368,12 +370,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         viewModel.fetchSimilarWeather(token, it)
                     }
                 } else {
-                    binding.weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
-                    binding.tempTv.text = ""
+                    _binding?.apply {
+                        weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
+                        tempTv.text = ""
+                    }
                 }
             } catch (e: Exception) {
-                binding.weatherInformTv.text = "날씨 오류: ${e.message}"
-                binding.tempTv.text = ""
+                if (!isAdded || _binding == null) return@launch
+                _binding?.apply {
+                    weatherInformTv.text = "날씨 오류: ${e.message}"
+                    tempTv.text = ""
+                }
             }
         }
     }
@@ -381,9 +388,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun fetchTomorrowWeather() {
         val token = TokenProvider.getToken(requireContext())
         val location = TokenProvider.getLocation(requireContext())
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getTomorrowWeather("Bearer $token")
+                if (!isAdded || _binding == null) return@launch
                 if (response.isSuccessful) {
                     val weather = response.body()?.result?.weather
                     val tempMax = weather?.tempMax?.toInt() ?: 0
@@ -396,17 +404,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     lastTempAvg = tempAvg
 
                     updateCombinedInfo(getTomorrowDateString(), location)
-                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
-                    binding.tempTv.text = "${tempAvg.toInt()}°C"
-
-                    val fullText = "내일 ${tempAvg.toInt()}°C, 어떤 스타일일까요?"
-                    val targetText = "${tempAvg.toInt()}°C"
-                    val spannable = SpannableString(fullText)
-                    val startIndex = fullText.indexOf(targetText)
-                    val endIndex = startIndex + targetText.length
-                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    binding.weatherTitle.text = spannable
+                    _binding?.apply {
+                        weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                        tempTv.text = "${tempAvg.toInt()}°C"
+                        val fullText = "내일 ${tempAvg.toInt()}°C, 어떤 스타일일까요?"
+                        val targetText = "${tempAvg.toInt()}°C"
+                        val spannable = SpannableString(fullText).apply {
+                            val startIndex = fullText.indexOf(targetText)
+                            val endIndex = startIndex + targetText.length
+                            val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                            setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                        weatherTitle.text = spannable
+                    }
 
                     updateWeatherImages(status)
 
@@ -415,12 +425,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         viewModel.fetchSimilarWeather(token, it)
                     }
                 } else {
-                    binding.weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
-                    binding.tempTv.text = ""
+                    _binding?.apply {
+                        weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
+                        tempTv.text = ""
+                    }
                 }
             } catch (e: Exception) {
-                binding.weatherInformTv.text = "내일 날씨 오류: ${e.message}"
-                binding.tempTv.text = ""
+                if (!isAdded || _binding == null) return@launch
+                _binding?.apply {
+                    weatherInformTv.text = "내일 날씨 오류: ${e.message}"
+                    tempTv.text = ""
+                }
             }
         }
     }
