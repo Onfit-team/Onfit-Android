@@ -115,7 +115,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         Log.d("Upload", "url=/items/upload, header=$header, fieldName=image")
 
         Log.d("UploadREQ",
-            "url=http://15.164.35.198:3001/items/upload, " +
+            "url=http://15.164.35.198:3000/items/upload, " +
                     "auth=${header.take(20)}..., file=${file.name}, size=${file.length()}, mime=image/*"
         )
 
