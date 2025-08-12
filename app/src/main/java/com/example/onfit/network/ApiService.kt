@@ -1,15 +1,19 @@
 package com.example.onfit.network
 
+import com.example.onfit.Community.model.CommunityOutfitsResponse
 import com.example.onfit.Home.model.BestOutfitResponse
 import com.example.onfit.Home.model.DateResponseWrapper
 import com.example.onfit.Home.model.LatestStyleResponse
-import com.example.onfit.Home.model.WeatherResponse
 import com.example.onfit.Home.model.RecommendItemsResponse
 import com.example.onfit.Home.model.SimilarWeatherResponse
+import com.example.onfit.Home.model.WeatherResponse
 import com.example.onfit.model.CurrentWeatherResponse
+import com.example.onfit.Community.model.TodayOutfitCheckResponse
+import com.example.onfit.Community.model.PublishTodayOutfitResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.Query
 
 interface ApiService {
@@ -49,4 +53,25 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Query("temp_avg") tempAvg: Double
     ): Response<SimilarWeatherResponse>
+
+    // 오늘 outfits 등록 확인(공유 버튼 활성/비활성 판단)
+    @GET("community/outfits/today/check")
+    suspend fun checkTodayOutfitCanBeShared(
+        @Header("Authorization") token: String
+    ): Response<TodayOutfitCheckResponse>
+
+    // Outfit 게시하기
+    @PATCH("community/publish-today-outfit")
+    suspend fun publishTodayOutfit(
+        @Header("Authorization") token: String
+    ): Response<PublishTodayOutfitResponse>
+
+    @GET("community/outfits")
+    suspend fun getCommunityOutfits(
+        @Header("Authorization") token: String,
+        @Query("order") order: String,           // "latest" | "popular"
+        @Query("page") page: Int? = null,        // 기본 1
+        @Query("limit") limit: Int? = null,      // 기본 20
+        @Query("tag_ids") tagIds: String? = null // 예: "1,2,3"
+    ): Response<CommunityOutfitsResponse>
 }
