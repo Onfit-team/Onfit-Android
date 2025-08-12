@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/communityFragment">
 <!-- loginStartFragment -->
     <fragment
         android:id="@+id/loginStartFragment"
@@ -230,7 +230,13 @@
         android:id="@+id/communityDetailFragment"
         android:name="com.example.onfit.Community.fragment.CommunityDetailFragment"
         android:label="커뮤니티 상세"
-        tools:layout="@layout/fragment_community_detail" />
+        tools:layout="@layout/fragment_community_detail">
+        <!-- SafeArgs: outfitId 전달 -->
+        <argument
+            android:name="outfitId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
 
     <!-- 글로벌 홈 이동 -->
     <action
