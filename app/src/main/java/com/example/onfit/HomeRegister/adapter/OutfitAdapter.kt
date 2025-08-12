@@ -107,4 +107,6 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         items.add(item)
         notifyItemInserted(items.size - 1)
     }
+
+    fun getItems(): List<OutfitItem2> = items.toList()
 }

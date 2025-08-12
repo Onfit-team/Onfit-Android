@@ -1,5 +1,6 @@
 package com.example.onfit.HomeRegister.fragment
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -8,12 +9,16 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.navigation.fragment.findNavController
+import com.example.onfit.HomeRegister.adapter.SaveImagePagerAdapter
+import com.example.onfit.HomeRegister.model.DisplayImage
 import com.example.onfit.TopInfoDialogFragment
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 
 class OutfitSaveFragment : Fragment() {
     private var _binding: FragmentOutfitSaveBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var pagerAdapter: SaveImagePagerAdapter
 
     private val categoryMap = mapOf(
         "상의" to listOf("반팔티", "긴팔티", "민소매", "셔츠/블라우스", "맨투맨", "후드티", "니트/스웨터", "기타"),
@@ -37,6 +42,26 @@ class OutfitSaveFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // RecyclerView에서 사진 받아옴
+        val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+        val list = mutableListOf<DisplayImage>()
+        args.imageUris?.forEach { s -> list.add(DisplayImage(uri = Uri.parse(s))) }
+        args.imageResIds?.forEach { id -> list.add(DisplayImage(resId = id)) }
+
+        pagerAdapter = SaveImagePagerAdapter(list)
+        binding.outfitSaveOutfitVp.adapter = pagerAdapter
+        binding.outfitSaveOutfitVp.offscreenPageLimit = 1
+
+        binding.outfitSaveLeftBtn.setOnClickListener {
+            val prev = (binding.outfitSaveOutfitVp.currentItem - 1).coerceAtLeast(0)
+            binding.outfitSaveOutfitVp.setCurrentItem(prev, true)
+        }
+        binding.outfitSaveRightBtn.setOnClickListener {
+            val next = (binding.outfitSaveOutfitVp.currentItem + 1)
+                .coerceAtMost(pagerAdapter.itemCount - 1)
+            binding.outfitSaveOutfitVp.setCurrentItem(next, true)
+        }
 
         val spinner1 = binding.outfitSaveSpinner1
         val spinner2 = binding.outfitSaveSpinner2

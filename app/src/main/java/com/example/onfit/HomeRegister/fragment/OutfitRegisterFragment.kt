@@ -73,9 +73,9 @@ class OutfitRegisterFragment : Fragment() {
         if (outfitList.isEmpty()) {
             outfitList.addAll(
                 listOf(
-                    OutfitItem2(R.drawable.outfit_top),
-                    OutfitItem2(R.drawable.outfit_pants),
-                    OutfitItem2(R.drawable.outfit_shoes)
+                    OutfitItem2(R.drawable.calendar_save_image2),
+                    OutfitItem2(R.drawable.calendar_save_image3),
+                    OutfitItem2(R.drawable.calendar_save_image4)
                 )
             )
 
@@ -122,9 +122,28 @@ class OutfitRegisterFragment : Fragment() {
                 uploadImageToServer(File(imagePath))
             }
 
-            // OutfitSave 화면으로 이동
+            // 이미지 넘겨주면서 OutfitSave 화면으로 이동
             binding.outfitRegisterSaveBtn.setOnClickListener {
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment)
+                // 어댑터에서 아이템 리스트 꺼내기
+                val items = adapter.getItems()
+
+                // 전송 데이터 준비
+                val uriStrings = ArrayList<String>()
+                val resIds = ArrayList<Int>()
+
+                items.forEach { item ->
+                    item.imageUri?.let { uriStrings.add(it.toString()) }
+                    item.imageResId?.let { resIds.add(it) }
+                }
+
+                // SafeArg 생성 후 값 세팅
+                val action = OutfitRegisterFragmentDirections
+                    .actionOutfitRegisterFragmentToOutfitSaveFragment(
+                        uriStrings.toTypedArray(),
+                        resIds.toIntArray()
+                    )
+                // 4. 화면 전환
+                findNavController().navigate(action)
             }
 
             // 뒤로가기
@@ -165,7 +184,7 @@ class OutfitRegisterFragment : Fragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // ✅ 요청 전에 파일 경로와 존재 여부 출력
+                // 요청 전에 파일 경로와 존재 여부 출력
                 println("📂 파일 경로: ${file.absolutePath}")
                 println("📂 파일 존재 여부: ${file.exists()}")
                 val response = RetrofitClient.instance.detectItems(header, body)

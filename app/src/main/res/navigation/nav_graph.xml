@@ -110,7 +110,14 @@
             app:destination="@id/outfitCropFragment"/>
         <action
             android:id="@+id/action_outfitRegisterFragment_to_outfitSaveFragment"
-            app:destination="@id/outfitSaveFragment"/>
+            app:destination="@id/outfitSaveFragment">
+            <argument
+                android:name="imageUris"
+                app:argType="string[]" />
+            <argument
+                android:name="imageResIds"
+                app:argType="integer[]" />
+        </action>
     </fragment>
 
     <fragment
@@ -126,7 +133,14 @@
     <fragment
         android:id="@+id/outfitSaveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
-        android:label="outfitSaveFragment" />
+        android:label="outfitSaveFragment">
+        <argument
+            android:name="imageUris"
+            app:argType="string[]" />
+        <argument
+            android:name="imageResIds"
+            app:argType="integer[]" />
+    </fragment>
 
     <fragment
         android:id="@+id/wardrobeFragment"
