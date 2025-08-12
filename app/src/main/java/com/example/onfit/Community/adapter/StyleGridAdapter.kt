@@ -4,34 +4,69 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.example.onfit.Community.fragment.CommunityFragmentDirections
 import com.example.onfit.Community.model.CommunityItem
 import com.example.onfit.R
 import com.example.onfit.databinding.CommunityItemBinding
+import kotlin.math.max
 
-class StyleGridAdapter(private val itemList: List<CommunityItem>) :
-    RecyclerView.Adapter<StyleGridAdapter.StyleViewHolder>() {
+class StyleGridAdapter(
+    private val items: MutableList<CommunityItem>,
+    private val onLikeToggled: ((item: CommunityItem, position: Int) -> Unit)? = null
+) : RecyclerView.Adapter<StyleGridAdapter.VH>() {
 
-    inner class StyleViewHolder(val binding: CommunityItemBinding) :
-        RecyclerView.ViewHolder(binding.root)
+    inner class VH(val b: CommunityItemBinding) : RecyclerView.ViewHolder(b.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): StyleViewHolder {
-        val binding = CommunityItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return StyleViewHolder(binding)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val b = CommunityItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return VH(b)
     }
 
-    override fun onBindViewHolder(holder: StyleViewHolder, position: Int) {
-        val item = itemList[position]
-        holder.binding.outfitIv.setImageResource(item.imageResId)     // 이미지 설정
-        holder.binding.nicknameTv.text = item.nickname                // 닉네임 설정
-        holder.binding.likesTv.text = item.likeCount.toString()       // 좋아요 수 설정
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val item = items[position]
+        val b = holder.b
 
-        holder.itemView.setOnClickListener {
-            val navController = it.findNavController()
-            navController.navigate(R.id.action_communityFragment_to_communityDetailFragment)
+        // 이미지
+        if (!item.imageUrl.isNullOrBlank()) {
+            Glide.with(holder.itemView).load(item.imageUrl).into(b.outfitIv)
+        } else {
+            val res = if (item.imageResId != 0) item.imageResId else R.drawable.ic_launcher_background
+            b.outfitIv.setImageResource(res)
         }
 
+        // 오버레이
+        b.nicknameTv.text = item.nickname
+        b.likesTv.text = item.likeCount.toString()
+        b.heartIv.setImageResource(
+            if (item.isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_line
+        )
+
+        // 상세 이동
+        holder.itemView.setOnClickListener {
+            val nav = it.findNavController()
+            val action = CommunityFragmentDirections.actionCommunityFragmentToCommunityDetailFragment()
+            item.outfitId?.let { id -> action.outfitId = id }
+            nav.navigate(action)
+        }
+
+        // 좋아요 토글
+        val toggle = toggle@{
+            val pos = holder.bindingAdapterPosition
+            if (pos == RecyclerView.NO_POSITION) return@toggle
+
+            val cur = items[pos]
+            val newLiked = !cur.isLiked
+            val newCount = if (newLiked) cur.likeCount + 1 else max(0, cur.likeCount - 1)
+            val newItem = cur.copy(isLiked = newLiked, likeCount = newCount)
+
+            items[pos] = newItem
+            notifyItemChanged(pos)
+            onLikeToggled?.invoke(newItem, pos)
+        }
+        b.heartIv.setOnClickListener { toggle() }
+        b.likesTv.setOnClickListener { toggle() }
     }
 
-
-    override fun getItemCount(): Int = itemList.size
+    override fun getItemCount(): Int = items.size
 }
