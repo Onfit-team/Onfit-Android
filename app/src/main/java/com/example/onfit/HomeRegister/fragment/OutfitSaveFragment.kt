@@ -43,8 +43,13 @@ class OutfitSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
         // RecyclerView에서 사진 받아옴
         val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+        // 날짜는 번들에서
+        val saveDate = requireArguments().getString("save_date") ?: "날짜 없음"
+        binding.outfitSaveTitle1Tv.text = saveDate
+
         val list = mutableListOf<DisplayImage>()
         args.imageUris?.forEach { s -> list.add(DisplayImage(uri = Uri.parse(s))) }
         args.imageResIds?.forEach { id -> list.add(DisplayImage(resId = id)) }

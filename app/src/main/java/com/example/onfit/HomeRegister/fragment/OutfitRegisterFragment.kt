@@ -47,6 +47,8 @@ class OutfitRegisterFragment : Fragment() {
     private var _binding: FragmentOutfitRegisterBinding? = null
     private val binding get() = _binding!!
 
+    private var passedSaveDate: String? = null
+
     private lateinit var adapter: OutfitAdapter
     private val outfitList = mutableListOf<OutfitItem2>()
 
@@ -89,6 +91,9 @@ class OutfitRegisterFragment : Fragment() {
                 )
             )
         }
+        passedSaveDate = arguments?.getString("save_date")
+
+
         // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
         parentFragmentManager.setFragmentResultListener(
             "crop_result",
@@ -191,12 +196,15 @@ class OutfitRegisterFragment : Fragment() {
                     // 업로드 성공분이 있으면 그 URL들로, 아니면 로컬 URI로 뷰페이저 표시
                     val toShow = if (uploadedUrls.isNotEmpty()) uploadedUrls else localUriStrings
 
-                    val action = OutfitRegisterFragmentDirections
+                    val directions = OutfitRegisterFragmentDirections
                         .actionOutfitRegisterFragmentToOutfitSaveFragment(
                             toShow.toTypedArray(),     // imageUris: URL/로컬 URI 문자열 모두 가능
                             resIds.toIntArray()        // 리소스 이미지가 있다면 그대로 전달
                         )
-                    findNavController().navigate(action)
+                    val outBundle = directions.arguments.apply {
+                        putString("save_date", passedSaveDate)
+                    }
+                    findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment, outBundle)
                 }
             }
         }
