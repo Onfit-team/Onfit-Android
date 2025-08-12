@@ -1,10 +1,12 @@
 package com.example.onfit.OutfitRegister
 
+import com.google.gson.annotations.SerializedName
+
 data class OutfitResponse(
-    val isSuccess: Boolean,
-    val code: String,
-    val message: String,
-    val result: OutfitResult?
+    @SerializedName("isSuccess") val isSuccess: Boolean,
+    @SerializedName("code") val code: String,
+    @SerializedName("message") val message: String,
+    @SerializedName("result") val result: OutfitResult?
 )
 
 data class OutfitResult(
