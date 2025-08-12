@@ -6,6 +6,8 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.media.session.MediaSession.Token
 import android.graphics.Color
@@ -44,6 +46,7 @@ import com.example.onfit.network.RetrofitInstance
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.OutfitRegister.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -103,26 +106,90 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     // API에 파일 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
-        Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
+        Log.d("HomeFragment", "Step 1: 함수 진입")
+        Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
+
+        // 1. 토큰 체크
         val token = TokenProvider.getToken(requireContext())
+        require(!token.isNullOrBlank()) { "토큰이 없다" }
         val header = "Bearer $token"
-        val mime = requireContext().contentResolver.getType(Uri.fromFile(file)) ?: "image/jpeg"
-        val requestFile = file.asRequestBody(mime.toMediaTypeOrNull())
-        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+        Log.d("UploadDebug", "Step 2: 토큰=$token")
 
-        // 📌 여기서 요청 정보 로그 찍기
-        Log.d("Upload", "file=${file.name}, size=${file.length()}, mime=$mime")
-        Log.d("Upload", "url=/items/upload, header=$header, fieldName=image")
+        // 2. 파일 검증 로그
+        val exists = file.exists()
+        val length = file.length()
+        val canRead = file.canRead()
+        val ext = file.extension.lowercase()
+        val bmpTest = BitmapFactory.decodeFile(file.absolutePath) != null
 
+        Log.d("UploadCheck", "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest")
+
+        require(exists && length > 0 && bmpTest) { "이미지 파일이 손상되었거나 크기가 0입니다." }
+
+        // 3. 확장자 기반 MIME 자동 지정
+        val mime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream" // 기타 확장자
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$mime")
+
+        // 확장자 기반 MIME 자동 지정
+        var uploadFile = file
+        var uploadMime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream"
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$uploadMime")
+
+        // 3-1. PNG -> JPG 변환
+        if (ext == "png") {
+            try {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                require(bitmap != null) { "PNG 디코딩 실패" }
+
+                val jpgFile = File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
+                FileOutputStream(jpgFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                uploadFile = jpgFile
+                uploadMime = "image/jpeg" // ← 변환했으니 MIME도 함께 변경
+                Log.d("UploadDebug", "PNG → JPG 변환 완료: ${jpgFile.absolutePath}")
+            } catch (e: Exception) {
+                Log.e("UploadDebug", "PNG → JPG 변환 실패", e)
+                // 변환 실패 시 원본 PNG 그대로 보낼 수도 있음(원하면 return으로 중단)
+                uploadFile = file
+                uploadMime = "image/png"
+            }
+        }
+
+        // 4. RequestBody + MultipartBody.Part 생성
+        val requestFile = uploadFile.asRequestBody(uploadMime.toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", uploadFile.name, requestFile)
+        Log.d("UploadREQ", "file=${uploadFile.name}, size=${uploadFile.length()}, mime=$uploadMime, fieldName=image")
+
+        // 5. 업로드 요청 정보 로그
         Log.d("UploadREQ",
-            "url=http://15.164.35.198:3000/items/upload, " +
-                    "auth=${header.take(20)}..., file=${file.name}, size=${file.length()}, mime=image/*"
+            "url=/items/upload, header=$header, file=${file.name}, size=$length, mime=$mime, fieldName=image"
         )
 
+        // 6. 업로드 실행
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val api = RetrofitClient.instance.create(ApiService::class.java)
                 val response = api.uploadImage(header, body)
+                Log.d("UploadDebug", "Step 5: API 호출 완료, 응답코드=${response.code()}")
+
+                // Gson으로 서버 응답 JSON 원본 찍기
+                val rawJson = try {
+                    // errorBody()가 비어있으면 body()를 JSON으로 변환
+                    response.errorBody()?.string()
+                        ?: response.body()?.let { Gson().toJson(it) }
+                } catch (e: Exception) {
+                    "원본 응답 변환 실패: ${e.message}"
+                }
+                Log.d("UploadRawResponse", "서버 원본 응답: $rawJson")
 
                 val rawResponse = response.body()
                 Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
@@ -149,6 +216,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.e("UploadDebug", "예외 발생", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "서버 오류", Toast.LENGTH_SHORT).show()
                 }
@@ -264,9 +332,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun fetchCurrentWeather() {
         val token = TokenProvider.getToken(requireContext())
         val location = TokenProvider.getLocation(requireContext())
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getCurrentWeather("Bearer $token")
+                if(!isAdded || _binding == null) return@launch
                 if (response.isSuccessful) {
                     val weather = response.body()?.result?.weather
                     val tempMax = weather?.tempMax?.toInt() ?: 0
