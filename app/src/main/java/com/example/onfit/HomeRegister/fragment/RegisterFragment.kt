@@ -49,6 +49,10 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val recvUrl = arguments?.getString("uploadedImageUrl")
+        val recvPath = arguments?.getString("selectedImagePath")
+        Log.d("RegisterArg", "uploadedImageUrl=$recvUrl, selectedImagePath=$recvPath")
+
         // HomeFragment 갤러리에서 선택한 사진 받아오기
         val imagePath = arguments?.getString("selectedImagePath")
         imagePath?.let {

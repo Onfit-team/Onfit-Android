@@ -179,39 +179,42 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             try {
                 val api = RetrofitClient.instance.create(ApiService::class.java)
                 val response = api.uploadImage(header, body)
+
                 Log.d("UploadDebug", "Step 5: API 호출 완료, 응답코드=${response.code()}")
 
-                // Gson으로 서버 응답 JSON 원본 찍기
-                val rawJson = try {
-                    // errorBody()가 비어있으면 body()를 JSON으로 변환
-                    response.errorBody()?.string()
-                        ?: response.body()?.let { Gson().toJson(it) }
-                } catch (e: Exception) {
-                    "원본 응답 변환 실패: ${e.message}"
-                }
-                Log.d("UploadRawResponse", "서버 원본 응답: $rawJson")
+                // (1) 원본 JSON 통째로 로그 (성공/실패 모두)
+                try {
+                    val raw = response.raw().peekBody(Long.MAX_VALUE).string()
+                    Log.d("UploadRaw", raw)
+                } catch (_: Exception) {}
 
-                val rawResponse = response.body()
-                Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
+                val bodyObj = response.body()
 
                 withContext(Dispatchers.Main) {
-                    if (response.isSuccessful && response.body()?.success == true) {
-                        val imageUrl = response.body()!!.data?.imageUrl
-                        Log.d("HomeFragment", "이미지 업로드 성공: $imageUrl")
+                    if (response.isSuccessful && bodyObj?.ok == true) {
+                        val imageUrl = bodyObj.payload?.imageUrl
+                        Log.d("HomeFragment", "이미지 업로드 성공, parsed imageUrl=$imageUrl")
+
+                        // ★ URL이 비어있으면 이동 금지(여기서 막아야 Register에서 null 안 받음)
+                        if (imageUrl.isNullOrBlank()) {
+                            Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
 
                         // RegisterFragment로 URL 전달
                         val bundle = Bundle().apply {
-                            putString("selectedImagePath", file.absolutePath)
-                            putString("uploadedImageUrl", imageUrl)
+                            putString("selectedImagePath", uploadFile.absolutePath) // 미리보기용 파일경로
+                            putString("uploadedImageUrl", imageUrl)                  // 서버 URL
                         }
-                        findNavController().navigate(
-                            R.id.action_homeFragment_to_registerFragment,
-                            bundle
-                        )
+                        // 현재 목적지가 Home일 때만 네비게이트(중복 내비 방지)
+                        val nav = findNavController()
+                        if (nav.currentDestination?.id == R.id.homeFragment) {
+                            nav.navigate(R.id.action_homeFragment_to_registerFragment, bundle)
+                        }
                     } else {
                         val errorMsg = response.errorBody()?.string()
-                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg")
-                        Toast.makeText(requireContext(), "업로드 실패", Toast.LENGTH_SHORT).show()
+                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
+                        Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
@@ -537,7 +540,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         dialog.setContentView(view)
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
             // 카메라 → 현재는 등록 화면으로 이동만
-            findNavController().navigate(R.id.action_homeFragment_to_registerFragment)
             dialog.dismiss()
         }
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
