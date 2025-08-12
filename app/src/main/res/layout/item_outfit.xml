@@ -13,11 +13,12 @@
         android:layout_marginRight="10dp">
         <ImageView
             android:id="@+id/item_outfit_image"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
             android:background="@drawable/rounded_gray_bg"
             android:clipToOutline="true"
+            android:adjustViewBounds="true"
             android:outlineProvider="background"
             android:src="@drawable/outfit_top"/>
 
