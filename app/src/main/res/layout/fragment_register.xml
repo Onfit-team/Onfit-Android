@@ -48,7 +48,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:src="@drawable/weather_sun"
+            android:src="@drawable/sun_black"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/register_weather_tv" />
 
@@ -65,10 +65,10 @@
 
         <ImageView
             android:id="@+id/register_outfit_iv"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/registerimage"
             android:adjustViewBounds="true"
+            android:src="@drawable/registerimage"
             android:scaleType="centerCrop"
             android:background="@drawable/rounded_gray_bg"
             android:clipToOutline="true"
@@ -97,8 +97,10 @@
             app:chipSpacing="4dp">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_very_hot"
                 android:text="많이 더움"
                 android:textSize="11sp"
+                android:tag="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -107,8 +109,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_hot"
                 android:text="조금 더움"
                 android:textSize="11sp"
+                android:tag="2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -117,8 +121,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_good"
                 android:text="딱 좋음"
                 android:textSize="11sp"
+                android:tag="3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -127,8 +133,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_cold"
                 android:text="조금 추움"
                 android:textSize="11sp"
+                android:tag="4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -137,8 +145,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_very_cold"
                 android:text="많이 추움"
                 android:textSize="11sp"
+                android:tag="5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -217,8 +227,10 @@
             android:gravity="center_horizontal">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_casual"
                 android:text="#캐주얼"
                 android:textSize="11sp"
+                android:tag="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -227,8 +239,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_street"
                 android:text="#스트릿"
                 android:textSize="11sp"
+                android:tag="2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -237,8 +251,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_minimal"
                 android:text="#미니멀"
                 android:textSize="11sp"
+                android:tag="3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -247,8 +263,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_classic"
                 android:text="#클래식"
                 android:textSize="11sp"
+                android:tag="4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -257,8 +275,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_vintage"
                 android:text="#빈티지"
                 android:textSize="11sp"
+                android:tag="5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -267,8 +287,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_lovely"
                 android:text="#러블리"
                 android:textSize="11sp"
+                android:tag="6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -277,8 +299,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_feminine"
                 android:text="#페미닌"
                 android:textSize="11sp"
+                android:tag="7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -287,8 +311,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_boyish"
                 android:text="#보이시"
                 android:textSize="11sp"
+                android:tag="8"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -297,8 +323,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_modern"
                 android:text="#모던"
                 android:textSize="11sp"
+                android:tag="9"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -335,8 +363,10 @@
             android:gravity="center_horizontal">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_daily"
                 android:text="#데일리"
                 android:textSize="11sp"
+                android:tag="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -345,8 +375,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_work"
                 android:text="#출근룩"
                 android:textSize="11sp"
+                android:tag="2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -355,8 +387,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_date"
                 android:text="#데이트룩"
                 android:textSize="11sp"
+                android:tag="3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -365,8 +399,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_picnic"
                 android:text="#나들이룩"
                 android:textSize="11sp"
+                android:tag="4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -375,8 +411,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_trip"
                 android:text="#여행룩"
                 android:textSize="11sp"
+                android:tag="5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -385,8 +423,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_workout"
                 android:text="#운동룩"
                 android:textSize="11sp"
+                android:tag="6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -395,8 +435,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_guest"
                 android:text="#하객룩"
                 android:textSize="11sp"
+                android:tag="7"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"
@@ -405,8 +447,10 @@
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chip_party"
                 android:text="#파티룩"
                 android:textSize="11sp"
+                android:tag="8"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:chipBackgroundColor="@color/chip_selector"

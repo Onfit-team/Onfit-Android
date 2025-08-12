@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.WardrobeSelectFragment
 import com.example.onfit.databinding.FragmentOutfitSelectBinding
@@ -33,7 +34,7 @@ class OutfitSelectFragment : Fragment() {
 
         // 뒤로가기 버튼 눌렀을 때 이전 프래그먼트로 돌아감
         binding.outfitSelectBackBtn.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
     }
 

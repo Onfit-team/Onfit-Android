@@ -1,9 +1,8 @@
-// RetrofitInstance.kt (전체 맥락 중 핵심 추가)
 package com.example.onfit.network
 
 import com.example.onfit.KakaoLogin.api.KakaoAuthService
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor   // ← 추가
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -11,7 +10,7 @@ object RetrofitInstance {
 
     private const val BASE_URL = "http://15.164.35.198:3000/"
 
-    // ✅ 네트워크 로그 보기용 Interceptor
+    //  네트워크 로그 보기용 Interceptor
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

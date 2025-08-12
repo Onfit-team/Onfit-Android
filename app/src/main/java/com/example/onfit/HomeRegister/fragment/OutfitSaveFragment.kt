@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import androidx.navigation.fragment.findNavController
 import com.example.onfit.TopInfoDialogFragment
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 
@@ -102,7 +103,7 @@ class OutfitSaveFragment : Fragment() {
 
         // 뒤로가기 버튼
         binding.outfitSaveBackBtn.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
     }
 

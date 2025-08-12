@@ -29,8 +29,8 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
-        dataBinding = true
+        viewBinding = true   // ViewBinding 사용
+        dataBinding = true   // DataBinding 사용
     }
 
     compileOptions {
@@ -68,14 +68,18 @@ dependencies {
     // Flexbox
     implementation("com.google.android.flexbox:flexbox:3.0.0")
 
-    // Retrofit + Gson
+    // Retrofit + Gson (※ 2.9.0 세트만 유지)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    // Kakao 로그인
+    // Kakao 로그인 (버전은 libs.versions.toml에서 관리)
     implementation(libs.kakaoUser)
 
     // 위치
@@ -84,4 +88,7 @@ dependencies {
     // Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
     kapt("com.github.bumptech.glide:compiler:4.15.1")
+
+    // 이미지 크롭 기능
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
 }
