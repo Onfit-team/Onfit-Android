@@ -1,0 +1,300 @@
+[1mdiff --git a/app/src/main/res/drawable/addbtn.xml b/app/src/main/res/drawable/addbtn.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..b38e67a[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/addbtn.xml[m
+[36m@@ -0,0 +1,12 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="44dp"[m
+[32m+[m[32m    android:height="44dp"[m
+[32m+[m[32m    android:viewportWidth="44"[m
+[32m+[m[32m    android:viewportHeight="44">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M33,23.375H11C10.248,23.375 9.625,22.752 9.625,22C9.625,21.248 10.248,20.625 11,20.625H33C33.752,20.625 34.375,21.248 34.375,22C34.375,22.752 33.752,23.375 33,23.375Z"[m
+[32m+[m[32m      android:fillColor="#ffffff"/>[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M22,34.375C21.248,34.375 20.625,33.752 20.625,33V11C20.625,10.248 21.248,9.625 22,9.625C22.752,9.625 23.375,10.248 23.375,11V33C23.375,33.752 22.752,34.375 22,34.375Z"[m
+[32m+[m[32m      android:fillColor="#ffffff"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/bestcloth1.png b/app/src/main/res/drawable/bestcloth1.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..1cc1669[m
+Binary files /dev/null and b/app/src/main/res/drawable/bestcloth1.png differ
+[1mdiff --git a/app/src/main/res/drawable/bestcloth2.png b/app/src/main/res/drawable/bestcloth2.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..3dbcc1d[m
+Binary files /dev/null and b/app/src/main/res/drawable/bestcloth2.png differ
+[1mdiff --git a/app/src/main/res/drawable/bestcloth3.png b/app/src/main/res/drawable/bestcloth3.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..969613a[m
+Binary files /dev/null and b/app/src/main/res/drawable/bestcloth3.png differ
+[1mdiff --git a/app/src/main/res/drawable/calendar.xml b/app/src/main/res/drawable/calendar.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..9f004cd[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/calendar.xml[m
+[36m@@ -0,0 +1,9 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="21dp"[m
+[32m+[m[32m    android:height="22dp"[m
+[32m+[m[32m    android:viewportWidth="21"[m
+[32m+[m[32m    android:viewportHeight="22">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M20.25,15.5C20.25,18.676 17.676,21.25 14.5,21.25H6.5C3.324,21.25 0.75,18.676 0.75,15.5V8.25H20.25V15.5ZM5,14.75C4.586,14.75 4.25,15.086 4.25,15.5C4.25,15.914 4.586,16.25 5,16.25H6C6.414,16.25 6.75,15.914 6.75,15.5C6.75,15.112 6.455,14.792 6.077,14.754L6,14.75H5ZM10,14.75C9.586,14.75 9.25,15.086 9.25,15.5C9.25,15.914 9.586,16.25 10,16.25H11C11.414,16.25 11.75,15.914 11.75,15.5C11.75,15.112 11.455,14.792 11.077,14.754L11,14.75H10ZM15,14.75C14.586,14.75 14.25,15.086 14.25,15.5C14.25,15.914 14.586,16.25 15,16.25H16C16.414,16.25 16.75,15.914 16.75,15.5C16.75,15.112 16.455,14.792 16.077,14.754L16,14.75H15ZM5,10.75C4.586,10.75 4.25,11.086 4.25,11.5C4.25,11.914 4.586,12.25 5,12.25H6C6.414,12.25 6.75,11.914 6.75,11.5C6.75,11.112 6.455,10.792 6.077,10.754L6,10.75H5ZM10,10.75C9.586,10.75 9.25,11.086 9.25,11.5C9.25,11.914 9.586,12.25 10,12.25H11C11.414,12.25 11.75,11.914 11.75,11.5C11.75,11.112 11.455,10.792 11.077,10.754L11,10.75H10ZM15,10.75C14.586,10.75 14.25,11.086 14.25,11.5C14.25,11.914 14.586,12.25 15,12.25H16C16.414,12.25 16.75,11.914 16.75,11.5C16.75,11.112 16.455,10.792 16.077,10.754L16,10.75H15ZM14.25,4L14.254,4.077C14.292,4.455 14.612,4.75 15,4.75C15.414,4.75 15.75,4.414 15.75,4V1.887C18.086,2.405 19.886,4.343 20.2,6.75H0.8C1.113,4.343 2.914,2.405 5.25,1.887V4L5.254,4.077C5.292,4.455 5.612,4.75 6,4.75C6.414,4.75 6.75,4.414 6.75,4V1.75H14.25V4ZM6,0.25C6.414,0.25 6.75,0.586 6.75,1V1.75H6.5C6.071,1.75 5.652,1.797 5.25,1.887V1C5.25,0.586 5.586,0.25 6,0.25ZM15,0.25C15.414,0.25 15.75,0.586 15.75,1V1.887C15.347,1.797 14.929,1.75 14.5,1.75H14.25V1C14.25,0.586 14.586,0.25 15,0.25Z"[m
+[32m+[m[32m      android:fillColor="#BCBCBC"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/cloth1.png b/app/src/main/res/drawable/cloth1.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..330fdd7[m
+Binary files /dev/null and b/app/src/main/res/drawable/cloth1.png differ
+[1mdiff --git a/app/src/main/res/drawable/cloth2.png b/app/src/main/res/drawable/cloth2.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..558d5c0[m
+Binary files /dev/null and b/app/src/main/res/drawable/cloth2.png differ
+[1mdiff --git a/app/src/main/res/drawable/cloth3.png b/app/src/main/res/drawable/cloth3.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..14f7223[m
+Binary files /dev/null and b/app/src/main/res/drawable/cloth3.png differ
+[1mdiff --git a/app/src/main/res/drawable/community.xml b/app/src/main/res/drawable/community.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e28b210[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/community.xml[m
+[36m@@ -0,0 +1,9 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="21dp"[m
+[32m+[m[32m    android:height="18dp"[m
+[32m+[m[32m    android:viewportWidth="21"[m
+[32m+[m[32m    android:viewportHeight="18">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M2.363,10.214L8.524,16.706C9.707,17.953 11.693,17.953 12.876,16.706L19.037,10.214C21.254,7.877 21.254,4.089 19.037,1.752C16.82,-0.584 13.226,-0.584 11.009,1.752C10.841,1.929 10.559,1.929 10.391,1.752C8.174,-0.584 4.58,-0.584 2.363,1.752C0.146,4.089 0.146,7.877 2.363,10.214Z"[m
+[32m+[m[32m      android:fillColor="#BCBCBC"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/home.xml b/app/src/main/res/drawable/home.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..d2b1d78[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/home.xml[m
+[36m@@ -0,0 +1,9 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="20dp"[m
+[32m+[m[32m    android:height="21dp"[m
+[32m+[m[32m    android:viewportWidth="20"[m
+[32m+[m[32m    android:viewportHeight="21">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M0.6,9.938C0.6,8.714 1.161,7.557 2.121,6.799L7.621,2.457C9.075,1.309 11.125,1.309 12.579,2.457L18.079,6.799C19.039,7.557 19.6,8.714 19.6,9.938V16.5C19.6,18.709 17.809,20.5 15.6,20.5H14.1C13.548,20.5 13.1,20.052 13.1,19.5V16.5C13.1,15.395 12.205,14.5 11.1,14.5H9.1C7.995,14.5 7.1,15.395 7.1,16.5V19.5C7.1,20.052 6.652,20.5 6.1,20.5H4.6C2.391,20.5 0.6,18.709 0.6,16.5L0.6,9.938Z"[m
+[32m+[m[32m      android:fillColor="#000000"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/latestcloth1.png b/app/src/main/res/drawable/latestcloth1.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..58bdd7f[m
+Binary files /dev/null and b/app/src/main/res/drawable/latestcloth1.png differ
+[1mdiff --git a/app/src/main/res/drawable/latestcloth2.png b/app/src/main/res/drawable/latestcloth2.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..031031c[m
+Binary files /dev/null and b/app/src/main/res/drawable/latestcloth2.png differ
+[1mdiff --git a/app/src/main/res/drawable/latestcloth3.png b/app/src/main/res/drawable/latestcloth3.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2dd84ee[m
+Binary files /dev/null and b/app/src/main/res/drawable/latestcloth3.png differ
+[1mdiff --git a/app/src/main/res/drawable/logo.xml b/app/src/main/res/drawable/logo.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..92a141d[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/logo.xml[m
+[36m@@ -0,0 +1,25 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="57dp"[m
+[32m+[m[32m    android:height="17dp"[m
+[32m+[m[32m    android:viewportWidth="57"[m
+[32m+[m[32m    android:viewportHeight="17">[m
+[32m+[m[32m  <group>[m
+[32m+[m[32m    <clip-path[m
+[32m+[m[32m        android:pathData="M0,0.904h57v15.501h-57z"/>[m
+[32m+[m[32m    <path[m
+[32m+[m[32m        android:pathData="M50.254,14.168V4.826H48.549C47.772,4.826 47.146,4.201 47.146,3.424V3.14C47.146,2.363 47.772,1.737 48.549,1.737H55.579C56.356,1.737 56.981,2.363 56.981,3.14V3.424C56.981,4.201 56.356,4.826 55.579,4.826H53.873V14.168C53.873,14.945 53.248,15.57 52.471,15.57H51.656C50.879,15.57 50.254,14.945 50.254,14.168Z"[m
+[32m+[m[32m        android:fillColor="#ffffff"/>[m
+[32m+[m[32m    <path[m
+[32m+[m[32m        android:pathData="M41.404,14.187V3.121C41.404,2.344 42.03,1.718 42.807,1.718H43.622C44.399,1.718 45.024,2.344 45.024,3.121V14.168C45.024,14.945 44.399,15.57 43.622,15.57H42.807C42.03,15.57 41.404,14.945 41.404,14.168V14.187Z"[m
+[32m+[m[32m        android:fillColor="#ffffff"/>[m
+[32m+[m[32m    <path[m
+[32m+[m[32m        android:pathData="M29.353,14.187V3.121C29.353,2.344 29.978,1.718 30.755,1.718H37.861C38.638,1.718 39.263,2.344 39.263,3.121V3.386C39.263,4.163 38.638,4.788 37.861,4.788H32.915V7.29H36.61C37.387,7.29 38.013,7.915 38.013,8.692V8.938C38.013,9.715 37.387,10.34 36.61,10.34H32.915V14.168C32.915,14.945 32.29,15.57 31.513,15.57H30.755C29.978,15.57 29.353,14.945 29.353,14.168V14.187Z"[m
+[32m+[m[32m        android:fillColor="#ffffff"/>[m
+[32m+[m[32m    <path[m
+[32m+[m[32m        android:pathData="M11.786,9.98C9.626,10.302 9.816,7.725 9.816,7.725C9.816,6.475 9.532,5.338 8.963,4.656C8.395,3.973 7.618,3.632 6.632,3.632C5.647,3.632 4.889,3.973 4.32,4.656C3.733,5.338 3.449,6.361 3.449,7.725C3.449,9.09 3.79,9.905 4.358,10.606C4.927,11.288 6.31,11.458 7.485,11.364C7.485,11.364 9.948,11.079 9.929,12.955C9.929,14.244 9.778,16.499 8.091,16.404C6.177,16.309 6.632,14.547 6.632,14.547C5.685,14.528 4.794,14.396 3.998,14.092C3.202,13.789 2.482,13.353 1.895,12.785C1.307,12.216 0.853,11.496 0.512,10.644C0.171,9.791 0.019,8.805 0.019,7.706C0.019,6.607 0.189,5.622 0.531,4.788C0.872,3.935 1.345,3.234 1.933,2.666C2.52,2.097 3.221,1.662 4.036,1.358C4.832,1.055 5.704,0.904 6.651,0.904C7.599,0.904 8.451,1.055 9.266,1.358C10.081,1.662 10.782,2.097 11.37,2.666C11.957,3.234 12.431,3.954 12.772,4.788C13.113,5.641 13.283,6.607 13.283,7.706C13.283,10.056 11.806,9.961 11.806,9.961L11.786,9.98Z"[m
+[32m+[m[32m        android:fillColor="#ffffff"/>[m
+[32m+[m[32m    <path[m
+[32m+[m[32m        android:pathData="M24.236,15.589C23.744,15.589 23.308,15.343 23.042,14.926L19.688,9.526C19.347,8.976 19.082,8.521 18.684,7.953C18.76,8.711 18.798,9.488 18.798,10.17V14.168C18.798,14.945 18.173,15.57 17.396,15.57H16.789C16.012,15.57 15.387,14.945 15.387,14.168V3.121C15.387,2.344 16.012,1.718 16.789,1.718H18.04C18.514,1.718 18.968,1.965 19.215,2.363L22.455,7.422C22.872,8.085 23.251,8.824 23.554,9.62C23.459,8.862 23.459,8.048 23.459,7.29V3.121C23.459,2.344 24.085,1.718 24.862,1.718H25.468C26.245,1.718 26.87,2.344 26.87,3.121V14.168C26.87,14.945 26.245,15.57 25.468,15.57H24.236V15.589Z"[m
+[32m+[m[32m        android:fillColor="#ffffff"/>[m
+[32m+[m[32m  </group>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/mini_button_background.xml b/app/src/main/res/drawable/mini_button_background.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2b78a07[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/mini_button_background.xml[m
+[36m@@ -0,0 +1,9 @@[m
+[32m+[m[32m<?xml version="1.0" encoding="utf-8"?>[m
+[32m+[m[32m<!-- res/drawable/location_button_background.xml -->[m
+[32m+[m[32m<shape xmlns:android="http://schemas.android.com/apk/res/android">[m
+[32m+[m[32m    <!-- 흰색 배경 -->[m
+[32m+[m[32m    <solid android:color="#FFFFFF" />[m
+[32m+[m[32m    <!-- 둥근 모서리 -->[m
+[32m+[m[32m    <corners android:radius="50dp" />[m
+[32m+[m[32m</shape>[m
+[32m+[m
+[1mdiff --git a/app/src/main/res/drawable/morebtn.xml b/app/src/main/res/drawable/morebtn.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..502174b[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/morebtn.xml[m
+[36m@@ -0,0 +1,12 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="9dp"[m
+[32m+[m[32m    android:height="14dp"[m
+[32m+[m[32m    android:viewportWidth="9"[m
+[32m+[m[32m    android:viewportHeight="14">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:strokeWidth="1"[m
+[32m+[m[32m      android:pathData="M1.667,13.067L8.2,7L1.667,0.933"[m
+[32m+[m[32m      android:fillColor="#00000000"[m
+[32m+[m[32m      android:strokeColor="#000000"[m
+[32m+[m[32m      android:strokeLineCap="square"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/mypage.xml b/app/src/main/res/drawable/mypage.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..268a2d9[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/mypage.xml[m
+[36m@@ -0,0 +1,12 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="15dp"[m
+[32m+[m[32m    android:height="18dp"[m
+[32m+[m[32m    android:viewportWidth="15"[m
+[32m+[m[32m    android:viewportHeight="18">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M7.9,4m4,0a4,4 0,1 0,-8 0a4,4 0,1 0,8 0"[m
+[32m+[m[32m      android:fillColor="#BCBCBC"/>[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M0.9,13.935C0.9,13.074 1.441,12.307 2.251,12.017C5.904,10.713 9.896,10.713 13.549,12.017C14.359,12.307 14.9,13.074 14.9,13.935V15.25C14.9,16.438 13.848,17.35 12.673,17.182L11.718,17.045C9.186,16.684 6.614,16.684 4.082,17.045L3.127,17.182C1.952,17.35 0.9,16.438 0.9,15.25V13.935Z"[m
+[32m+[m[32m      android:fillColor="#BCBCBC"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/refresh.xml b/app/src/main/res/drawable/refresh.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e509d3a[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/refresh.xml[m
+[36m@@ -0,0 +1,11 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:width="18dp"[m
+[32m+[m[32m    android:height="18dp"[m
+[32m+[m[32m    android:viewportWidth="18"[m
+[32m+[m[32m    android:viewportHeight="18">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:strokeWidth="1"[m
+[32m+[m[32m      android:pathData="M0.6,9C0.6,4.361 4.361,0.6 9,0.6C11.677,0.6 14.062,1.852 15.6,3.803M17.4,9C17.4,13.639 13.639,17.4 9,17.4C6.323,17.4 3.938,16.148 2.4,14.197M6,13.8H1.8V18M16.2,0V4.2L12,4.2"[m
+[32m+[m[32m      android:fillColor="#00000000"[m
+[32m+[m[32m      android:strokeColor="#000000"/>[m
+[32m+[m[32m</vector>[m
+[1mdiff --git a/app/src/main/res/drawable/rounded_iv.xml b/app/src/main/res/drawable/rounded_iv.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..f5818fb[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/rounded_iv.xml[m
+[36m@@ -0,0 +1,5 @@[m
+[32m+[m[32m<?xml version="1.0" encoding="utf-8"?>[m
+[32m+[m[32m<shape xmlns:android="http://schemas.android.com/apk/res/android">[m
+[32m+[m[32m    <solid android:color="@color/basic_gray"/>[m
+[32m+[m[32m    <corners android:radius="5dp"/>[m
+[32m+[m[32m</shape>[m
+\ No newline at end of file[m
+[1mdiff --git a/app/src/main/res/drawable/rounded_recyclerview_bg.xml b/app/src/main/res/drawable/rounded_recyclerview_bg.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..c90bd83[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/rounded_recyclerview_bg.xml[m
+[36m@@ -0,0 +1,9 @@[m
+[32m+[m[32m<!-- res/drawable/rounded_recyclerview_bg.xml -->[m
+[32m+[m[32m<shape xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    android:shape="rectangle">[m
+[32m+[m[32m    <!-- 원하는 배경색 지정 -->[m
+[32m+[m[32m    <solid android:color="#FFFFFF" />[m
+[32m+[m
+[32m+[m[32m    <!-- 모서리 둥글게 지정 -->[m
+[32m+[m[32m    <corners android:radius="16dp" />[m
+[32m+[m[32m</shape>[m
+[1mdiff --git a/app/src/main/res/drawable/simcloth1.png b/app/src/main/res/drawable/simcloth1.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..58f3e8d[m
+Binary files /dev/null and b/app/src/main/res/drawable/simcloth1.png differ
+[1mdiff --git a/app/src/main/res/drawable/simcloth2.png b/app/src/main/res/drawable/simcloth2.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..45cff19[m
+Binary files /dev/null and b/app/src/main/res/drawable/simcloth2.png differ
+[1mdiff --git a/app/src/main/res/drawable/simcloth3.png b/app/src/main/res/drawable/simcloth3.png[m
+[1mnew file mode 100644[m
+[1mindex 0000000..46b48a4[m
+Binary files /dev/null and b/app/src/main/res/drawable/simcloth3.png differ
+[1mdiff --git a/app/src/main/res/drawable/sun.xml b/app/src/main/res/drawable/sun.xml[m
+[1mnew file mode 100644[m
+[1mindex 0000000..2b72894[m
+[1m--- /dev/null[m
+[1m+++ b/app/src/main/res/drawable/sun.xml[m
+[36m@@ -0,0 +1,141 @@[m
+[32m+[m[32m<vector xmlns:android="http://schemas.android.com/apk/res/android"[m
+[32m+[m[32m    xmlns:aapt="http://schemas.android.com/aapt"[m
+[32m+[m[32m    android:width="220dp"[m
+[32m+[m[32m    android:height="219dp"[m
+[32m+[m[32m    android:viewportWidth="220"[m
+[32m+[m[32m    android:viewportHeight="219">[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M46.59,109.5a65.22,64.96 0,1 0,130.44 0a65.22,64.96 0,1 0,-130.44 0z">[m
+[32m+[m[32m    <aapt:attr name="android:fillColor">[m
+[32m+[m[32m      <gradient[m[41m [m
+[32m+[m[32m          android:startX="111.81"[m
+[32m+[m[32m          android:startY="44.54"[m
+[32m+[m[32m          android:endX="111.81"[m
+[32m+[m[32m          android:endY="174.46"[m
+[32m+[m[32m          android:type="linear">[m
+[32m+[m[32m        <item android:offset="0" android:color="#FFFF5B00"/>[m
+[32m+[m[32m        <item android:offset="1" android:color="#FFFF0000"/>[m
+[32m+[m[32m      </gradient>[m
+[32m+[m[32m    </aapt:attr>[m
+[32m+[m[32m  </path>[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M109.94,-0L109.94,-0A7.45,7.45 0,0 1,117.4 7.45L117.4,29.66A7.45,7.45 0,0 1,109.94 37.12L109.94,37.12A7.45,7.45 0,0 1,102.49 29.66L102.49,7.45A7.45,7.45 0,0 1,109.94 -0z">[m
+[32m+[m[32m    <aapt:attr name="android:fillColor">[m
+[32m+[m[32m      <gradient[m[41m [m
+[32m+[m[32m          android:startX="109.94"[m
+[32m+[m[32m          android:startY="0.93"[m
+[32m+[m[32m          android:endX="107.83"[m
+[32m+[m[32m          android:endY="36.99"[m
+[32m+[m[32m          android:type="linear">[m
+[32m+[m[32m        <item android:offset="0" android:color="#FFFF7543"/>[m
+[32m+[m[32m        <item android:offset="0.49" android:color="#FFFF5D65"/>[m
+[32m+[m[32m        <item android:offset="1" android:color="#FFFF5252"/>[m
+[32m+[m[32m      </gradient>[m
+[32m+[m[32m    </aapt:attr>[m
+[32m+[m[32m  </path>[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M109.94,219L109.94,219A7.45,7.45 90.49,0 1,102.49 211.55L102.49,189.34A7.45,7.45 90.49,0 1,109.94 181.88L109.94,181.88A7.45,7.45 90.49,0 1,117.4 189.34L117.4,211.55A7.45,7.45 90.49,0 1,109.94 219z">[m
+[32m+[m[32m    <aapt:attr name="android:fillColor">[m
+[32m+[m[32m      <gradient[m[41m [m
+[32m+[m[32m          android:startX="109.94"[m
+[32m+[m[32m          android:startY="218.07"[m
+[32m+[m[32m          android:endX="112.06"[m
+[32m+[m[32m          android:endY="182.01"[m
+[32m+[m[32m          android:type="linear">[m
+[32m+[m[32m        <item android:offset="0" android:color="#FFFF7543"/>[m
+[32m+[m[32m        <item android:offset="0.49" android:color="#FFFF5D65"/>[m
+[32m+[m[32m        <item android:offset="1" android:color="#FFFF5252"/>[m
+[32m+[m[32m      </gradient>[m
+[32m+[m[32m    </aapt:attr>[m
+[32m+[m[32m  </path>[m
+[32m+[m[32m  <path[m
+[32m+[m[32m      android:pathData="M219.88,109.5L219.88,109.5A7.42,7.42 0,0 1,212.46 116.92L190.04,116.92A7.42,7.42 0,0 1,182.62 109.5L182.62,109.5A7.42,7.42 0,0 1,190.04 102.08L212.46,102.08A7.42,7.42 0,0 1,219.88 109.5z">[m
+[32m+[m[32m    <aapt:attr name="android:fillColor">[m
+[32m+[m[32m      <gradient[m[41m [m
+[32m+[m[32m          android:startX="218.95"[m
+[32m+[m[32m          android:startY="109.5"[m
+[32m+
