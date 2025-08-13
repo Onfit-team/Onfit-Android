@@ -43,7 +43,6 @@ interface WardrobeService {
         @Header("Authorization") authorization: String
     ): Response<WardrobeItemDetailResponse>
 
-
     /**
      * 아이템 수정 (PUT)
      */
@@ -106,8 +105,8 @@ interface WardrobeService {
      */
     @GET("wardrobe/items/{itemId}/outfits")
     suspend fun getItemOutfitHistory(
-        @Header("Authorization") authorization: String,
-        @Path("itemId") itemId: Int
+        @Path("itemId") itemId: Int,
+        @Header("Authorization") authorization: String
     ): Response<ItemOutfitHistoryResponse>
 
     /**
@@ -115,16 +114,26 @@ interface WardrobeService {
      */
     @GET("wardrobe/items/{itemId}/recommendations")
     suspend fun getRecommendedItems(
-        @Header("Authorization") authorization: String,
-        @Path("itemId") itemId: Int
+        @Path("itemId") itemId: Int,
+        @Header("Authorization") authorization: String
     ): Response<RecommendationResponse>
 
     /**
-     * 이미지 업로드
+     * 이미지 저장 (실제 이미지 업로드 API)
      */
     @Multipart
-    @POST("/items/upload")
+    @POST("/items/save")
     suspend fun uploadImage(
+        @Header("Authorization") authorization: String,
+        @Part image: MultipartBody.Part
+    ): Response<ImageUploadResponse>
+
+    /**
+     * 이미지 생성 (AI 처리용)
+     */
+    @Multipart
+    @POST("/items/refine")
+    suspend fun refineImage(
         @Header("Authorization") authorization: String,
         @Part image: MultipartBody.Part
     ): Response<ImageUploadResponse>

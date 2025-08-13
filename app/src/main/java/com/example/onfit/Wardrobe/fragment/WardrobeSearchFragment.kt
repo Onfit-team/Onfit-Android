@@ -35,7 +35,7 @@ class WardrobeSearchFragment : Fragment() {
     private lateinit var purposeButtons: MutableList<Button>
 
     // Data
-    private val colorOptions = arrayOf("색상 선택", "블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플")
+    private val colorOptions = arrayOf("색상 선택", "블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플", "스카이블루", "오트밀", "아이보리")
     private var brandOptions = arrayOf("브랜드 로딩 중...") // API에서 동적으로 로드
 
     private var selectedSeason = ""
@@ -364,28 +364,37 @@ class WardrobeSearchFragment : Fragment() {
         selectedButton.isSelected = true
     }
 
+    // WardrobeSearchFragment.kt의 toggleStyleTag과 togglePurposeTag 함수 수정
     private fun toggleStyleTag(button: Button) {
-        val tag = button.text.toString()
+        val tag = button.text.toString().replace("#", "")
 
         if (selectedStyleTags.contains(tag)) {
             selectedStyleTags.remove(tag)
             button.isSelected = false
+            Log.d("WardrobeSearchFragment", "분위기 태그 해제: $tag")
         } else {
             selectedStyleTags.add(tag)
             button.isSelected = true
+            Log.d("WardrobeSearchFragment", "분위기 태그 선택: $tag")
         }
+
+        Log.d("WardrobeSearchFragment", "현재 분위기 태그들: ${selectedStyleTags.joinToString(", ")}")
     }
 
     private fun togglePurposeTag(button: Button) {
-        val tag = button.text.toString()
+        val tag = button.text.toString().replace("#", "")
 
         if (selectedPurposeTags.contains(tag)) {
             selectedPurposeTags.remove(tag)
             button.isSelected = false
+            Log.d("WardrobeSearchFragment", "용도 태그 해제: $tag")
         } else {
             selectedPurposeTags.add(tag)
             button.isSelected = true
+            Log.d("WardrobeSearchFragment", "용도 태그 선택: $tag")
         }
+
+        Log.d("WardrobeSearchFragment", "현재 용도 태그들: ${selectedPurposeTags.joinToString(", ")}")
     }
 
     private fun showBrandPopup() {
@@ -561,25 +570,39 @@ class WardrobeSearchFragment : Fragment() {
     private fun convertTagsToAPI(tags: Set<String>): String? {
         if (tags.isEmpty()) return null
 
-        // 태그 이름을 ID로 변환하는 매핑 (실제 서버 태그 ID에 맞게 수정 필요)
+        // 실제 레이아웃의 태그 이름에 맞게 수정
         val tagNameToId = mapOf(
-            // 스타일 태그 (예시)
+            // 분위기 태그 (실제 XML에서 가져온 이름들)
             "캐주얼" to 1,
-            "포멀" to 2,
-            "스포티" to 3,
-            "스트릿" to 4,
+            "스트릿" to 2,
+            "미니멀" to 3,
+            "클래식" to 4,
             "빈티지" to 5,
-            "미니멀" to 6,
-            // 용도 태그 (예시)
+            "러블리" to 6,
+            "페미닌" to 7,
+            "보이시" to 8,
+            "모던" to 9,
+
+            // 용도 태그 (실제 XML에서 가져온 이름들)
             "데일리" to 10,
-            "출근" to 11,
-            "데이트" to 12,
-            "여행" to 13,
-            "운동" to 14,
-            "파티" to 15
+            "출근룩" to 11,
+            "데이트룩" to 12,
+            "나들이룩" to 13,
+            "여행룩" to 14,
+            "운동복" to 15,
+            "하객룩" to 16,
+            "파티룩" to 17
         )
 
-        val tagIds = tags.mapNotNull { tagName -> tagNameToId[tagName] }
+        val tagIds = tags.mapNotNull { tagName ->
+            // #제거하고 매핑
+            val cleanTagName = tagName.replace("#", "")
+            val tagId = tagNameToId[cleanTagName]
+            Log.d("WardrobeSearchFragment", "태그 변환: '$cleanTagName' -> $tagId")
+            tagId
+        }
+
+        Log.d("WardrobeSearchFragment", "최종 태그 IDs: ${tagIds.joinToString(",")}")
         return if (tagIds.isNotEmpty()) tagIds.joinToString(",") else null
     }
 

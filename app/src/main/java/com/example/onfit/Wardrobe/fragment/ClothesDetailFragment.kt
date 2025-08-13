@@ -230,74 +230,64 @@ class ClothesDetailFragment : Fragment() {
 
         if (tags == null) {
             Log.w("ClothesDetailFragment", "태그 정보가 null입니다")
+            addNoTagsMessage(tagsContainer)
             return
         }
 
-        Log.d("ClothesDetailFragment", "태그 정보 디버깅:")
-        Log.d("ClothesDetailFragment", "- moodTags: ${tags.moodTags}")
-        Log.d("ClothesDetailFragment", "- purposeTags: ${tags.purposeTags}")
+        Log.d("ClothesDetailFragment", "전체 태그 객체: $tags")
 
         val moodTags = tags.moodTags ?: emptyList()
         val purposeTags = tags.purposeTags ?: emptyList()
 
-        Log.d("ClothesDetailFragment", "분위기 태그 수: ${moodTags.size}")
-        Log.d("ClothesDetailFragment", "용도 태그 수: ${purposeTags.size}")
+        Log.d("ClothesDetailFragment", "분위기 태그: ${moodTags.map { it.name }}")
+        Log.d("ClothesDetailFragment", "용도 태그: ${purposeTags.map { it.name }}")
 
-        // 모든 태그를 하나의 리스트로 합치기
-        val allTags = mutableListOf<Pair<String, String>>()
+        var tagCount = 0
 
         // 분위기 태그 추가
         moodTags.forEach { tag ->
-            allTags.add(Pair(tag.name ?: "태그", "분위기"))
-            Log.d("ClothesDetailFragment", "분위기 태그 추가: ${tag.name}")
+            if (!tag.name.isNullOrBlank()) {
+                val tagView = createTagView(tag.name, "분위기")
+                tagsContainer?.addView(tagView)
+                tagCount++
+                Log.d("ClothesDetailFragment", "분위기 태그 추가됨: ${tag.name}")
+            }
         }
 
         // 용도 태그 추가
         purposeTags.forEach { tag ->
-            allTags.add(Pair(tag.name ?: "태그", "용도"))
-            Log.d("ClothesDetailFragment", "용도 태그 추가: ${tag.name}")
-        }
-
-        // 태그 UI 생성
-        allTags.forEach { (tagName, tagType) ->
-            val tagView = createTagView(tagName, tagType)
-            tagsContainer?.addView(tagView)
-        }
-
-        if (allTags.isEmpty()) {
-            Log.w("ClothesDetailFragment", "표시할 태그가 없습니다")
-            // 태그가 없을 때 안내 텍스트 추가
-            val noTagsView = TextView(requireContext()).apply {
-                text = "등록된 태그가 없습니다"
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
-                setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4))
+            if (!tag.name.isNullOrBlank()) {
+                val tagView = createTagView(tag.name, "용도")
+                tagsContainer?.addView(tagView)
+                tagCount++
+                Log.d("ClothesDetailFragment", "용도 태그 추가됨: ${tag.name}")
             }
-            tagsContainer?.addView(noTagsView)
-        } else {
-            Log.d("ClothesDetailFragment", "총 ${allTags.size}개 태그 표시됨")
         }
+
+        if (tagCount == 0) {
+            Log.w("ClothesDetailFragment", "표시할 태그가 없음")
+            addNoTagsMessage(tagsContainer)
+        } else {
+            Log.d("ClothesDetailFragment", "총 $tagCount 개 태그 표시됨")
+        }
+    }
+
+    private fun addNoTagsMessage(tagsContainer: LinearLayout?) {
+        val noTagsView = TextView(requireContext()).apply {
+            text = "등록된 태그가 없습니다"
+            textSize = 12f
+            setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+            setPadding(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(4))
+        }
+        tagsContainer?.addView(noTagsView)
     }
 
     private fun createTagView(tagName: String, tagType: String = ""): TextView {
         return TextView(requireContext()).apply {
-            text = "#$tagName"
+            text = "#${tagName ?: "태그"}"
             textSize = 12f
 
-            // 태그 타입에 따라 색상 구분
-            when (tagType) {
-                "분위기" -> {
-                    setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_dark))
-                    Log.d("ClothesDetailFragment", "분위기 태그 UI 생성: $tagName")
-                }
-                "용도" -> {
-                    setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark))
-                    Log.d("ClothesDetailFragment", "용도 태그 UI 생성: $tagName")
-                }
-                else -> {
-                    setTextColor(ContextCompat.getColor(context, android.R.color.black))
-                }
-            }
+            setTextColor(ContextCompat.getColor(context, android.R.color.black))
 
             background = ContextCompat.getDrawable(context, R.drawable.rounded_button_selector)
 
@@ -365,15 +355,17 @@ class ClothesDetailFragment : Fragment() {
             25 -> "가디건"
             26 -> "점퍼"
             27 -> "블레이저"
+            28 -> "바람막이"
 
             // 신발 (category 5)
-            28 -> "운동화"
-            29 -> "구두"
-            30 -> "부츠"
-            31 -> "샌들"
-            32 -> "슬리퍼"
-            33 -> "하이힐"
-            34 -> "플랫슈즈"
+            29 -> "운동화"
+            30 -> "구두"
+            31 -> "부츠"
+            32 -> "샌들"
+            33 -> "슬리퍼"
+            34 -> "하이힐"
+            35 -> "플랫슈즈"
+            36 -> "워커"
 
             else -> "기타"
         }
@@ -404,6 +396,9 @@ class ClothesDetailFragment : Fragment() {
             11 -> "그린"
             12 -> "블루"
             13 -> "퍼플"
+            14 -> "스카이블루"
+            15 -> "오트밀"
+            16 -> "아이보리"
             else -> "기타"
         }
     }
