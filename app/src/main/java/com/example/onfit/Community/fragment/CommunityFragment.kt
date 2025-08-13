@@ -1,6 +1,8 @@
+// app/src/main/java/com/example/onfit/Community/fragment/CommunityFragment.kt
 package com.example.onfit.Community.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -16,55 +19,38 @@ import com.bumptech.glide.Glide
 import com.example.onfit.Community.adapter.StyleGridAdapter
 import com.example.onfit.Community.model.CommunityItem
 import com.example.onfit.Community.model.PublishTodayOutfitResponse
-import com.example.onfit.Community.model.TagItem
 import com.example.onfit.Community.model.TodayOutfitCheckResponse
-import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
 import com.example.onfit.TopSearchDialogFragment
 import com.example.onfit.databinding.FragmentCommunityBinding
+import com.example.onfit.databinding.OutfitPostDialogBinding
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.network.RetrofitInstance
-import com.google.android.material.chip.Chip
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import org.json.JSONObject
 
 class CommunityFragment : Fragment(R.layout.fragment_community) {
 
+    // 테스트용: true면 공유 버튼 항상 활성화(테스트 끝나면 false)
     private val FORCE_SHARE_ALWAYS: Boolean = true
 
     private var _binding: FragmentCommunityBinding? = null
     private val binding get() = _binding!!
 
+    // 오늘 Outfit 체크 결과(다이얼로그 미리보기용)
     private var lastCheckResult: TodayOutfitCheckResponse.Result? = null
 
+    // 그리드 데이터
     private val gridItems = mutableListOf<CommunityItem>()
     private lateinit var gridAdapter: StyleGridAdapter
 
+    // 정렬/필터
     private var currentOrder = "latest"
     private var currentTagIds: String? = null
 
-    // ★ 고정 태그(분위기/용도) — 서버 tag_id에 맞게 숫자만 변경하면 됨
-    private val MOOD_TAGS = listOf(
-        TagItem(1, "캐주얼"),
-        TagItem(2, "스트릿"),
-        TagItem(3, "미니멀"),
-        TagItem(4, "클래식"),
-        TagItem(5, "빈티지"),
-        TagItem(6, "러블리"),
-        TagItem(7, "페미닌"),
-        TagItem(8, "보이시"),
-        TagItem(9, "모던"),
-    )
-    private val USE_TAGS = listOf(
-        TagItem(10, "데일리"),
-        TagItem(11, "출근룩"),
-        TagItem(12, "데이트룩"),
-        TagItem(13, "나들이룩"),
-        TagItem(14, "여행룩"),
-        TagItem(15, "운동복"),
-        TagItem(16, "하객룩"),
-        TagItem(17, "파티룩"),
-    )
+    private val initialPlaceholder = emptyList<CommunityItem>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -91,6 +77,8 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
 
         // 2열 그리드
         binding.styleGridRecyclerview.layoutManager = GridLayoutManager(requireContext(), 2)
+        gridItems.clear()
+        gridItems.addAll(initialPlaceholder)
         gridAdapter = StyleGridAdapter(gridItems) { item, pos ->
             val myNickname = TokenProvider.getNickname(requireContext())
             if (item.nickname == myNickname) {
@@ -125,24 +113,6 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             }
             popupMenu.show()
         }
-
-        // ★ Chip 생성
-        createChips(binding.moodChipGroup, MOOD_TAGS)
-        createChips(binding.useChipGroup, USE_TAGS)
-
-        // ★ Chip 선택 리스너 (두 그룹 합쳐서 필터)
-        val onCheckedChanged: (group: com.google.android.material.chip.ChipGroup, checkedIds: List<Int>) -> Unit =
-            { _, _ ->
-                val idsFromMood = binding.moodChipGroup.checkedChipIds.mapNotNull { id ->
-                    (binding.moodChipGroup.findViewById<Chip>(id)?.tag as? Int)
-                }
-                val idsFromUse = binding.useChipGroup.checkedChipIds.mapNotNull { id ->
-                    (binding.useChipGroup.findViewById<Chip>(id)?.tag as? Int)
-                }
-                applyTagFilter(idsFromMood + idsFromUse)
-            }
-        binding.moodChipGroup.setOnCheckedStateChangeListener(onCheckedChanged)
-        binding.useChipGroup.setOnCheckedStateChangeListener(onCheckedChanged)
 
         // 오늘 날짜
         binding.dateTv.text = LocalDate.now().format(DateTimeFormatter.ofPattern("M월 d일"))
@@ -181,27 +151,10 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         checkTodayCanShare()
     }
 
-    // ---------------------------------- Chip 생성/필터 ----------------------------------
-
-    private fun createChips(group: com.google.android.material.chip.ChipGroup, tags: List<TagItem>) {
-        group.removeAllViews()
-        tags.forEach { t ->
-            val chip = Chip(requireContext()).apply {
-                text = t.name           // 화면 표시 텍스트
-                tag = t.id              // 서버 전달 tag_id
-                isCheckable = true
-                isCheckedIconVisible = false
-            }
-            group.addView(chip)
-        }
-    }
-
     fun applyTagFilter(selectedIds: List<Int>) {
         currentTagIds = selectedIds.takeIf { it.isNotEmpty() }?.joinToString(",")
         loadCommunityOutfits(currentOrder, 1, 20, currentTagIds)
     }
-
-    // ------------------------------------------------------------------------------------
 
     private fun toggleOutfitLike(currentItem: CommunityItem, position: Int) {
         val outfitId = currentItem.outfitId
@@ -221,8 +174,23 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             try {
                 val res = RetrofitInstance.api.toggleOutfitLike("Bearer $token", outfitId)
                 if (!res.isSuccessful) {
+                    when (res.code()) {
+                        401 -> Toast.makeText(requireContext(), "인증이 만료되었습니다. 다시 로그인해주세요(401).", Toast.LENGTH_SHORT).show()
+                        403 -> Toast.makeText(requireContext(), "권한이 없습니다(403).", Toast.LENGTH_SHORT).show()
+                        404 -> Toast.makeText(requireContext(), "게시글을 찾을 수 없습니다(404).", Toast.LENGTH_SHORT).show()
+                        400 -> {
+                            val errorRaw = res.errorBody()?.string()
+                            try {
+                                val root = org.json.JSONObject(errorRaw ?: "")
+                                val reason = root.optJSONObject("error")?.optString("reason")
+                                Toast.makeText(requireContext(), reason ?: "요청이 올바르지 않습니다(400).", Toast.LENGTH_SHORT).show()
+                            } catch (_: Exception) {
+                                Toast.makeText(requireContext(), "요청이 올바르지 않습니다(400).", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        else -> Toast.makeText(requireContext(), "좋아요 처리 실패: ${res.code()}", Toast.LENGTH_SHORT).show()
+                    }
                     rollbackLike(position, currentItem)
-                    Toast.makeText(requireContext(), "좋아요 처리 실패: ${res.code()}", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
 
@@ -233,8 +201,8 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     gridItems[position] = fixed
                     gridAdapter.notifyItemChanged(position)
                 } else {
-                    rollbackLike(position, currentItem)
                     Toast.makeText(requireContext(), body?.message ?: "좋아요 처리 실패", Toast.LENGTH_SHORT).show()
+                    rollbackLike(position, currentItem)
                 }
             } catch (_: Exception) {
                 rollbackLike(position, currentItem)
@@ -262,11 +230,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val res = RetrofitInstance.api.getCommunityOutfits(
-                    token = "Bearer $token",
-                    order = order,
-                    page = page,
-                    limit = limit,
-                    tagIds = tagIds
+                    token = "Bearer $token", order = order, page = page, limit = limit, tagIds = tagIds
                 )
                 if (!res.isSuccessful) {
                     Toast.makeText(requireContext(), "목록 조회 실패: ${res.code()}", Toast.LENGTH_SHORT).show()
@@ -391,6 +355,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         binding.shareOutfitIb.alpha = if (enabled) 1.0f else 0.5f
     }
 
+    // 공유 다이얼로그 (ViewBinding) + 오늘 Outfit 이미지 미리보기
     private fun showPostOutfitDialog() {
         val dialogBinding = com.example.onfit.databinding.OutfitPostDialogBinding.inflate(layoutInflater)
         val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext()).create().apply {
@@ -398,8 +363,10 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
 
+        // 문구
         dialogBinding.postDialogOutfitTv.text = "${binding.dateTv.text} Outfit을 게시하시겠습니까?"
 
+        // 1) 캐시(이미 있는 경우)
         val cachedUrl = lastCheckResult?.mainImage
         if (!cachedUrl.isNullOrBlank()) {
             dialogBinding.postDialogOutfitImage.visibility = View.VISIBLE
@@ -408,6 +375,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                 .centerCrop()
                 .into(dialogBinding.postDialogOutfitImage)
         } else {
+            // 2) 캐시가 없으면 즉시 재조회해서 다이얼로그 안에 바인딩
             dialogBinding.postDialogOutfitImage.visibility = View.GONE
             viewLifecycleOwner.lifecycleScope.launch {
                 val token = com.example.onfit.KakaoLogin.util.TokenProvider.getToken(requireContext())
@@ -417,14 +385,14 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                             .checkTodayOutfitCanBeShared("Bearer $token")
                         val url = if (res.isSuccessful) res.body()?.result?.mainImage else null
                         if (!url.isNullOrBlank()) {
-                            lastCheckResult = res.body()?.result
+                            lastCheckResult = res.body()?.result // 캐시 갱신
                             dialogBinding.postDialogOutfitImage.visibility = View.VISIBLE
                             com.bumptech.glide.Glide.with(this@CommunityFragment)
                                 .load(url)
                                 .centerCrop()
                                 .into(dialogBinding.postDialogOutfitImage)
                         }
-                    } catch (_: Exception) { /* ignore */ }
+                    } catch (_: Exception) { /* 무시: 이미지 없이 진행 */ }
                 }
             }
         }
@@ -449,6 +417,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         ).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
+
 
     private fun publishTodayOutfit(
         onSuccess: ((outfitId: Int?) -> Unit)? = null,
