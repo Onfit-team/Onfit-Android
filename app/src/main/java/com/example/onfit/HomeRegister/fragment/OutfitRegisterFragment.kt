@@ -381,10 +381,10 @@ class OutfitRegisterFragment : Fragment() {
         val sendFile = ensureJpegIfNeeded(context, src, safeName)
 
         val req = sendFile.asRequestBody(mime)
-        return MultipartBody.Part.createFormData("photo", sendFile.name, req)
+        return MultipartBody.Part.createFormData("image", sendFile.name, req)
     }
 
-    /** PNG/기타 포맷이거나 너무 클 때 JPEG로 재인코딩해서 임시 파일 반환 */
+    // 기타 포맷이거나 너무 클 때 JPEG로 재인코딩해서 임시 파일 반환
     private fun ensureJpegIfNeeded(context: Context, src: File, safeName: String): File {
         val nameLc = safeName.lowercase()
         val looksJpeg = nameLc.endsWith(".jpg") || nameLc.endsWith(".jpeg")
