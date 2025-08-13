@@ -70,14 +70,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     // 서버 추천 로딩 전 초기 플레이스홀더(로컬 이미지)
     private val clothSuggestList = listOf(
-        R.drawable.cloth1, R.drawable.cloth2, R.drawable.cloth3
+        R.drawable.latestcloth3, R.drawable.latestcloth3, R.drawable.latestcloth3
     )
 
     // 비슷한 날 섹션 초기 플레이스홀더
     private val similiarClothList = listOf(
-        SimItem(R.drawable.simcloth1, null, "딱 좋음"),
-        SimItem(R.drawable.simcloth2, null, "조금 추움"),
-        SimItem(R.drawable.simcloth3, null, "많이 더움")
+        SimItem(R.drawable.latestcloth3, null, "딱 좋음"),
+        SimItem(R.drawable.latestcloth3, null, "조금 추움"),
+        SimItem(R.drawable.latestcloth3, null, "많이 더움")
     )
 
     // 마지막 평균기온 저장 (refresh 시 재호출에 사용)
@@ -102,7 +102,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
     }
-
 
     // API에 파일 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
@@ -233,13 +232,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val token = TokenProvider.getToken(requireContext())
 
-        // 닉네임 적용
+        // 닉네임 적용 (sim_text_tv)
         val nickname = TokenProvider.getNickname(requireContext())
         binding.simTextTv.text = if (nickname.isNotEmpty())
             "비슷한 날, ${nickname}님의 스타일" else "비슷한 날, 회원님의 스타일"
 
+        // 닉네임 적용 (latest_style_tv) — 하드코딩 "수정" 제거
+        binding.latestStyleTv.text = if (nickname.isNotEmpty())
+            "${nickname}님의 지난 7일 코디" else "회원님의 지난 7일 코디"
+
         // ====== 옵저버 등록 ======
-        observeRecommend()
+        observeRecommend() // diurnalMsg 포함
         viewModel.similarOutfits.observe(viewLifecycleOwner) { items ->
             val hasItems = !items.isNullOrEmpty()
             binding.similarStyleRecyclerView.visibility = if (hasItems) View.VISIBLE else View.GONE
@@ -472,8 +475,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
+        // ✅ 변경 포인트: 항상 텍스트를 세팅 (빈 값일 때도 기본 문구로 교체)
         viewModel.diurnalMsg.observe(viewLifecycleOwner) { msg ->
-            if (!msg.isNullOrBlank()) binding.subTv.text = msg
+            binding.subTv.text = if (!msg.isNullOrBlank()) msg else "오늘의 팁을 불러오는 중이에요"
         }
     }
 
@@ -572,7 +576,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         return file
     }
 
-
     // 1) 권한 체크 (API33+ READ_MEDIA_IMAGES / 이하 READ_EXTERNAL_STORAGE)
     private fun ensurePhotoPermission(onGranted: () -> Unit) {
         val perm = if (Build.VERSION.SDK_INT >= 33)
@@ -616,7 +619,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     // gallery_btn 클릭 시 실행
-
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         pickImageLauncher.launch(intent)

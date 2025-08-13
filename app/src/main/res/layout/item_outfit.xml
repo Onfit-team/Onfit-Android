@@ -18,7 +18,6 @@
             android:scaleType="centerCrop"
             android:background="@drawable/rounded_gray_bg"
             android:clipToOutline="true"
-            android:adjustViewBounds="true"
             android:outlineProvider="background"
             android:src="@drawable/outfit_top"/>
 

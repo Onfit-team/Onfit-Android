@@ -42,11 +42,12 @@ class StyleGridAdapter(
             if (item.isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_line
         )
 
-        // 상세 이동
+        // 상세 이동: outfitId + imageUrl 함께 전달 (썸네일 즉시 반영용)
         holder.itemView.setOnClickListener {
             val nav = it.findNavController()
             val action = CommunityFragmentDirections.actionCommunityFragmentToCommunityDetailFragment()
             item.outfitId?.let { id -> action.outfitId = id }
+            action.imageUrl = item.imageUrl    // 추가 전달 포인트
             nav.navigate(action)
         }
 

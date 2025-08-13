@@ -1,6 +1,12 @@
+// app/src/main/java/com/example/onfit/network/ApiService.kt
 package com.example.onfit.network
 
 import com.example.onfit.Community.model.CommunityOutfitsResponse
+import com.example.onfit.Community.model.OutfitDetailResponse
+import com.example.onfit.Community.model.PublishTodayOutfitResponse
+import com.example.onfit.Community.model.TagListResponse
+import com.example.onfit.Community.model.TodayOutfitCheckResponse
+import com.example.onfit.Community.model.ToggleLikeResponse
 import com.example.onfit.Home.model.BestOutfitResponse
 import com.example.onfit.Home.model.DateResponseWrapper
 import com.example.onfit.Home.model.LatestStyleResponse
@@ -8,12 +14,14 @@ import com.example.onfit.Home.model.RecommendItemsResponse
 import com.example.onfit.Home.model.SimilarWeatherResponse
 import com.example.onfit.Home.model.WeatherResponse
 import com.example.onfit.model.CurrentWeatherResponse
-import com.example.onfit.Community.model.TodayOutfitCheckResponse
-import com.example.onfit.Community.model.PublishTodayOutfitResponse
+import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
+import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -66,6 +74,7 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<PublishTodayOutfitResponse>
 
+    // 커뮤니티 목록
     @GET("community/outfits")
     suspend fun getCommunityOutfits(
         @Header("Authorization") token: String,
@@ -74,4 +83,33 @@ interface ApiService {
         @Query("limit") limit: Int? = null,      // 기본 20
         @Query("tag_ids") tagIds: String? = null // 예: "1,2,3"
     ): Response<CommunityOutfitsResponse>
+
+    // 좋아요 토글
+    @POST("community/outfits/{outfit_id}/like")
+    suspend fun toggleOutfitLike(
+        @Header("Authorization") token: String,
+        @Path("outfit_id") outfitId: Int
+    ): Response<ToggleLikeResponse>
+
+    // 상세
+    @GET("community/outfits/{outfit_id}")
+    suspend fun getOutfitDetail(
+        @Header("Authorization") token: String?,
+        @Path("outfit_id") outfitId: Int
+    ): Response<OutfitDetailResponse>
+
+    // 삭제
+    @DELETE("community/outfits/{outfit_id}")
+    suspend fun deleteOutfit(
+        @Header("Authorization") token: String,
+        @Path("outfit_id") outfitId: Int
+    ): Response<ResponseBody>
+
+    // ★ 태그 목록
+    // ApiService.kt
+    @GET("/community/tags")
+    suspend fun getTagList(
+        @Header("Authorization") token: String
+    ): Response<TagListResponse>
+
 }

@@ -180,7 +180,7 @@
                         android:id="@+id/sub_tv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="오늘은 일교차가 커요, 겉옷 꼭 챙기세요!"
+                        android:text="오늘은 일교차가 커요, 겉 꼭 챙기세요!"
                         android:textSize="13sp"
                         android:textColor="#777777"
                         android:layout_marginStart="15dp" />
