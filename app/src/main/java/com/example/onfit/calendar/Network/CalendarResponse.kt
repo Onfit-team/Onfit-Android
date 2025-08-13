@@ -1,6 +1,5 @@
 package com.example.onfit.calendar.Network
 
-// 기존 파일 그대로 유지
 data class OutfitImageResponse(
     val isSuccess: Boolean,
     val code: String,

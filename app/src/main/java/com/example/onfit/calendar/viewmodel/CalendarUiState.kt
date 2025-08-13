@@ -11,5 +11,7 @@ data class CalendarUiState(
 
     val isTagLoading: Boolean = false,
     val mostUsedTag: MostUsedTagResult? = null,
-    val tagErrorMessage: String? = null
+    val tagErrorMessage: String? = null,
+
+    val datesWithOutfits: Set<String> = emptySet()
 )

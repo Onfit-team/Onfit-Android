@@ -134,7 +134,16 @@ open class WardrobeFragment : Fragment() {
     private fun setupSearchButton(view: View) {
         val searchButton = view.findViewById<ImageButton>(R.id.ic_search)
         searchButton?.setOnClickListener {
-            findNavController().navigate(R.id.wardrobeSearchFragment)
+            try {
+                Log.d("WardrobeFragment", "검색 버튼 클릭 - Navigation 시도")
+                findNavController().navigate(R.id.wardrobeSearchFragment)
+            } catch (e: Exception) {
+                Log.e("WardrobeFragment", "Navigation 실패: ${e.message}")
+                Toast.makeText(context, "검색 화면으로 이동할 수 없습니다", Toast.LENGTH_SHORT).show()
+
+                // 임시로 다이얼로그 검색 사용
+                showSearchDialog()
+            }
         }
     }
 
@@ -433,8 +442,12 @@ open class WardrobeFragment : Fragment() {
                 // 이전 선택된 버튼 상태 해제
                 selectedTopCategoryButton?.isSelected = false
 
+                selectedTopCategoryButton?.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+
                 // 새로 선택된 버튼 상태 설정
                 button.isSelected = true
+                // 텍스트 색상을 명시적으로 설정 (원하는 색상으로 변경)
+                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 selectedTopCategoryButton = button
 
                 if (categoryName == "전체") {
@@ -449,6 +462,8 @@ open class WardrobeFragment : Fragment() {
             // 첫 번째 버튼(전체)을 기본 선택 상태로 설정
             if (categoryName == "전체") {
                 button.isSelected = true
+                // 기본 선택 버튼의 텍스트 색상도 설정
+                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 selectedTopCategoryButton = button
             }
         }
@@ -474,6 +489,7 @@ open class WardrobeFragment : Fragment() {
     /**
      * API 데이터로 하위 필터 업데이트
      */
+    // updateSubFiltersWithApiData 함수에서
     private fun updateSubFiltersWithApiData(filterNames: List<String>, subcategories: List<SubcategoryDto>) {
         if (!isAdded || context == null) return
         subFilterLayout.removeAllViews()
@@ -490,15 +506,17 @@ open class WardrobeFragment : Fragment() {
         }
         subFilterLayout.addView(allButton)
 
-        // 🔥 중요: API에서 받은 실제 서브카테고리만 사용
+        // API에서 받은 실제 서브카테고리만 사용하고 getSubcategoryName으로 이름 변환
         subcategories.forEachIndexed { index, subcategoryDto ->
-            val button = createFilterButton(subcategoryDto.name, index + 1, subcategories.size + 1)
+            // 서버에서 온 이름 대신 로컬 매핑 함수 사용
+            val displayName = getSubcategoryName(subcategoryDto.subcategory)
+            val button = createFilterButton(displayName, index + 1, subcategories.size + 1)
+
             button.setOnClickListener {
                 if (isAdded && context != null) {
                     updateButtonSelection(index + 1)
                     moveUnderline(index + 1)
                     val currentCategory = getCurrentSelectedCategory()
-                    // 🔥 실제 서브카테고리 ID 사용
                     loadWardrobeDataByCategory(category = currentCategory, subcategory = subcategoryDto.subcategory)
                 }
             }
@@ -516,10 +534,11 @@ open class WardrobeFragment : Fragment() {
     /**
      * 하위 카테고리 업데이트
      */
+    // updateSubCategories 함수에 로그 추가
     private fun updateSubCategories(subcategories: List<SubcategoryDto>) {
         if (subcategories.isNotEmpty()) {
-            Log.d("WardrobeFragment", "서브카테고리 업데이트: ${subcategories.map { "${it.name}(${it.subcategory})" }}")
-            updateSubFiltersWithApiData(emptyList(), subcategories) // filterNames는 사용하지 않으므로 빈 리스트
+            Log.d("WardrobeFragment", "서브카테고리 업데이트: ${subcategories.map { "${getSubcategoryName(it.subcategory)}(${it.subcategory})" }}")
+            updateSubFiltersWithApiData(emptyList(), subcategories)
         } else {
             // 서브카테고리가 없으면 전체만 표시
             subFilterLayout.removeAllViews()
@@ -777,7 +796,7 @@ open class WardrobeFragment : Fragment() {
             16 -> "미니원피스"
             17 -> "미디원피스"
             18 -> "롱원피스"
-            19 -> "니트원피스"  // 이게 누락되어서 "기타"로 표시됨
+            19 -> "니트원피스"
             20 -> "셔츠원피스"
 
             // 아우터 (category 4)
