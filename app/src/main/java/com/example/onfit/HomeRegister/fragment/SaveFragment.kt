@@ -64,8 +64,7 @@ class SaveFragment : Fragment() {
         binding.saveClosetBtn.setOnClickListener {
             // RegisterFragment에서 받은 이미지 경로 전달
             val bundle = Bundle().apply {
-                putString("save_date", receivedDate) // 날짜 같이 보내기
-                putString("outfit_image_path", imagePath) // 이미지 경로
+                putString("outfit_image_path", imagePath)
             }
             findNavController().navigate(R.id.action_saveFragment_to_outfitRegisterFragment, bundle)
         }

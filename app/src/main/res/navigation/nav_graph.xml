@@ -95,12 +95,7 @@
         android:label="homeFragment">
         <action
             android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
-            app:destination="@id/outfitRegisterFragment" >
-            <argument
-                android:name="saveDate"
-                app:argType="string"
-                app:nullable="true" />
-        </action>
+            app:destination="@id/outfitRegisterFragment" />
     </fragment>
 
     <fragment
@@ -115,14 +110,7 @@
             app:destination="@id/outfitCropFragment"/>
         <action
             android:id="@+id/action_outfitRegisterFragment_to_outfitSaveFragment"
-            app:destination="@id/outfitSaveFragment">
-            <argument
-                android:name="imageUris"
-                app:argType="string[]" />
-            <argument
-                android:name="imageResIds"
-                app:argType="integer[]" />
-        </action>
+            app:destination="@id/outfitSaveFragment"/>
     </fragment>
 
     <fragment
@@ -138,17 +126,7 @@
     <fragment
         android:id="@+id/outfitSaveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
-        android:label="outfitSaveFragment">
-        <argument
-            android:name="imageUris"
-            app:argType="string[]" />
-        <argument
-            android:name="imageResIds"
-            app:argType="integer[]" />
-        <action
-            android:id="@+id/action_outfitSaveFragment_to_wardrobeFragment"
-            app:destination="@id/wardrobeFragment" />
-    </fragment>
+        android:label="outfitSaveFragment" />
 
     <fragment
         android:id="@+id/wardrobeFragment"
@@ -251,14 +229,21 @@
     <fragment
         android:id="@+id/communityDetailFragment"
         android:name="com.example.onfit.Community.fragment.CommunityDetailFragment"
-        android:label="커뮤니티 상세"
-        tools:layout="@layout/fragment_community_detail">
-        <!-- SafeArgs: outfitId 전달 -->
+        android:label="CommunityDetailFragment">
+
         <argument
             android:name="outfitId"
             app:argType="integer"
             android:defaultValue="-1" />
+
+        <argument
+            android:name="imageUrl"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
+
+
 
     <!-- 글로벌 홈 이동 -->
     <action

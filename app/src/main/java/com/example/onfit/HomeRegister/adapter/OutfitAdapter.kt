@@ -46,7 +46,6 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         }
         holder.closetBtn.setImageResource(btnImageRes)
 
-        // 옷장 버튼 클릭 리스너
         holder.closetBtn.setOnClickListener {
             if (item.isClosetButtonActive) {
                 item.isClosetButtonActive = false
@@ -55,14 +54,9 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
             }
         }
 
-        // 크롭 버튼 클릭 리스너
-        holder.cropBtn.setOnClickListener {
-            val pos = holder.bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) {
-                onCropButtonClick(pos)
-            }
-        }
+        // cropBtn 클릭 시 콜백 호출
 
+        // x 버튼 눌렀을 때 아이템 삭제
         // x 버튼 누를 시 아이템 삭제 팝업
         holder.remove.setOnClickListener {
             val dialogView = LayoutInflater.from(holder.itemView.context)
@@ -113,6 +107,4 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         items.add(item)
         notifyItemInserted(items.size - 1)
     }
-
-    fun getItems(): List<OutfitItem2> = items.toList()
 }
