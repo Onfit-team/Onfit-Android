@@ -1,5 +1,7 @@
 package com.example.onfit.Wardrobe.Network
 
+import com.google.gson.annotations.SerializedName
+
 data class ApiResponse<T>(
     val isSuccess: Boolean,
     val code: String,
@@ -138,13 +140,14 @@ data class ScoreBreakdownDto(
 
 // 업로드 API (/items/upload) 응답 구조
 data class ImageUploadResponse(
-    val success: Boolean,
+    val isSuccess: Boolean,
+    val code: String,
     val message: String,
-    val data: ImageUploadData?
+    val result: ResultData
 )
-
-data class ImageUploadData(
-    val image_url: String
+data class ResultData(
+    val id: Int,
+    @SerializedName("image_url") val imageUrl: String
 )
 
 // AI 리파인 응답 데이터 클래스

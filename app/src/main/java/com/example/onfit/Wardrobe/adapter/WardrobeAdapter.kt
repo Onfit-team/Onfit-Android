@@ -43,13 +43,8 @@ class WardrobeAdapter(
                 holder.imageView.setImageResource(item)
             }
             is WardrobeItemDto -> {
-                // API 데이터 (이미지 URL)
-                Glide.with(holder.itemView.context)
-                    .load(item.image)
-                    .transform(CenterCrop(), RoundedCorners(16)) // 모서리 둥글게
-                    .placeholder(R.drawable.ic_launcher_background) // 로딩 중 표시할 이미지
-                    .error(R.drawable.ic_launcher_foreground) // 로드 실패 시 표시할 이미지
-                    .into(holder.imageView)
+                // 🔥 API 데이터 처리 개선
+                loadWardrobeImage(holder, item)
             }
         }
 
@@ -75,6 +70,64 @@ class WardrobeAdapter(
         }
     }
 
+    private fun loadWardrobeImage(holder: WardrobeViewHolder, item: WardrobeItemDto) {
+        Log.d("WardrobeAdapter", "이미지 로딩 시도 - ID: ${item.id}, URL: '${item.image}'")
+
+        when {
+            // 🔥 빈 문자열도 체크하도록 수정
+            !item.image.isNullOrEmpty() &&
+                    item.image.trim().isNotEmpty() &&
+                    item.image != "null" &&
+                    (item.image.startsWith("http") || item.image.startsWith("data:")) -> {
+
+                Log.d("WardrobeAdapter", "네트워크 이미지 로딩: ${item.image}")
+                Glide.with(holder.itemView.context)
+                    .load(item.image)
+                    .transform(CenterCrop(), RoundedCorners(16))
+                    .placeholder(R.drawable.clothes1)
+                    .error(R.drawable.clothes2)
+                    .listener(object : RequestListener<Drawable> {
+                        override fun onLoadFailed(e: GlideException?, model: Any?, target: com.bumptech.glide.request.target.Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                            Log.e("WardrobeAdapter", "이미지 로딩 실패: ${e?.message}")
+                            loadDummyImage(holder, item.id)
+                            return true
+                        }
+
+                        override fun onResourceReady(resource: Drawable?, model: Any?, target: com.bumptech.glide.request.target.Target<Drawable>?, dataSource: com.bumptech.glide.load.DataSource?, isFirstResource: Boolean): Boolean {
+                            Log.d("WardrobeAdapter", "이미지 로딩 성공")
+                            return false
+                        }
+                    })
+                    .into(holder.imageView)
+            }
+
+            // 🔥 빈 문자열이나 유효하지 않은 URL인 경우
+            else -> {
+                Log.d("WardrobeAdapter", "유효하지 않은 URL - 더미 이미지 사용, URL: '${item.image}', ID: ${item.id}")
+                loadDummyImage(holder, item.id)
+            }
+        }
+    }
+
+    // 🔥 더미 이미지 로딩 함수
+    private fun loadDummyImage(holder: WardrobeViewHolder, itemId: Int) {
+        val dummyImages = listOf(
+            R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
+            R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+            R.drawable.clothes7, R.drawable.clothes8
+        )
+
+        val imageIndex = if (itemId > 0) {
+            (itemId - 1) % dummyImages.size
+        } else {
+            0
+        }
+
+        val selectedImage = dummyImages[imageIndex]
+        holder.imageView.setImageResource(selectedImage)
+        Log.d("WardrobeAdapter", "더미 이미지 설정: $selectedImage (index: $imageIndex)")
+    }
+
     override fun getItemCount(): Int = itemList.size
 
     /**
@@ -91,18 +144,6 @@ class WardrobeAdapter(
     fun updateWithApiData(wardrobeItems: List<WardrobeItemDto>) {
         itemList = wardrobeItems
         notifyDataSetChanged()
-    }
-
-    // WardrobeAdapter.kt에서 이미지 로딩 부분 수정
-    private fun bindApiItem(holder: WardrobeViewHolder, item: WardrobeItemDto) {
-        Log.d("WardrobeAdapter", "이미지 URL: ${item.image}")
-
-        Glide.with(holder.itemView.context)
-            .load(item.image)
-            .placeholder(R.drawable.clothes1)
-            .error(R.drawable.clothes2)
-            .centerCrop()
-            .into(holder.imageView)
     }
 
 }
