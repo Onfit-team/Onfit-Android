@@ -81,19 +81,62 @@ open class WardrobeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // 아이템 수정 결과 받기
-        parentFragmentManager.setFragmentResultListener("item_updated", this) { _, _ ->
-            Log.d("WardrobeFragment", "아이템 수정됨 - 데이터 새로고침")
-            loadWardrobeData() // 전체 데이터 다시 로드
-        }
+        parentFragmentManager.setFragmentResultListener("search_results", this) { _, bundle ->
+            val filteredIds = bundle.getIntArray("filtered_item_ids")
+            if (filteredIds != null) {
+                val filteredItems = wardrobeItems.filter { it.id in filteredIds }
 
-        // 아이템 등록 결과 받기
-        parentFragmentManager.setFragmentResultListener("item_registered", this) { _, _ ->
-            Log.d("WardrobeFragment", "아이템 등록됨 - 데이터 새로고침")
-            loadWardrobeData() // 전체 데이터 다시 로드
-        }
+                // 🔥 추가 로컬 검증 - 실제 데이터와 필터 조건 비교
+                val season = bundle.getString("filter_season")
+                val finalItems = if (!season.isNullOrEmpty()) {
+                    val seasonId = when (season) {
+                        "봄ㆍ가을" -> 1
+                        "여름" -> 2
+                        "겨울" -> 4
+                        else -> null
+                    }
 
-        testBasicSetup()
+                    if (seasonId != null) {
+                        filteredItems.filter { it.season == seasonId }
+                    } else {
+                        filteredItems
+                    }
+                } else {
+                    filteredItems
+                }
+
+                adapter.updateWithApiData(finalItems)
+                Toast.makeText(context, "${finalItems.size}개 아이템 검색됨", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
+
+    private fun applyLocalFiltering(bundle: Bundle) {
+        var filteredItems = wardrobeItems
+
+        bundle.getString("filter_season")?.let { season ->
+            if (season.isNotEmpty()) {
+                val seasonId = when (season) {
+                    "봄ㆍ가을" -> 1
+                    "여름" -> 2
+                    "겨울" -> 4
+                    else -> null
+                }
+                seasonId?.let { filteredItems = filteredItems.filter { it.season == seasonId } }
+            }
+        }
+
+        bundle.getString("filter_brand")?.let { brand ->
+            if (brand.isNotEmpty()) {
+                filteredItems = filteredItems.filter {
+                    it.brand.contains(brand, ignoreCase = true)
+                }
+            }
+        }
+
+        adapter.updateWithApiData(filteredItems)
+    }
+
 
     private fun testBasicSetup() {
         Log.d("WardrobeFragment", "기본 설정 테스트 시작")
@@ -442,12 +485,8 @@ open class WardrobeFragment : Fragment() {
                 // 이전 선택된 버튼 상태 해제
                 selectedTopCategoryButton?.isSelected = false
 
-                selectedTopCategoryButton?.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-
                 // 새로 선택된 버튼 상태 설정
                 button.isSelected = true
-                // 텍스트 색상을 명시적으로 설정 (원하는 색상으로 변경)
-                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 selectedTopCategoryButton = button
 
                 if (categoryName == "전체") {
@@ -462,8 +501,6 @@ open class WardrobeFragment : Fragment() {
             // 첫 번째 버튼(전체)을 기본 선택 상태로 설정
             if (categoryName == "전체") {
                 button.isSelected = true
-                // 기본 선택 버튼의 텍스트 색상도 설정
-                button.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 selectedTopCategoryButton = button
             }
         }
