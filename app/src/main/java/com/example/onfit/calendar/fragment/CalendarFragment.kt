@@ -7,21 +7,31 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.NavOptions
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 import com.example.onfit.calendar.adapter.CalendarAdapter
+import com.example.onfit.calendar.viewmodel.CalendarViewModel
+import com.example.onfit.calendar.viewmodel.CalendarUiState
+import com.example.onfit.calendar.Network.*
+import kotlinx.coroutines.launch
 import java.util.*
 
 class CalendarFragment : Fragment() {
 
+    // 기존 UI 멤버 변수들
     private lateinit var rvCalendar: RecyclerView
     private lateinit var calendarAdapter: CalendarAdapter
+    private lateinit var tvMostUsedStyle: TextView
 
-    // 코디가 등록된 날짜들 (예시 데이터)
+    // MVVM
+    private lateinit var viewModel: CalendarViewModel
+
+    // 기존 데이터들
     private val outfitRegisteredDates = setOf(
         "2025-04-03", "2025-04-04", "2025-04-05", "2025-04-06", "2025-04-07",
         "2025-04-08", "2025-04-09", "2025-04-10", "2025-04-11", "2025-04-12",
@@ -37,13 +47,10 @@ class CalendarFragment : Fragment() {
         "2025-07-28", "2025-07-29"
     )
 
-    // 스타일 태그별 개수 (예시 데이터)
-    private val styleTagCounts = mapOf(
-        "포멀" to 15,
-        "캐주얼" to 12,
-        "빈티지" to 8,
-        "미니멀" to 6
-    )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,13 +65,14 @@ class CalendarFragment : Fragment() {
 
         setupViews(view)
         setupCalendar()
-        updateMostUsedStyleText()
+        observeViewModel()
+
+        // 🔥 새 API로 가장 많이 사용된 태그 조회
+        loadMostUsedTag()
     }
 
     override fun onResume() {
         super.onResume()
-
-        // Fragment가 다시 보일 때마다 현재 월로 스크롤
         rvCalendar.post {
             try {
                 val currentMonthIndex = 24
@@ -77,13 +85,19 @@ class CalendarFragment : Fragment() {
 
     private fun setupViews(view: View) {
         rvCalendar = view.findViewById(R.id.rvCalendar)
+        tvMostUsedStyle = view.findViewById(R.id.tvMostUsedStyle)
 
-        // 스타일별 Outfit 보기 버튼 클릭 리스너
         view.findViewById<View>(R.id.btnStyleOutfits)?.setOnClickListener {
-            Toast.makeText(requireContext(), "버튼 클릭됨!", Toast.LENGTH_SHORT).show()
             navigateToStyleOutfits()
-        } ?: run {
-            Toast.makeText(requireContext(), "버튼을 찾을 수 없습니다!", Toast.LENGTH_SHORT).show()
+        }
+
+        view.findViewById<View>(R.id.calendar_register_btn)?.setOnClickListener {
+            try {
+                findNavController().navigate(R.id.action_calendarFragment_to_registerFragment)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "이동 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
         // 캘린더 등록 버튼 클릭 시 RegisterFragment로 이동
@@ -98,7 +112,6 @@ class CalendarFragment : Fragment() {
     }
 
     private fun setupCalendar() {
-        // 현재 날짜 기준으로 이전 12개월, 이후 12개월 데이터 생성
         val months = generateMonths()
 
         calendarAdapter = CalendarAdapter(
@@ -112,33 +125,95 @@ class CalendarFragment : Fragment() {
         rvCalendar.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = calendarAdapter
-
-            // 스냅 헬퍼 추가 (한 번에 한 달씩 스크롤)
             PagerSnapHelper().attachToRecyclerView(this)
         }
 
-        // 현재 월로 스크롤 (처음 화면 진입 시)
         scrollToCurrentMonth()
+    }
+
+    /**
+     * API로 가장 많이 사용된 태그 조회
+     */
+    private fun loadMostUsedTag() {
+        viewModel.loadMostUsedTag()
+    }
+
+    /**
+     * ViewModel 상태 관찰
+     */
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                // 기존 코디 데이터 처리
+                handleOutfitData(state)
+
+                // 새로 추가: 태그 통계 UI 업데이트
+                updateTagUI(state)
+            }
+        }
+    }
+
+    /**
+     * 기존 코디 데이터 처리
+     */
+    private fun handleOutfitData(state: CalendarUiState) {
+        when {
+            state.isLoading -> {
+                // 로딩 중
+            }
+            state.hasOutfitData -> {
+                state.outfitImage?.let { image ->
+                    println("Calendar API - 이미지 데이터 수신: ${image.mainImage}")
+                }
+                state.outfitText?.let { text ->
+                    println("Calendar API - 텍스트 데이터 수신: ${text.memo}")
+                }
+            }
+            state.errorMessage != null -> {
+                Toast.makeText(context, "코디 데이터: ${state.errorMessage}", Toast.LENGTH_SHORT).show()
+                viewModel.clearErrorMessage()
+            }
+        }
+    }
+
+    /**
+     * 태그 UI 업데이트
+     */
+    private fun updateTagUI(state: CalendarUiState) {
+        when {
+            state.isTagLoading -> {
+                // 태그 로딩 중
+                tvMostUsedStyle.text = "데이터를 불러오는 중..."
+            }
+            state.mostUsedTag != null -> {
+                // 🔥 실제 API 데이터로 업데이트
+                val tag = state.mostUsedTag
+                tvMostUsedStyle.text = "#${tag.tag} 스타일이 가장 많았어요! (${tag.count}개)"
+            }
+            state.tagErrorMessage != null -> {
+                // 에러 시 기본값
+                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+
+                // 에러 메시지 자동 제거
+                viewModel.clearTagError()
+            }
+            else -> {
+                // 초기 상태
+                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+            }
+        }
     }
 
     private fun generateMonths(): List<MonthData> {
         val months = mutableListOf<MonthData>()
         val calendar = Calendar.getInstance()
 
-        // 현재 날짜에서 24개월 전으로 시작
         calendar.add(Calendar.MONTH, -24)
 
-        // 총 37개월 생성 (이전 24개월 + 현재 월 + 이후 12개월)
         repeat(37) {
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH) + 1
-
-            // 각 달의 날짜 데이터도 함께 생성
-            val monthData = MonthData(year, month).apply {
-                // MonthData에 날짜 리스트가 있다면 여기서 생성
-                // 이 부분은 실제 MonthData 클래스 구조에 따라 달라짐
-            }
-
+            val monthData = MonthData(year, month)
             months.add(monthData)
             calendar.add(Calendar.MONTH, 1)
         }
@@ -147,58 +222,43 @@ class CalendarFragment : Fragment() {
     }
 
     private fun scrollToCurrentMonth() {
-        // 현재 월 인덱스 (이전 24개월 후)
         val currentMonthIndex = 24
         rvCalendar.post {
-            // 뷰가 완전히 렌더링된 후 스크롤
             rvCalendar.postDelayed({
                 try {
-                    // smoothScrollToPosition 대신 scrollToPosition 사용
                     (rvCalendar.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentMonthIndex, 0)
                 } catch (e: Exception) {
-                    // 실패 시 기본 스크롤
                     rvCalendar.scrollToPosition(currentMonthIndex)
                 }
-            }, 100) // 100ms 지연 후 스크롤
+            }, 100)
         }
-    }
-
-    private fun updateMostUsedStyleText() {
-        val mostUsedStyle = styleTagCounts.maxByOrNull { it.value }?.key ?: "포밍"
-        view?.findViewById<TextView>(R.id.tvMostUsedStyle)?.text =
-            "#${mostUsedStyle} 스타일이 가장 많았어요!"
     }
 
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
         if (hasOutfit) {
-            // 코디가 등록되어 있는 날짜 클릭 → 코디 상세 화면으로 이동
+            loadOutfitDataInBackground(dateString)
             navigateToOutfitDetail(dateString)
         } else {
-            // 코디가 등록되어 있지 않은 날짜 클릭 → outfit 등록 flow로 이동
             navigateToOutfitRegister(dateString)
         }
     }
 
+    private fun loadOutfitDataInBackground(dateString: String) {
+        viewModel.onDateSelected(dateString)  // String 전달 (outfitId 계산 불필요)
+    }
+
     private fun navigateToOutfitDetail(dateString: String) {
-        // TODO: 코디 상세 화면으로 이동
-        // findNavController().navigate(
-        //     CalendarFragmentDirections.actionCalendarToOutfitDetail(dateString)
-        // )
+        Toast.makeText(context, "코디 상세: $dateString", Toast.LENGTH_SHORT).show()
     }
 
     private fun navigateToOutfitRegister(dateString: String) {
-        // 코디 등록 화면으로 이동
         val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
         findNavController().navigate(action)
     }
 
     private fun navigateToStyleOutfits() {
         try {
-            // Navigation 안전성 확인
             val navController = findNavController()
-            val currentDestination = navController.currentDestination
-
-            // StyleOutfitsFragment가 navigation graph에 있는지 확인
             val targetDestination = navController.graph.findNode(R.id.styleOutfitsFragment)
 
             if (targetDestination != null) {
@@ -211,6 +271,13 @@ class CalendarFragment : Fragment() {
             e.printStackTrace()
             Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    /**
+     * 외부에서 태그 통계 새로고침
+     */
+    fun refreshMostUsedTag() {
+        loadMostUsedTag()
     }
 }
 

@@ -27,6 +27,7 @@
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="4dp" />
 
+            <!-- 동적 태그 텍스트 - 옷장 아이템 태그 기반으로 계산 -->
             <TextView
                 android:id="@+id/tvMostUsedStyle"
                 android:layout_width="wrap_content"
@@ -35,7 +36,8 @@
                 android:textSize="17sp"
                 android:fontFamily="@font/pretendardbold"
                 android:textColor="@android:color/black"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:minHeight="24dp" />
 
             <android.widget.Button
                 android:id="@+id/btnStyleOutfits"
