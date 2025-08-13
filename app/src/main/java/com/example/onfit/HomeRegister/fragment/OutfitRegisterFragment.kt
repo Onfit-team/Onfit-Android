@@ -41,6 +41,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLConnection
 
 
 class OutfitRegisterFragment : Fragment() {
@@ -290,24 +291,37 @@ class OutfitRegisterFragment : Fragment() {
     private fun uploadImageToServer(file: File) {
         // 임시 토큰
         val token = TokenProvider.getToken(requireContext())
+        if (token.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "토큰 없음", Toast.LENGTH_SHORT).show(); return
+        }
+        if (!file.exists() || file.length() <= 0) {
+            Toast.makeText(requireContext(), "유효하지 않은 파일", Toast.LENGTH_SHORT).show(); return
+        }
+
+        // Part 생성
+        val part = fileToImagePart(requireContext(), file)
         val header = "Bearer $token"
 
-        val mediaType = "image/*".toMediaTypeOrNull()
-        val requestFile: RequestBody = file.asRequestBody(mediaType)
-        val body = MultipartBody.Part.createFormData("photo", file.name, requestFile)
+        // ✅ 여기서 멀티파트(이미지) 만들고, 로그 찍고, detect에 그대로 넘김
+        val imagePart = fileToImagePart(requireContext(), file)  // 우리가 만든 헬퍼
+        val mime = imagePart.body.contentType()?.toString() ?: "unknown" // OkHttp 4.x
+        // OkHttp 3.x라면 ↑를 imagePart.body().contentType()?.toString() 로 바꾸세요
+        val filename = file.name
+        println("📦 multipart name=photo, filename=$filename, mime=$mime")
 
-        CoroutineScope(Dispatchers.IO).launch {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 요청 전에 파일 경로와 존재 여부 출력
-                println("📂 파일 경로: ${file.absolutePath}")
-                println("📂 파일 존재 여부: ${file.exists()}")
-                val response = RetrofitClient.instance.detectItems(header, body)
+                val response = RetrofitClient.instance.detectItems(header, part)
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
-                        val crops = response.body()?.result?.crops ?: emptyList()
+                        val crops = response.body()?.result?.crops.orEmpty()
 
                         val originalBitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        if (originalBitmap == null) {
+                            Toast.makeText(requireContext(), "이미지 디코드 실패", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
 
                         crops.forEach { crop ->
                             val croppedBitmap = cropBitmap(originalBitmap, crop.bbox)
@@ -322,21 +336,26 @@ class OutfitRegisterFragment : Fragment() {
                             )
                         }
                     } else {
-                        // 서버가 응답은 했지만 성공 코드가 아닐 때
-                        val errorMsg = response.errorBody()?.string() ?: "응답 없음"
-                        println("❌ API 오류 발생: $errorMsg")
-                        Toast.makeText(
-                            requireContext(),
-                            "API 오류: ${response.body()?.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // 서버 에러 본문 파싱
+                        val raw = response.errorBody()?.string()
+                        data class ErrBody(val errorCode: String?, val reason: String?)
+                        data class ErrEnvelope(val resultType: String?, val error: ErrBody?)
+
+                        val reason = try {
+                            val env = com.google.gson.Gson().fromJson(raw, ErrEnvelope::class.java)
+                            env?.error?.reason
+                        } catch (_: Exception) { null }
+
+                        val msg = reason ?: response.body()?.message ?: "알 수 없는 오류"
+                        println("❗HTTP ${response.code()} | $raw")
+                        Toast.makeText(requireContext(), "감지 실패: $msg", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                // 네트워크/예외 발생 시
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "서버 요청 실패", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "서버 요청 실패(${e::class.java.simpleName})", Toast.LENGTH_SHORT).show()
                 }
+                println("🔥 ${e::class.java.name}: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -347,6 +366,51 @@ class OutfitRegisterFragment : Fragment() {
             type = "image/*" // 갤러리에서 이미지 파일만 보이도록
         }
         galleryLauncher.launch(intent)
+    }
+
+    // 파일 확장자/용량/인코딩을 안전하게 만들어 Part 생성
+    private fun fileToImagePart(context: Context, src: File): MultipartBody.Part {
+        // 확장자 보장
+        val safeName = if (src.name.contains('.')) src.name else "${src.name}.jpg"
+
+        // 이름에서 MIME 추정 (없으면 jpeg로)
+        val mimeFromName = java.net.URLConnection.guessContentTypeFromName(safeName)
+        val mime = (mimeFromName ?: "image/jpeg").toMediaTypeOrNull()
+
+        // (선택) 너무 크거나 MIME 불명일 때 JPEG로 재인코딩
+        val sendFile = ensureJpegIfNeeded(context, src, safeName)
+
+        val req = sendFile.asRequestBody(mime)
+        return MultipartBody.Part.createFormData("photo", sendFile.name, req)
+    }
+
+    /** PNG/기타 포맷이거나 너무 클 때 JPEG로 재인코딩해서 임시 파일 반환 */
+    private fun ensureJpegIfNeeded(context: Context, src: File, safeName: String): File {
+        val nameLc = safeName.lowercase()
+        val looksJpeg = nameLc.endsWith(".jpg") || nameLc.endsWith(".jpeg")
+
+        // 1) 이미 JPEG이고 10MB 이하 → 그대로 사용
+        if (looksJpeg && src.length() in 1..10_000_000L) return src
+
+        // 2) 재인코딩
+        val bm = BitmapFactory.decodeFile(src.absolutePath)
+            ?: return src // 디코드 실패 시 원본 그대로(최후의 수단)
+
+        // (선택) 해상도 제한: 긴 변 2000px로 리사이즈
+        val maxSide = 2000
+        val w = bm.width
+        val h = bm.height
+        val scale = maxOf(w, h).let { if (it > maxSide) maxSide.toFloat() / it else 1f }
+        val resized = if (scale < 1f) {
+            Bitmap.createScaledBitmap(bm, (w * scale).toInt(), (h * scale).toInt(), true)
+        } else bm
+
+        val outFile = File.createTempFile("upload_", ".jpg", context.cacheDir)
+        outFile.outputStream().use { os ->
+            resized.compress(Bitmap.CompressFormat.JPEG, 90, os)
+        }
+        if (resized !== bm) bm.recycle()
+        return outFile
     }
 
     override fun onDestroyView() {
