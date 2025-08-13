@@ -141,7 +141,7 @@ class ClothesDetailFragment : Fragment() {
     private fun displayItemDetail(itemDetail: WardrobeItemDetail) {
         val clothesImageView = view?.findViewById<ImageView>(R.id.clothes_image)
 
-        // 이미지 로딩 강화
+        // 🔥 이미지 로딩 강화 - 이 부분을 수정
         clothesImageView?.let { imageView ->
             Log.d("ClothesDetailFragment", "이미지 처리 시작")
             Log.d("ClothesDetailFragment", "이미지 URL: '${itemDetail.image}'")
@@ -149,11 +149,8 @@ class ClothesDetailFragment : Fragment() {
             Log.d("ClothesDetailFragment", "이미지 URL 비어있음?: ${itemDetail.image.isNullOrEmpty()}")
 
             when {
-                itemDetail.image.isNullOrEmpty() || itemDetail.image.isBlank() -> {
-                    Log.d("ClothesDetailFragment", "기본 이미지 사용 - URL이 비어있음")
-                    imageView.setImageResource(R.drawable.clothes8)
-                }
-                itemDetail.image.startsWith("http") -> {
+                // 1. URL이 유효한 경우
+                !itemDetail.image.isNullOrEmpty() && itemDetail.image.startsWith("http") -> {
                     Log.d("ClothesDetailFragment", "네트워크 이미지 로딩 시도: ${itemDetail.image}")
                     Glide.with(this)
                         .load(itemDetail.image)
@@ -162,18 +159,38 @@ class ClothesDetailFragment : Fragment() {
                         .error(R.drawable.clothes1)
                         .into(imageView)
                 }
+
+                // 2. URL이 비어있는 경우 - 더미 이미지 사용 (itemId 기반)
                 else -> {
-                    Log.d("ClothesDetailFragment", "잘못된 이미지 URL 형식: ${itemDetail.image}")
-                    imageView.setImageResource(R.drawable.clothes8)
+                    Log.d("ClothesDetailFragment", "URL 비어있음 - 더미 이미지 사용, itemId: $imageResId")
+
+                    // 더미 이미지 배열
+                    val dummyImages = listOf(
+                        R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
+                        R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+                        R.drawable.clothes7, R.drawable.clothes8
+                    )
+
+                    // imageResId(실제로는 itemId)를 기반으로 순환하여 이미지 선택
+                    val imageIndex = if (imageResId > 0) {
+                        (imageResId - 1) % dummyImages.size
+                    } else {
+                        0 // 기본값
+                    }
+
+                    val selectedImage = dummyImages[imageIndex]
+                    imageView.setImageResource(selectedImage)
+                    Log.d("ClothesDetailFragment", "더미 이미지 설정: $selectedImage (index: $imageIndex)")
                 }
             }
         }
 
-        // 나머지 정보 표시
+        // 나머지 정보 표시는 그대로 유지
         displayCategoryInfo(itemDetail)
         displayPurchaseInfo(itemDetail)
         displayTags(itemDetail.tags)
     }
+
 
     private fun displayCategoryInfo(itemDetail: WardrobeItemDetail) {
         // 카테고리명 찾기
@@ -662,8 +679,22 @@ class ClothesDetailFragment : Fragment() {
     private fun loadImageSafely(imageUrl: String?, imageView: ImageView) {
         when {
             imageUrl.isNullOrEmpty() -> {
-                Log.w("ClothesDetailFragment", "이미지 URL이 비어있음")
-                imageView.setImageResource(R.drawable.clothes8)
+                Log.w("ClothesDetailFragment", "이미지 URL이 비어있음 - 더미 이미지 사용")
+
+                // 더미 이미지 사용
+                val dummyImages = listOf(
+                    R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
+                    R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+                    R.drawable.clothes7, R.drawable.clothes8
+                )
+
+                val imageIndex = if (imageResId > 0) {
+                    (imageResId - 1) % dummyImages.size
+                } else {
+                    0
+                }
+
+                imageView.setImageResource(dummyImages[imageIndex])
             }
             !imageUrl.startsWith("http") -> {
                 Log.w("ClothesDetailFragment", "유효하지 않은 URL: $imageUrl")

@@ -8,10 +8,12 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.lifecycleScope
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import com.example.onfit.R
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.Wardrobe.Network.RetrofitClient
+import com.example.onfit.Wardrobe.Network.WardrobeItemDto
 import com.google.android.flexbox.FlexboxLayout
 import android.util.Log
 
@@ -44,6 +46,10 @@ class WardrobeSearchFragment : Fragment() {
     private val selectedStyleTags = mutableSetOf<String>()
     private val selectedPurposeTags = mutableSetOf<String>()
 
+    // 누락된 변수들 추가
+    private var currentSearchQuery = ""
+    private var wardrobeItems = listOf<WardrobeItemDto>()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -59,6 +65,7 @@ class WardrobeSearchFragment : Fragment() {
         setupListeners()
         setupSpinners()
         setupButtons()
+        setupSearchResultListener() // 이 함수를 여기로 이동
 
         // API에서 브랜드 목록 로드
         loadBrandsFromAPI()
@@ -104,17 +111,6 @@ class WardrobeSearchFragment : Fragment() {
 
         addButtonsFromLinearLayout(purposeLayout1, purposeButtons)
         addButtonsFromLinearLayout(purposeLayout2, purposeButtons)
-    }
-
-    private fun addButtonsFromFlexboxLayout(layout: FlexboxLayout?, buttonList: MutableList<Button>) {
-        layout?.let {
-            for (i in 0 until it.childCount) {
-                val child = it.getChildAt(i)
-                if (child is Button) {
-                    buttonList.add(child)
-                }
-            }
-        }
     }
 
     private fun addButtonsFromLinearLayout(layout: LinearLayout?, buttonList: MutableList<Button>) {
@@ -364,7 +360,6 @@ class WardrobeSearchFragment : Fragment() {
         selectedButton.isSelected = true
     }
 
-    // WardrobeSearchFragment.kt의 toggleStyleTag과 togglePurposeTag 함수 수정
     private fun toggleStyleTag(button: Button) {
         val tag = button.text.toString().replace("#", "")
 
@@ -450,6 +445,23 @@ class WardrobeSearchFragment : Fragment() {
         brandPopupOverlay.visibility = View.GONE
     }
 
+    // 검색 결과 리스너를 별도 함수로 분리
+    private fun setupSearchResultListener() {
+        // 검색 결과 받기 - 중복 제거
+        parentFragmentManager.setFragmentResultListener("search_results", this) { _, bundle ->
+            val filteredIds = bundle.getIntArray("filtered_item_ids")
+            val searchQuery = bundle.getString("search_query")
+
+            if (filteredIds != null) {
+                // 필터링된 아이템만 표시
+                val filteredItems = wardrobeItems.filter { it.id in filteredIds }
+
+                Log.d("WardrobeSearchFragment", "${filteredItems.size}개 아이템 검색됨")
+                Toast.makeText(context, "${filteredItems.size}개 아이템 검색됨", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     /**
      * API를 사용한 필터 검색
      */
@@ -477,21 +489,7 @@ class WardrobeSearchFragment : Fragment() {
 
                 Log.d("WardrobeSearchFragment", "필터 파라미터: season=$seasonParam, color=$colorParam, brand=$brandParam, tagIds=$tagIdsParam")
 
-                // 임시로 성공 처리 (실제 API 구현되면 아래 주석 해제)
-                Toast.makeText(context, "필터가 적용되었습니다", Toast.LENGTH_SHORT).show()
-
-                val bundle = Bundle().apply {
-                    putString("search_results", "filter_applied")
-                    putString("filter_season", selectedSeason)
-                    putString("filter_color", selectedColor)
-                    putString("filter_brand", selectedBrand)
-                }
-
-                parentFragmentManager.setFragmentResult("filter_results", bundle)
-                findNavController().navigateUp()
-
-
-                // 실제 API 호출 (API 준비되면 주석 해제)
+                // 실제 API 호출 시도
                 try {
                     val response = RetrofitClient.wardrobeService.filterWardrobeItems(
                         authorization = token,
@@ -505,11 +503,13 @@ class WardrobeSearchFragment : Fragment() {
                         val searchResults = response.body()?.result?.items ?: emptyList()
 
                         if (searchResults.isNotEmpty()) {
+                            // 검색 결과를 WardrobeFragment에 전달
                             val bundle = Bundle().apply {
-                                putString("search_results", "filter_applied")
+                                putIntArray("filtered_item_ids", searchResults.map { it.id }.toIntArray())
+                                putString("search_query", "필터 검색")
                             }
 
-                            parentFragmentManager.setFragmentResult("filter_results", bundle)
+                            parentFragmentManager.setFragmentResult("search_results", bundle)
                             Toast.makeText(context, "${searchResults.size}개의 아이템을 찾았습니다", Toast.LENGTH_SHORT).show()
                             findNavController().navigateUp()
                         } else {
@@ -520,7 +520,17 @@ class WardrobeSearchFragment : Fragment() {
                     }
                 } catch (apiError: Exception) {
                     Log.w("WardrobeSearchFragment", "API 호출 실패, 임시 성공 처리: ${apiError.message}")
-                    Toast.makeText(context, "필터가 적용되었습니다 (임시)", Toast.LENGTH_SHORT).show()
+
+                    // API 실패 시 임시 처리
+                    val bundle = Bundle().apply {
+                        putString("filter_applied", "true")
+                        putString("filter_season", selectedSeason)
+                        putString("filter_color", selectedColor)
+                        putString("filter_brand", selectedBrand)
+                    }
+
+                    parentFragmentManager.setFragmentResult("filter_results", bundle)
+                    Toast.makeText(context, "필터가 적용되었습니다", Toast.LENGTH_SHORT).show()
                     findNavController().navigateUp()
                 }
 
@@ -570,32 +580,16 @@ class WardrobeSearchFragment : Fragment() {
     private fun convertTagsToAPI(tags: Set<String>): String? {
         if (tags.isEmpty()) return null
 
-        // 실제 레이아웃의 태그 이름에 맞게 수정
         val tagNameToId = mapOf(
-            // 분위기 태그 (실제 XML에서 가져온 이름들)
-            "캐주얼" to 1,
-            "스트릿" to 2,
-            "미니멀" to 3,
-            "클래식" to 4,
-            "빈티지" to 5,
-            "러블리" to 6,
-            "페미닌" to 7,
-            "보이시" to 8,
-            "모던" to 9,
-
-            // 용도 태그 (실제 XML에서 가져온 이름들)
-            "데일리" to 10,
-            "출근룩" to 11,
-            "데이트룩" to 12,
-            "나들이룩" to 13,
-            "여행룩" to 14,
-            "운동복" to 15,
-            "하객룩" to 16,
-            "파티룩" to 17
+            // 분위기 태그
+            "캐주얼" to 1, "스트릿" to 2, "미니멀" to 3, "클래식" to 4, "빈티지" to 5,
+            "러블리" to 6, "페미닌" to 7, "보이시" to 8, "모던" to 9,
+            // 용도 태그
+            "데일리" to 10, "출근룩" to 11, "데이트룩" to 12, "나들이룩" to 13,
+            "여행룩" to 14, "운동복" to 15, "하객룩" to 16, "파티룩" to 17
         )
 
         val tagIds = tags.mapNotNull { tagName ->
-            // #제거하고 매핑
             val cleanTagName = tagName.replace("#", "")
             val tagId = tagNameToId[cleanTagName]
             Log.d("WardrobeSearchFragment", "태그 변환: '$cleanTagName' -> $tagId")
@@ -610,32 +604,4 @@ class WardrobeSearchFragment : Fragment() {
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         Log.e("WardrobeSearchFragment", message)
     }
-
-    // Function to reset all filters
-    private fun resetFilters() {
-        selectedSeason = ""
-        selectedColor = ""
-        selectedBrand = ""
-        selectedStyleTags.clear()
-        selectedPurposeTags.clear()
-
-        // Reset UI
-        listOf(btnSpringFall, btnSummer, btnWinter).forEach { it.isSelected = false }
-        styleButtons.forEach { it.isSelected = false }
-        purposeButtons.forEach { it.isSelected = false }
-
-        spinnerColor.setSelection(0)
-        brandDropdownText.text = "브랜드를 선택하세요"
-        brandDropdownText.setTextColor(
-            resources.getColor(android.R.color.darker_gray, requireContext().theme)
-        )
-    }
-
-    data class FilterData(
-        val season: String,
-        val color: String,
-        val brand: String,
-        val styleTags: List<String>,
-        val purposeTags: List<String>
-    )
 }

@@ -234,12 +234,7 @@ class CalendarFragment : Fragment() {
     }
 
     private fun loadOutfitDataInBackground(dateString: String) {
-        val outfitId = getOutfitIdFromDate(dateString)
-        viewModel.onDateSelected(outfitId)
-    }
-
-    private fun getOutfitIdFromDate(dateString: String): Int {
-        return dateString.hashCode().let { if (it < 0) -it else it } % 100 + 1
+        viewModel.onDateSelected(dateString)  // String 전달 (outfitId 계산 불필요)
     }
 
     private fun navigateToOutfitDetail(dateString: String) {

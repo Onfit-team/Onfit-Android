@@ -39,6 +39,13 @@ class AddItemFragment : Fragment() {
     private lateinit var priceEditText: EditText
     private lateinit var purchaseSiteEditText: EditText
     private val selectedTags = mutableListOf<Int>()
+    private var originalImageUri: Uri? = null  // 원본 이미지 URI
+    private var refinedImageUrl: String? = null  // AI 리파인된 이미지 URL
+    private var currentImageUrl: String? = null  // 현재 표시중인 이미지 URL
+    private var isUsingRefinedImage = true  // 현재 리파인된 이미지 사용 중인지
+
+    private lateinit var btnChangeToOriginal: Button  // "기존 이미지로 바꾸기" 버튼
+    private lateinit var btnChangeToRefined: Button   // "AI 이미지로 바꾸기" 버튼
 
     // 서브카테고리 매핑
     private val subcategoryMap = mapOf(
@@ -86,6 +93,8 @@ class AddItemFragment : Fragment() {
         handleImageUri()
         setupDropdowns(view)
         setupTagButtons(view)
+        setupImageButtons(view)
+        handleEditMode()
 
         // 순서 변경 - 드롭다운과 태그 버튼을 먼저 설정한 후 기존 데이터 로드
         handleEditMode()
@@ -108,30 +117,197 @@ class AddItemFragment : Fragment() {
         val imageUriString = arguments?.getString("image_uri")
         if (imageUriString != null) {
             selectedImageUri = Uri.parse(imageUriString)
+            originalImageUri = selectedImageUri  // 원본 저장
+
+            // 먼저 원본 이미지 표시
             imageView.setImageURI(selectedImageUri)
 
-            // 이미지 업로드 상태 표시
+            // AI 리파인 시작
             lifecycleScope.launch {
                 try {
-                    // 로딩 상태 표시 (선택사항)
-                    // showLoadingIndicator(true)
+                    Toast.makeText(requireContext(), "AI가 이미지를 처리중입니다...", Toast.LENGTH_SHORT).show()
 
-                    uploadedImageUrl = selectedImageUri?.let { uploadImageToServer(it) }
+                    // AI 리파인 API 호출
+                    refinedImageUrl = selectedImageUri?.let { refineImageWithAI(it) }
 
-                    if (uploadedImageUrl == null) {
-                        Toast.makeText(requireContext(), "이미지 업로드 실패", Toast.LENGTH_SHORT).show()
-                        Log.e("AddItemFragment", "이미지 업로드 실패")
+                    if (refinedImageUrl != null) {
+                        // 리파인 성공 시 리파인된 이미지 표시
+                        displayRefinedImage()
+                        showImageSwitchButtons()
+                        Toast.makeText(requireContext(), "AI 이미지 처리 완료!", Toast.LENGTH_SHORT).show()
                     } else {
-                        Log.d("AddItemFragment", "이미지 업로드 성공: $uploadedImageUrl")
-                        Toast.makeText(requireContext(), "이미지 업로드 완료", Toast.LENGTH_SHORT).show()
+                        // 리파인 실패 시 원본 이미지 유지
+                        Toast.makeText(requireContext(), "AI 처리 실패 - 원본 이미지 사용", Toast.LENGTH_SHORT).show()
+                        currentImageUrl = null
+                        isUsingRefinedImage = false
                     }
+
                 } catch (e: Exception) {
-                    Log.e("AddItemFragment", "이미지 처리 중 오류", e)
-                    Toast.makeText(requireContext(), "이미지 처리 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                } finally {
-                    // showLoadingIndicator(false)
+                    Log.e("AddItemFragment", "이미지 AI 처리 실패", e)
+                    Toast.makeText(requireContext(), "AI 처리 실패 - 원본 이미지 사용", Toast.LENGTH_SHORT).show()
+                    currentImageUrl = null
+                    isUsingRefinedImage = false
                 }
             }
+        }
+    }
+
+    // AI 이미지 리파인 API 호출
+    // AI 이미지 리파인 API 호출
+    private suspend fun refineImageWithAI(imageUri: Uri): String? {
+        return try {
+            val context = requireContext()
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(imageUri)
+
+            val timeStamp = System.currentTimeMillis()
+            val file = File.createTempFile("refine_$timeStamp", ".jpg", context.cacheDir)
+
+            inputStream?.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            Log.d("AddItemFragment", "AI 리파인 요청: ${file.name}, 크기: ${file.length()}")
+
+            val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+            val token = "Bearer " + TokenProvider.getToken(context)
+            val response = RetrofitClient.wardrobeService.refineImage(token, body)
+
+            file.delete() // 임시 파일 삭제
+
+            Log.d("AddItemFragment", "AI 리파인 응답: ${response.code()}, ${response.body()}")
+
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+
+                // 응답 구조에 맞춰 수정
+                val refinedUrl = when {
+                    responseBody?.isSuccess == true -> responseBody.result?.refined_url
+                    responseBody?.resultType == "SUCCESS" -> responseBody.result?.refined_url
+                    else -> null
+                }
+
+                if (!refinedUrl.isNullOrEmpty()) {
+                    Log.d("AddItemFragment", "AI 리파인 성공: $refinedUrl")
+                    refinedUrl
+                } else {
+                    Log.e("AddItemFragment", "AI 리파인 응답에서 URL을 찾을 수 없음")
+                    null
+                }
+            } else {
+                Log.e("AddItemFragment", "AI 리파인 실패: HTTP ${response.code()}")
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e("AddItemFragment", "AI 리파인 예외", e)
+            null
+        }
+    }
+
+    private fun setupImageButtons(view: View) {
+        btnChangeToOriginal.setOnClickListener { changeToOriginalImage() }
+        btnChangeToRefined.setOnClickListener { changeToRefinedImage() }
+    }
+
+    private fun displayRefinedImage() {
+        refinedImageUrl?.let { url ->
+            Glide.with(this)
+                .load(url)
+                .placeholder(R.drawable.clothes8)
+                .error(R.drawable.clothes1)
+                .into(imageView)
+
+            currentImageUrl = url
+            isUsingRefinedImage = true
+            updateImageButtons()
+        }
+    }
+
+    private fun changeToOriginalImage() {
+        originalImageUri?.let { uri ->
+            imageView.setImageURI(uri)
+            currentImageUrl = null
+            isUsingRefinedImage = false
+            updateImageButtons()
+            Toast.makeText(requireContext(), "원본 이미지로 변경됨", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun changeToRefinedImage() {
+        if (refinedImageUrl != null) {
+            displayRefinedImage()
+            Toast.makeText(requireContext(), "AI 처리된 이미지로 변경됨", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showImageSwitchButtons() {
+        btnChangeToOriginal.visibility = View.VISIBLE
+        btnChangeToRefined.visibility = View.VISIBLE
+        updateImageButtons()
+    }
+
+    private fun updateImageButtons() {
+        if (isUsingRefinedImage) {
+            btnChangeToOriginal.visibility = View.VISIBLE
+            btnChangeToRefined.visibility = View.GONE
+        } else {
+            btnChangeToOriginal.visibility = View.GONE
+            btnChangeToRefined.visibility = View.VISIBLE
+        }
+    }
+
+    // 최종 이미지 저장 API 호출
+    private suspend fun saveImageToServer(): String? {
+        return try {
+            if (isUsingRefinedImage && refinedImageUrl != null) {
+                refinedImageUrl
+            } else if (originalImageUri != null) {
+                uploadOriginalImageToServer(originalImageUri!!)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("AddItemFragment", "이미지 저장 실패", e)
+            null
+        }
+    }
+
+    private suspend fun uploadOriginalImageToServer(imageUri: Uri): String? {
+        return try {
+            val context = requireContext()
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(imageUri)
+
+            val timeStamp = System.currentTimeMillis()
+            val file = File.createTempFile("save_$timeStamp", ".jpg", context.cacheDir)
+
+            inputStream?.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+
+            val token = "Bearer " + TokenProvider.getToken(context)
+            val response = RetrofitClient.wardrobeService.saveImage(token, body)
+
+            file.delete()
+
+            if (response.isSuccessful && response.body()?.isSuccess == true) {
+                response.body()?.result?.image_url
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("AddItemFragment", "원본 업로드 예외", e)
+            null
         }
     }
 
@@ -141,58 +317,103 @@ class AddItemFragment : Fragment() {
             val contentResolver = context.contentResolver
             val inputStream = contentResolver.openInputStream(imageUri)
 
-            // 임시 파일 생성
-            val file = File.createTempFile("upload", ".jpg", context.cacheDir)
+            val timeStamp = System.currentTimeMillis()
+            val file = File.createTempFile("upload_$timeStamp", ".jpg", context.cacheDir)
+
             inputStream?.use { input ->
                 file.outputStream().use { output ->
                     input.copyTo(output)
                 }
             }
 
-            // Multipart 요청 생성
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            Log.d("AddItemFragment", "파일 생성: ${file.name}, 크기: ${file.length()}")
+
+            val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
             val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
 
-            // API 호출
             val token = "Bearer " + TokenProvider.getToken(context)
-            val response = RetrofitClient.wardrobeService.uploadImage(token, body)
 
-            // 응답 처리
-            if (response.isSuccessful && response.body()?.success == true) {
-                val imageUrl = response.body()?.data?.imageUrl
-                Log.d("AddItemFragment", "이미지 업로드 성공: $imageUrl")
-                imageUrl
-            } else {
-                Log.e("AddItemFragment", "이미지 업로드 실패: ${response.body()?.message}")
-                null
+            // 먼저 저장 API 시도 (/items/save)
+            try {
+                Log.d("AddItemFragment", "이미지 저장 API 시도: /items/save")
+                val saveResponse = RetrofitClient.wardrobeService.saveImage(token, body)
+
+                Log.d("AddItemFragment", "저장 응답 코드: ${saveResponse.code()}")
+                Log.d("AddItemFragment", "저장 응답: ${saveResponse.body()}")
+
+                if (saveResponse.isSuccessful && saveResponse.body()?.isSuccess == true) {
+                    val imageUrl = saveResponse.body()?.result?.image_url
+                    if (!imageUrl.isNullOrEmpty()) {
+                        Log.d("AddItemFragment", "이미지 저장 성공: $imageUrl")
+                        file.delete()
+                        return imageUrl
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AddItemFragment", "저장 API 실패: ${e.message}")
             }
+
+            // 저장 실패 시 업로드 API 시도 (/items/upload)
+            try {
+                Log.d("AddItemFragment", "이미지 업로드 API 시도: /items/upload")
+                val uploadResponse = RetrofitClient.wardrobeService.uploadImage(token, body)
+
+                Log.d("AddItemFragment", "업로드 응답 코드: ${uploadResponse.code()}")
+                Log.d("AddItemFragment", "업로드 응답: ${uploadResponse.body()}")
+
+                if (uploadResponse.isSuccessful && uploadResponse.body()?.success == true) {
+                    val imageUrl = uploadResponse.body()?.data?.imageUrl
+                    if (!imageUrl.isNullOrEmpty()) {
+                        Log.d("AddItemFragment", "이미지 업로드 성공: $imageUrl")
+                        file.delete()
+                        return imageUrl
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AddItemFragment", "업로드 API 실패: ${e.message}")
+            }
+
+            file.delete()
+            Log.e("AddItemFragment", "모든 이미지 API 실패")
+            return null
+
         } catch (e: Exception) {
-            Log.e("AddItemFragment", "이미지 업로드 오류", e)
+            Log.e("AddItemFragment", "이미지 처리 전체 실패", e)
             null
         }
     }
 
+
     private fun saveItemToServer() {
         lifecycleScope.launch {
-            val imageUrl = uploadedImageUrl ?: ""
-            val requestDto = collectFormData(imageUrl)
-            if (requestDto == null) {
-                Toast.makeText(requireContext(), "모든 필드를 입력해주세요.", Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-            val token = "Bearer " + TokenProvider.getToken(requireContext())
-            val response = RetrofitClient.wardrobeService.registerItem(token, requestDto)
-            if (response.isSuccessful) {
-                val apiResponse = response.body()
-                if (apiResponse?.isSuccess == true && apiResponse.result != null) {
-                    Toast.makeText(requireContext(), "아이템이 등록되었습니다.", Toast.LENGTH_SHORT).show()
-                    parentFragmentManager.setFragmentResult("item_registered", Bundle())
-                    findNavController().navigateUp()
-                } else {
-                    showError("등록 실패: ${apiResponse?.message}")
+            try {
+                // 선택된 이미지 저장
+                val finalImageUrl = saveImageToServer()
+
+                val requestDto = collectFormData(finalImageUrl ?: "")
+                if (requestDto == null) {
+                    Toast.makeText(requireContext(), "모든 필드를 입력해주세요.", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
-            } else {
-                showError("서버 오류: ${response.code()}")
+
+                val token = "Bearer " + TokenProvider.getToken(requireContext())
+                val response = RetrofitClient.wardrobeService.registerItem(token, requestDto)
+
+                if (response.isSuccessful) {
+                    val apiResponse = response.body()
+                    if (apiResponse?.isSuccess == true && apiResponse.result != null) {
+                        Toast.makeText(requireContext(), "아이템이 등록되었습니다.", Toast.LENGTH_SHORT).show()
+                        parentFragmentManager.setFragmentResult("item_registered", Bundle())
+                        findNavController().navigateUp()
+                    } else {
+                        showError("등록 실패: ${apiResponse?.message}")
+                    }
+                } else {
+                    showError("서버 오류: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                showError("등록 중 오류가 발생했습니다: ${e.message}")
+                Log.e("AddItemFragment", "아이템 등록 실패", e)
             }
         }
     }
@@ -289,6 +510,11 @@ class AddItemFragment : Fragment() {
 
     private fun initializeViews(view: View) {
         imageView = view.findViewById(R.id.iv_clothes)
+
+        // 이미지 전환 버튼들 추가 (layout에 추가되어 있다고 가정)
+        btnChangeToOriginal = view.findViewById(R.id.btn_change_to_original) ?: Button(requireContext())
+        btnChangeToRefined = view.findViewById(R.id.btn_change_to_refined) ?: Button(requireContext())
+
         categorySpinner = view.findViewById(R.id.spinner_category)
         detailCategorySpinner = view.findViewById(R.id.spinner_detail_category)
         seasonSpinner = view.findViewById(R.id.spinner_season)
@@ -297,6 +523,10 @@ class AddItemFragment : Fragment() {
         sizeEditText = view.findViewById(R.id.et_size)
         priceEditText = view.findViewById(R.id.et_price)
         purchaseSiteEditText = view.findViewById(R.id.et_site)
+
+        // 처음에는 버튼들 숨기기
+        btnChangeToOriginal.visibility = View.GONE
+        btnChangeToRefined.visibility = View.GONE
     }
 
     private fun handleEditMode() {
@@ -442,7 +672,7 @@ class AddItemFragment : Fragment() {
 
         updateSubcategorySpinner("상의")
         setupSpinnerWithContainer(view, R.id.spinner_season, arrayOf("봄", "여름", "가을", "겨울", "사계절"))
-        setupSpinnerWithContainer(view, R.id.spinner_color, arrayOf("블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플"))
+        setupSpinnerWithContainer(view, R.id.spinner_color, arrayOf("블랙", "화이트", "그레이", "네이비", "베이지", "브라운", "레드", "핑크", "오렌지", "옐로우", "그린", "블루", "퍼플", "스카이블루", "아이보리", "오트밀", "기타"))
     }
 
     private fun updateSubcategorySpinner(selectedCategory: String) {

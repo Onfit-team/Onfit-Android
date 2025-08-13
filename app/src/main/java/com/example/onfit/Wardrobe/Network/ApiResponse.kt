@@ -36,16 +36,6 @@ data class FilterSearchItem(
     val styleTags: List<String>
 )
 
-data class ImageUploadResponse(
-    val success: Boolean,
-    val message: String,
-    val data: ImageUploadData?
-)
-
-data class ImageUploadData(
-    val image_url: String
-)
-
 data class ItemOutfitHistoryResponse(
     val isSuccess: Boolean,
     val code: String,
@@ -144,4 +134,48 @@ data class ScoreBreakdownDto(
     val season: Int? = null,
     val color: Int? = null,
     val tag: Int? = null
+)
+
+// 업로드 API (/items/upload) 응답 구조
+data class ImageUploadResponse(
+    val success: Boolean,
+    val message: String,
+    val data: ImageUploadData?
+)
+
+data class ImageUploadData(
+    val image_url: String
+)
+
+// AI 리파인 응답 데이터 클래스
+data class ImageRefineResponse(
+    val isSuccess: Boolean?,
+    val resultType: String?,
+    val code: String?,
+    val message: String?,
+    val result: ImageRefineResult?,
+    val error: ErrorData?
+)
+
+data class ImageRefineResult(
+    val refined_id: String?,
+    val refined_url: String?
+)
+
+data class ErrorData(
+    val errorCode: String,
+    val reason: String,
+    val data: Any?
+)
+
+data class ImageSaveResponse(
+    val isSuccess: Boolean,
+    val code: String,
+    val message: String,
+    val result: ImageSaveResult?
+)
+
+data class ImageSaveResult(
+    val id: Int,
+    val image_url: String
 )

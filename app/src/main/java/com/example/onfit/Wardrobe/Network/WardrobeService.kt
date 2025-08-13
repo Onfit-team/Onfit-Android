@@ -118,22 +118,29 @@ interface WardrobeService {
         @Header("Authorization") authorization: String
     ): Response<RecommendationResponse>
 
-    /**
-     * 이미지 저장 (실제 이미지 업로드 API)
-     */
-    @Multipart
-    @POST("/items/save")
-    suspend fun uploadImage(
-        @Header("Authorization") authorization: String,
-        @Part image: MultipartBody.Part
-    ): Response<ImageUploadResponse>
-
-    /**
-     * 이미지 생성 (AI 처리용)
-     */
     @Multipart
     @POST("/items/refine")
     suspend fun refineImage(
+        @Header("Authorization") authorization: String,
+        @Part image: MultipartBody.Part
+    ): Response<ImageRefineResponse>
+
+    /**
+     * 이미지 저장 (/items/save) - result 구조
+     */
+    @Multipart
+    @POST("/items/save")
+    suspend fun saveImage(
+        @Header("Authorization") authorization: String,
+        @Part image: MultipartBody.Part
+    ): Response<ImageSaveResponse>
+
+    /**
+     * 이미지 업로드 (/items/upload) - data 구조
+     */
+    @Multipart
+    @POST("/items/upload")
+    suspend fun uploadImage(
         @Header("Authorization") authorization: String,
         @Part image: MultipartBody.Part
     ): Response<ImageUploadResponse>
