@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.HomeRegister.adapter.SaveImagePagerAdapter
@@ -30,6 +31,8 @@ class OutfitSaveFragment : Fragment() {
     private var _binding: FragmentOutfitSaveBinding? = null
     private val binding get() = _binding!!
     private val TAG = "ItemRegister"
+
+    private val currentImages = mutableListOf<DisplayImage>()
 
     private lateinit var pagerAdapter: SaveImagePagerAdapter
 
@@ -56,26 +59,29 @@ class OutfitSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         // RecyclerView에서 사진 받아옴
         val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+        currentImages.clear()
+        args.imageUris?.forEach { s -> currentImages.add(DisplayImage(uri = Uri.parse(s))) }
+        args.imageResIds?.forEach { id -> currentImages.add(DisplayImage(resId = id)) }
+
         // 날짜는 번들에서
         val saveDate = requireArguments().getString("save_date") ?: "날짜 없음"
         binding.outfitSaveTitle1Tv.text = saveDate
 
-        val list = mutableListOf<DisplayImage>()
-        args.imageUris?.forEach { s -> list.add(DisplayImage(uri = Uri.parse(s))) }
-        args.imageResIds?.forEach { id -> list.add(DisplayImage(resId = id)) }
-
-        pagerAdapter = SaveImagePagerAdapter(list)
+        pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
+
+
         binding.outfitSaveLeftBtn.setOnClickListener {
+            if (pagerAdapter.itemCount == 0) return@setOnClickListener
             val prev = (binding.outfitSaveOutfitVp.currentItem - 1).coerceAtLeast(0)
             binding.outfitSaveOutfitVp.setCurrentItem(prev, true)
         }
         binding.outfitSaveRightBtn.setOnClickListener {
+            if (pagerAdapter.itemCount == 0) return@setOnClickListener
             val next = (binding.outfitSaveOutfitVp.currentItem + 1)
                 .coerceAtMost(pagerAdapter.itemCount - 1)
             binding.outfitSaveOutfitVp.setCurrentItem(next, true)
@@ -144,11 +150,18 @@ class OutfitSaveFragment : Fragment() {
             it.setOnClickListener(commonClickListener)
         }
 
+        // 갤러리 버튼
+        binding.outfitSaveChangeBtn.setOnClickListener {
+            // 이미지 다중 선택
+            changeImagesLauncher.launch("image/*")
+        }
+
         // 뒤로가기 버튼
         binding.outfitSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
 
+        // 기록하기 버튼
         binding.outfitSaveSaveBtn.setOnClickListener {
             postCurrentWardrobeItemAndGoHome()
         }
@@ -334,6 +347,22 @@ class OutfitSaveFragment : Fragment() {
 
         }
     }
+
+    // 갤러리 이동
+    private val changeImagesLauncher =
+        registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+            if (uris.isNullOrEmpty()) return@registerForActivityResult
+
+            val newList = uris.map { DisplayImage(uri = it) }
+
+            // 현재 목록 교체
+            currentImages.clear()
+            currentImages.addAll(newList)
+            pagerAdapter.replaceAll(newList)
+
+            // 첫 페이지로 이동
+            binding.outfitSaveOutfitVp.setCurrentItem(0, false)
+        }
 
     private fun normalizePurchaseDate(raw: String?): String {
         val today = java.time.LocalDate.now()

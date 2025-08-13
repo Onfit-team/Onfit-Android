@@ -6,7 +6,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.onfit.HomeRegister.model.DisplayImage
 
-class SaveImagePagerAdapter(private val items: List<DisplayImage>
+class SaveImagePagerAdapter(
+    private val items: MutableList<DisplayImage> = mutableListOf()
 ) : RecyclerView.Adapter<SaveImagePagerAdapter.VH>() {
     inner class VH(val iv: ImageView) : RecyclerView.ViewHolder(iv)
 
@@ -27,6 +28,12 @@ class SaveImagePagerAdapter(private val items: List<DisplayImage>
             item.uri != null  -> Glide.with(holder.iv).load(item.uri).into(holder.iv)
             item.resId != null -> Glide.with(holder.iv).load(item.resId).into(holder.iv)
         }
+    }
+
+    fun replaceAll(newItems: List<DisplayImage>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
     }
 
     override fun getItemCount() = items.size
