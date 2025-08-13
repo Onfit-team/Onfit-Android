@@ -147,8 +147,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="구매 정보"
-                android:textStyle="bold"
-                android:textSize="17dp"
+                android:fontFamily="@font/pretendardsemibold"
+                android:textSize="17sp"
                 android:layout_marginTop="25dp"
                 android:layout_marginBottom="8dp" />
 
@@ -199,8 +199,9 @@
                 android:padding="12dp"
                 android:layout_marginBottom="20dp"/>
 
-            <!-- 옷장 아이템 -->
+            <!-- 함께 코디하면 좋을 아이템 섹션 -->
             <LinearLayout
+                android:id="@+id/recommended_items_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -215,204 +216,33 @@
                     android:text="함께 코디하면 좋을 옷장 아이템"
                     android:textSize="16sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
+                    android:fontFamily="@font/pretendardsemibold"
                     android:layout_marginBottom="12dp" />
 
-                <HorizontalScrollView
+                <!-- 추천 아이템이 없을 때 표시할 텍스트 -->
+                <TextView
+                    android:id="@+id/tv_no_recommendations"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="추천할 수 있는 아이템이 없습니다"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- 추천 아이템 리사이클러뷰 -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_recommended_items"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/outfit_image1" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="4월 20일"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/outfit_image2" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="4월 19일"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/outfit_image3" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="4월 18일"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/outfit_image4" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="4월 17일"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp"/>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/outfit_image5" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="4월 16일"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </HorizontalScrollView>
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
+            <!-- 코디 기록 섹션 -->
             <LinearLayout
+                android:id="@+id/outfit_history_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -427,201 +257,27 @@
                     android:text="이 아이템이 포함된 코디 기록"
                     android:textSize="16sp"
                     android:textColor="#000000"
-                    android:textStyle="bold"
+                    android:fontFamily="@font/pretendardsemibold"
                     android:layout_marginBottom="12dp" />
 
-                <HorizontalScrollView
+                <!-- 코디 기록이 없을 때 표시할 텍스트 -->
+                <TextView
+                    android:id="@+id/tv_no_outfit_history"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이 아이템이 포함된 코디가 없습니다"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- 코디 기록 리사이클러뷰 -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_outfit_history"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/cody_image1" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="#깔끔한"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/cody_image2" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="#편안한"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/cody_image3" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="#널널한"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="12dp"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/cody_image4" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="#시크한"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp"/>
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="117dp"
-                                android:layout_height="147dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="0dp"
-                                app:cardPreventCornerOverlap="true"
-                                app:cardUseCompatPadding="false">
-
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/cody_image5" />
-                            </androidx.cardview.widget.CardView>
-
-                            <TextView
-                                style="?android:attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:layout_marginTop="7dp"
-                                android:text="#단정한"
-                                android:minHeight="20dp"
-                                android:minWidth="58dp"
-                                android:background="@drawable/rounded_button_selector"
-                                android:textColor="#666666"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </HorizontalScrollView>
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
 
             </LinearLayout>
 

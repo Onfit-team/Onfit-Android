@@ -47,26 +47,36 @@ data class ImageUploadData(
 )
 
 data class ItemOutfitHistoryResponse(
-    val success: Boolean,
-    val message: String,
-    val data: List<OutfitHistory>?
-)
-
-data class OutfitHistory(
-    val outfitId: Int,
-    val date: String,
-    val imageUrl: String,
-    val description: String?
-)
-
-data class RecommendationResponse(
     val isSuccess: Boolean,
     val code: String,
     val message: String,
-    val result: List<RecommendedItem>
+    val result: List<OutfitRecord>
 )
 
-data class RecommendedItem(
+data class OutfitRecord(
+    val id: Int,
+    val userId: Int,
+    val locationId: Int,
+    val date: String,
+    val weatherTempAvg: Double,
+    val feelsLikeTemp: Double,
+    val mainImage: String?,
+    val memo: String?,
+    val isPublished: Boolean,
+    val outfitItems: List<OutfitItemRecord>,
+    val outfitTags: List<OutfitTagRecord>,
+    val outfitLikes: List<OutfitLikeRecord>,
+    val user: OutfitUserRecord
+)
+
+data class OutfitItemRecord(
+    val id: Int,
+    val outfitId: Int,
+    val itemId: Int,
+    val item: OutfitItemDetail
+)
+
+data class OutfitItemDetail(
     val id: Int,
     val category: Int,
     val subcategory: Int,
@@ -74,36 +84,64 @@ data class RecommendedItem(
     val color: Int,
     val size: String,
     val season: Int,
-    val image: String,
-    val tags: List<RecommendationTag>,
-    val matchingScore: Int,
-    val scoreBreakdown: ScoreBreakdown
+    val image: String?
 )
 
-data class RecommendationTag(
+data class OutfitTagRecord(
+    val id: Int,
+    val outfitId: Int,
+    val tagId: Int,
+    val tag: OutfitTag
+)
+
+data class OutfitTag(
     val id: Int,
     val name: String,
     val type: String
 )
 
-data class ScoreBreakdown(
-    val season: Int,
+data class OutfitLikeRecord(
+    val id: Int,
+    val outfitId: Int,
+    val userId: Int
+)
+
+data class OutfitUserRecord(
+    val id: Int,
+    val nickname: String,
+    val profileImage: String?
+)
+
+// 아이템 추천 Response 데이터 클래스들
+data class RecommendationResponse(
+    val isSuccess: Boolean,
+    val code: String,
+    val message: String,
+    val result: List<RecommendedItemDto>
+)
+
+data class RecommendedItemDto(
+    val id: Int,
+    val category: Int,
+    val subcategory: Int,
+    val brand: String,
     val color: Int,
-    val tag: Int
+    val size: String,
+    val season: Int,
+    val image: String?,
+    val tags: List<ItemTagDto>,
+    val matchingScore: Int,
+    val scoreBreakdown: ScoreBreakdownDto
 )
 
-data class RecommendationErrorResponse(
-    val resultType: String,
-    val error: RecommendationError?,
-    val success: Boolean? // 또는 null
+data class ItemTagDto(
+    val id: Int,
+    val name: String,
+    val type: String
 )
 
-data class RecommendationError(
-    val errorCode: String,
-    val reason: String,
-    val data: Any?
-)
-
-data class SimpleErrorResponse(
-    val message: String
+data class ScoreBreakdownDto(
+    val season: Int? = null,
+    val color: Int? = null,
+    val tag: Int? = null
 )

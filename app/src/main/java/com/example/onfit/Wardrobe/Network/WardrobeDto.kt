@@ -68,6 +68,12 @@ data class RegisterItemRequestDto(
     val tagIds: List<Int>
 )
 
+
+data class ItemRegistrationResult(
+    val id: Int,
+    val message: String? = null
+)
+
 /**
  * 아이템 등록 응답 데이터
  */

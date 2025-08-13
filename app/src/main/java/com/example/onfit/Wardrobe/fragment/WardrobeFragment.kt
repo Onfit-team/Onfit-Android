@@ -55,10 +55,10 @@ open class WardrobeFragment : Fragment() {
     private val categoryFilters = mapOf(
         "전체" to listOf("전체"),
         "상의" to listOf("전체", "반팔티", "긴팔티", "셔츠", "블라우스", "니트", "후드티", "탱크톱", "나시티"),
-        "하의" to listOf("전체", "청바지", "반바지", "슬랙스", "치마"),
-        "아우터" to listOf("전체", "자켓", "패딩", "코트", "바람막이"),
-        "원피스" to listOf("전체", "미니", "미디", "롱"),
-        "신발" to listOf("전체", "운동화", "샌들", "부츠", "워커")
+        "하의" to listOf("전체", "청바지", "반바지", "슬랙스", "치마", "레깅스", "조거팬츠"),
+        "아우터" to listOf("전체", "자켓", "패딩", "코트", "바람막이", "가디건", "점퍼", "블레이저", "후드집업"),
+        "원피스" to listOf("전체", "미니", "미디", "롱", "니트", "셔츠"),
+        "신발" to listOf("전체", "운동화","구두", "부츠", "샌들", "슬리퍼","하이힐", "플랫슈즈", "워커")
     )
 
     private var selectedIndex = 0
@@ -271,6 +271,9 @@ open class WardrobeFragment : Fragment() {
     /**
      * 옷장 데이터 API 호출
      */
+    /**
+     * 옷장 데이터 API 호출
+     */
     private fun loadWardrobeData() {
         lifecycleScope.launch {
             try {
@@ -288,6 +291,10 @@ open class WardrobeFragment : Fragment() {
 
                         // UI 업데이트 (카테고리 개수 포함)
                         updateUIWithApiData()
+
+                        // 🔥 전체 개수 즉시 업데이트
+                        val totalCount = wardrobeItems.size
+                        view?.findViewById<Button>(R.id.btnTopCategory1)?.text = "전체 $totalCount"
 
                         Toast.makeText(context, "옷장 데이터를 불러왔습니다.", Toast.LENGTH_SHORT).show()
                     } else {
@@ -323,8 +330,12 @@ open class WardrobeFragment : Fragment() {
                         categories = apiResponse.result.categories
                         updateSubCategories(apiResponse.result.subcategories)
                         updateUIWithApiData()
+
+                        // 🔥 전체 버튼 개수 항상 유지
+                        maintainTotalCount()
+
                         apiResponse.result.appliedFilter?.let { filter ->
-                            android.util.Log.d("WardrobeFragment",
+                            Log.d("WardrobeFragment",
                                 "Applied filter - Category: ${filter.categoryName}, Subcategory: ${filter.subcategoryName}")
                         }
                     } else {
@@ -341,19 +352,29 @@ open class WardrobeFragment : Fragment() {
     }
 
     /**
-     * API 데이터로 UI 업데이트
+     * 전체 개수를 항상 유지하는 함수
      */
-    private fun updateUIWithApiData() {
-        // API 데이터로만 어댑터 업데이트
-        adapter.updateWithApiData(wardrobeItems)
+    private fun maintainTotalCount() {
+        lifecycleScope.launch {
+            try {
+                val token = "Bearer " + TokenProvider.getToken(requireContext())
+                val allResponse = RetrofitClient.wardrobeService.getAllWardrobeItems(token)
 
-        // 카테고리 버튼 개수 업데이트
-        val totalCount = wardrobeItems.size
-        updateCategoryButtonsWithCount(categories, totalCount)
+                if (allResponse.isSuccessful && allResponse.body()?.isSuccess == true) {
+                    val totalCount = allResponse.body()?.result?.items?.size ?: 0
 
-        // 카테고리 정보 로그 출력 (개발용)
-        categories.forEach { category ->
-            println("Category: ${category.name}, Count: ${category.count}")
+                    // UI 스레드에서 업데이트
+                    view?.post {
+                        if (isAdded && context != null) {
+                            val btnAll = view?.findViewById<Button>(R.id.btnTopCategory1)
+                            btnAll?.text = "전체 $totalCount"
+                            Log.d("WardrobeFragment", "전체 개수 업데이트: $totalCount")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("WardrobeFragment", "전체 개수 업데이트 실패", e)
+            }
         }
     }
 
@@ -364,9 +385,8 @@ open class WardrobeFragment : Fragment() {
         if (!isAdded || context == null) return
 
         try {
-            // 전체 개수 업데이트
-            val btnAll = view?.findViewById<Button>(R.id.btnTopCategory1)
-            btnAll?.text = "전체 $totalCount"
+            // 🔥 전체 개수는 별도 함수에서 관리
+            // maintainTotalCount()는 이미 loadWardrobeDataByCategory에서 호출됨
 
             // 각 카테고리 개수 업데이트
             categories.forEach { category ->
@@ -385,10 +405,69 @@ open class WardrobeFragment : Fragment() {
                 }
             }
 
-            android.util.Log.d("WardrobeFragment", "Category buttons updated with counts")
+            Log.d("WardrobeFragment", "Category buttons updated with counts")
 
         } catch (e: Exception) {
-            android.util.Log.e("WardrobeFragment", "Error updating category buttons", e)
+            Log.e("WardrobeFragment", "Error updating category buttons", e)
+        }
+    }
+
+    /**
+     * 상위 카테고리 버튼 설정
+     */
+    private fun setupTopCategoryButtons(view: View) {
+        val topCategories = mapOf(
+            R.id.btnTopCategory1 to Pair("전체", null),
+            R.id.btnTopCategory2 to Pair("상의", 1),
+            R.id.btnTopCategory3 to Pair("하의", 2),
+            R.id.btnTopCategory4 to Pair("아우터", 4),
+            R.id.btnTopCategory5 to Pair("원피스", 3),
+            R.id.btnTopCategory6 to Pair("신발", 5)
+        )
+
+        topCategories.forEach { (id, categoryData) ->
+            val button = view.findViewById<Button>(id)
+            val (categoryName, categoryId) = categoryData
+
+            button?.setOnClickListener {
+                // 이전 선택된 버튼 상태 해제
+                selectedTopCategoryButton?.isSelected = false
+
+                // 새로 선택된 버튼 상태 설정
+                button.isSelected = true
+                selectedTopCategoryButton = button
+
+                if (categoryName == "전체") {
+                    // 전체 버튼 클릭 시 전체 데이터 로드
+                    loadWardrobeData()
+                } else {
+                    // 특정 카테고리 선택 시
+                    loadWardrobeDataByCategory(category = categoryId)
+                }
+            }
+
+            // 첫 번째 버튼(전체)을 기본 선택 상태로 설정
+            if (categoryName == "전체") {
+                button.isSelected = true
+                selectedTopCategoryButton = button
+            }
+        }
+    }
+
+    /**
+     * API 데이터로 UI 업데이트
+     */
+    private fun updateUIWithApiData() {
+        // API 데이터로만 어댑터 업데이트
+        adapter.updateWithApiData(wardrobeItems)
+
+        // 카테고리 버튼 개수 업데이트
+        val totalCount = wardrobeItems.size
+        updateCategoryButtonsWithCount(categories, totalCount)
+
+        // 카테고리 정보 로그 출력 (개발용)
+        categories.forEach { category ->
+            println("Category: ${category.name}, Count: ${category.count}")
         }
     }
 
@@ -466,60 +545,6 @@ open class WardrobeFragment : Fragment() {
             }
         }
         return null
-    }
-
-    /**
-     * 상위 카테고리 버튼 설정
-     */
-    private fun setupTopCategoryButtons(view: View) {
-        val topCategories = mapOf(
-            R.id.btnTopCategory1 to Pair("전체", null),
-            R.id.btnTopCategory2 to Pair("상의", 1),
-            R.id.btnTopCategory3 to Pair("하의", 2),
-            R.id.btnTopCategory4 to Pair("아우터", 4),
-            R.id.btnTopCategory5 to Pair("원피스", 3),
-            R.id.btnTopCategory6 to Pair("신발", 5)
-        )
-
-        topCategories.forEach { (id, categoryData) ->
-            val button = view.findViewById<Button>(id)
-            val (categoryName, categoryId) = categoryData
-
-            button?.setOnClickListener {
-                // 이전 선택된 버튼 상태 해제
-                selectedTopCategoryButton?.isSelected = false
-
-                // 새로 선택된 버튼 상태 설정
-                button.isSelected = true
-                selectedTopCategoryButton = button
-
-                // 선택된 카테고리에 따라 API 호출
-                loadWardrobeDataByCategory(category = categoryId)
-
-                // 전체 버튼이 아닌 경우, 전체 개수를 유지하기 위해 전체 데이터도 유지
-                if (categoryName != "전체") {
-                    // 전체 카테고리 개수 업데이트를 위해 전체 데이터 로드는 유지
-                    lifecycleScope.launch {
-                        try {
-                            val token = "Bearer " + TokenProvider.getToken(requireContext())
-                            val allResponse = RetrofitClient.wardrobeService.getAllWardrobeItems(token)
-                            if (allResponse.isSuccessful && allResponse.body()?.isSuccess == true) {
-                                val totalCount = allResponse.body()?.result?.items?.size ?: 0
-                                view.findViewById<Button>(R.id.btnTopCategory1)?.text = "전체 $totalCount"
-                            }
-                        } catch (e: Exception) {
-                            Log.e("WardrobeFragment", "전체 개수 업데이트 실패", e)
-                        }
-                    }
-                }
-            }
-
-            // 첫 번째 버튼(전체)을 기본 선택 상태로 설정
-            if (categoryName == "전체") {
-                button.isSelected = true
-                selectedTopCategoryButton = button
-            }
-        }
     }
 
     /**
@@ -724,6 +749,68 @@ open class WardrobeFragment : Fragment() {
         } catch (e: Exception) {
             Log.e("WardrobeFragment", "Error collecting form data", e)
             return null
+        }
+    }
+
+    private fun getSubcategoryName(subcategoryId: Int): String {
+        return when (subcategoryId) {
+            // 상의 (category 1)
+            1 -> "반팔티"
+            2 -> "긴팔티"
+            3 -> "셔츠"
+            4 -> "블라우스"
+            5 -> "니트"
+            6 -> "후드티"
+            7 -> "탱크톱"
+            8 -> "나시티"
+
+            // 하의 (category 2)
+            9 -> "청바지"
+            10 -> "면바지"
+            11 -> "반바지"
+            12 -> "슬랙스"
+            13 -> "치마"
+            14 -> "레깅스"
+            15 -> "조거팬츠"
+
+            // 원피스 (category 3)
+            16 -> "미니원피스"
+            17 -> "미디원피스"
+            18 -> "롱원피스"
+            19 -> "니트원피스"  // 이게 누락되어서 "기타"로 표시됨
+            20 -> "셔츠원피스"
+
+            // 아우터 (category 4)
+            21 -> "자켓"
+            22 -> "패딩"
+            23 -> "코트"
+            24 -> "바람막이"
+            25 -> "가디건"
+            26 -> "점퍼"
+            27 -> "블레이저"
+
+            // 신발 (category 5)
+            28 -> "운동화"
+            29 -> "구두"
+            30 -> "부츠"
+            31 -> "샌들"
+            32 -> "슬리퍼"
+            33 -> "하이힐"
+            34 -> "플랫슈즈"
+
+            // 악세서리 (category 6)
+            35 -> "가방"
+            36 -> "모자"
+            37 -> "벨트"
+            38 -> "목걸이"
+            39 -> "귀걸이"
+            40 -> "시계"
+            41 -> "반지"
+
+            else -> {
+                Log.w("WardrobeFragment", "알 수 없는 서브카테고리 ID: $subcategoryId")
+                "기타"
+            }
         }
     }
 }
