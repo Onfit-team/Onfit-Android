@@ -68,7 +68,7 @@ dependencies {
     // Flexbox
     implementation("com.google.android.flexbox:flexbox:3.0.0")
 
-    // Retrofit + OkHttp
+    // Retrofit + Gson (※ 2.9.0 세트만 유지)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
@@ -79,12 +79,7 @@ dependencies {
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
-    // ViewModel & LiveData (MVVM용)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
-
-    // Kakao 로그인
+    // Kakao 로그인 (버전은 libs.versions.toml에서 관리)
     implementation(libs.kakaoUser)
 
     // 위치
