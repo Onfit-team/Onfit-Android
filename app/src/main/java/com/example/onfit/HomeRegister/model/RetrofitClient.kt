@@ -11,13 +11,17 @@ object RetrofitClient {
 
     // 요청/응답 로깅 위한 인터셉터, 헤더만 출력
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.HEADERS
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     // OkHttpClient 생성
     private val client = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor) // 요청/응답 로그 출력
-        .build()
+        .addInterceptor(loggingInterceptor)
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()// 요청/응답 로그 출력
 
     // Retrofit 인스턴스
     val instance: AiCropService by lazy {
