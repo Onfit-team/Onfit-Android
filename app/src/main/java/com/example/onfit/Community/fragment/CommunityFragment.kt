@@ -148,6 +148,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
 
     override fun onResume() {
         super.onResume()
+        // 화면에 복귀했을 때만 상태 재검사
         checkTodayCanShare()
     }
 
@@ -302,12 +303,14 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
     }
 
     private fun applyEmptyState(isEmpty: Boolean) {
-        binding.yesterdayBestLinearlayout.visibility = if (isEmpty) View.GONE else View.VISIBLE
-        binding.yesterdayBestEmptyTv.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        if (!isEmpty) {
-            binding.yesterdayBest1NameTv.text = ""
-            binding.yesterdayBest2NameTv.text = ""
-            binding.yesterdayBest3NameTv.text = ""
+        _binding?.let { b ->  // [FIX] Null-safe
+            b.yesterdayBestLinearlayout.visibility = if (isEmpty) View.GONE else View.VISIBLE
+            b.yesterdayBestEmptyTv.visibility = if (isEmpty) View.VISIBLE else View.GONE
+            if (!isEmpty) {
+                b.yesterdayBest1NameTv.text = ""
+                b.yesterdayBest2NameTv.text = ""
+                b.yesterdayBest3NameTv.text = ""
+            }
         }
     }
 
@@ -315,7 +318,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         val token = TokenProvider.getToken(requireContext())
         if (token.isBlank()) {
             val enabled = FORCE_SHARE_ALWAYS
-            setShareButtonEnabled(enabled)
+            setShareButtonEnabled(enabled) // 안전 가드 포함됨
             if (!enabled) Toast.makeText(requireContext(), "인증 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
             onChecked?.invoke(enabled, if (enabled) "FORCED" else "NO_TOKEN")
             return
@@ -340,19 +343,23 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     enabled = true
                     reason = "FORCED"
                 }
-                setShareButtonEnabled(enabled)
+                // [FIX] View가 살아있을 때만 버튼 상태 갱신
+                if (_binding != null) setShareButtonEnabled(enabled)
                 onChecked?.invoke(enabled, reason)
             } catch (_: Exception) {
                 val enabled = FORCE_SHARE_ALWAYS
-                setShareButtonEnabled(enabled)
+                if (_binding != null) setShareButtonEnabled(enabled) // [FIX]
                 onChecked?.invoke(enabled, if (enabled) "FORCED" else "EXCEPTION")
             }
         }
     }
 
     private fun setShareButtonEnabled(enabled: Boolean) {
-        binding.shareOutfitIb.isEnabled = enabled
-        binding.shareOutfitIb.alpha = if (enabled) 1.0f else 0.5f
+        // [FIX] Null-safe UI 접근
+        _binding?.let { b ->
+            b.shareOutfitIb.isEnabled = enabled
+            b.shareOutfitIb.alpha = if (enabled) 1.0f else 0.5f
+        }
     }
 
     // 공유 다이얼로그 (ViewBinding) + 오늘 Outfit 이미지 미리보기
@@ -384,7 +391,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                         val res = com.example.onfit.network.RetrofitInstance.api
                             .checkTodayOutfitCanBeShared("Bearer $token")
                         val url = if (res.isSuccessful) res.body()?.result?.mainImage else null
-                        if (!url.isNullOrBlank()) {
+                        if (!url.isNullOrBlank() && _binding != null) { // [FIX] 화면 생존 체크
                             lastCheckResult = res.body()?.result // 캐시 갱신
                             dialogBinding.postDialogOutfitImage.visibility = View.VISIBLE
                             com.bumptech.glide.Glide.with(this@CommunityFragment)
@@ -405,7 +412,11 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     if (id != null) action.outfitId = id
                     findNavController().navigate(action)
                 },
-                onFinally = { checkTodayCanShare() }
+                onFinally = {
+                    // [FIX] 즉시 재검사 호출 제거.
+                    // 이미 onResume()에서 checkTodayCanShare()를 호출하므로,
+                    // 네비게이션으로 화면이 바뀌는 시점에는 UI 갱신을 시도하지 않도록 한다.
+                }
             )
         }
         dialogBinding.postDialogNoBtn.setOnClickListener { dialog.dismiss() }
@@ -442,6 +453,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                 val body: PublishTodayOutfitResponse? = response.body()
                 if (body?.isSuccess == true) {
                     Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", Toast.LENGTH_SHORT).show()
+                    // [FIX] 즉시 setShareButtonEnabled(false) 대신 화면 생존 체크 포함
                     setShareButtonEnabled(false)
                     onSuccess?.invoke(body.result?.id)
                 } else {
