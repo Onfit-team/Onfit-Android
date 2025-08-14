@@ -114,10 +114,6 @@ class OutfitRegisterFragment : Fragment() {
 
         // SaveFragment에서 전달받은 이미지 경로 가져오기
         val imagePath = arguments?.getString("outfit_image_path")
-        if (!imagePath.isNullOrEmpty()) {
-            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
-            uploadImageToServer(File(imagePath))
-        }
 
         adapter = OutfitAdapter(
             outfitList,
@@ -126,15 +122,17 @@ class OutfitRegisterFragment : Fragment() {
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
             },
             onCropButtonClick = { position ->
-                // OutfitCropFragment로 전환
-                val item = outfitList[position]
-                val imagePath = item.imageUri?.path ?: ""
-
+                val imagePath = imagePath
                 val bundle = Bundle().apply {
                     putString("outfit_image_path", imagePath)
                 }
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
             })
+
+        if (!imagePath.isNullOrEmpty()) {
+            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
+            uploadImageToServer(File(imagePath))
+        }
 
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())

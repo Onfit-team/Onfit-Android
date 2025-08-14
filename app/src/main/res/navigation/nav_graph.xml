@@ -133,7 +133,11 @@
     <fragment
         android:id="@+id/outfitCropFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment" />
+        android:label="outfitCropFragment" >
+        <argument
+            android:name="outfit_image_path"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/outfitSaveFragment"
