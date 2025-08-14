@@ -4,7 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="35dp"
+    android:layout_marginLeft="15dp"
+    android:layout_marginRight="15dp"
+    android:layout_marginBottom="15dp"
     android:fillViewport="true"
     android:scrollbars="none"
     tools:context=".HomeRegister.fragment.OutfitSaveFragment">
@@ -24,16 +27,29 @@
             app:layout_constraintTop_toTopOf="parent"/>
 
         <!-- 날짜 및 안내 텍스트 -->
-        <TextView
-            android:id="@+id/outfit_save_title1_tv"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/outfit_save_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="4월 27일 수정님의 착장 아이템을"
-            android:textSize="20sp"
-            android:fontFamily="@font/pretendardbold"
+            android:orientation="horizontal"
             android:layout_marginTop="15dp"
             app:layout_constraintTop_toBottomOf="@+id/outfit_save_back_btn"
-            app:layout_constraintLeft_toLeftOf="parent"/>
+            app:layout_constraintLeft_toLeftOf="parent">
+            <TextView
+                android:id="@+id/outfit_save_title1_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4월 27일"
+                android:textSize="20sp"
+                android:fontFamily="@font/pretendardbold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" 수정님의 착장 아이템을"
+                android:textSize="20sp"
+                android:fontFamily="@font/pretendardbold"/>
+        </LinearLayout>
+
 
         <TextView
             android:id="@+id/outfit_save_title2_tv"
@@ -42,7 +58,7 @@
             android:text="AI가 깔끔하게 다듬었어요!"
             android:textSize="20sp"
             android:fontFamily="@font/pretendardbold"
-            app:layout_constraintTop_toBottomOf="@+id/outfit_save_title1_tv"
+            app:layout_constraintTop_toBottomOf="@+id/outfit_save_layout"
             app:layout_constraintLeft_toLeftOf="parent" />
 
         <FrameLayout
@@ -54,13 +70,12 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <ImageView
-                android:id="@+id/outfit_save_outfit_iv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/outfit_save_outfit_vp"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
                 android:adjustViewBounds="true"
                 android:scaleType="fitCenter"
-                android:src="@drawable/outfit_save_image"
                 android:background="@drawable/rounded_gray_bg"
                 android:clipToOutline="true"
                 android:outlineProvider="background" />
@@ -262,6 +277,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="1"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -272,6 +288,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="2"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -282,6 +299,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="3"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -292,6 +310,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="4"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -302,6 +321,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="5"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -312,6 +332,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="6"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -322,6 +343,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="7"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -332,6 +354,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="8"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -342,6 +365,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="9"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
         </com.google.android.material.chip.ChipGroup>
 
@@ -379,6 +403,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="10"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -389,6 +414,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="11"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -399,6 +425,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="12"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -409,6 +436,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="13"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -419,6 +447,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="14"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -429,6 +458,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="15"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -439,6 +469,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="16"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
 
             <com.google.android.material.chip.Chip
@@ -449,6 +480,7 @@
                 app:chipBackgroundColor="@color/chip_selector"
                 android:textColor="@color/chip_text_selector_mini"
                 android:fontFamily="@font/pretendardmedium"
+                android:tag="17"
                 style="@style/Widget.MaterialComponents.Chip.Choice"/>
         </com.google.android.material.chip.ChipGroup>
 
