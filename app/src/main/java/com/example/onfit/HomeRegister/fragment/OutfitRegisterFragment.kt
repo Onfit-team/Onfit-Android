@@ -100,17 +100,17 @@ class OutfitRegisterFragment : Fragment() {
             "crop_result",
             viewLifecycleOwner
         ) { _, bundle ->
-            val imagePath = bundle.getString("cropped_image_path")
-            if (!imagePath.isNullOrEmpty()) {
-                val uri = Uri.fromFile(File(imagePath))
-                val newItem = OutfitItem2(
-                    imageUri = uri,
-                    imageResId = null,
-                    isClosetButtonActive = true
-                )
-                adapter.addItem(newItem) // RecyclerView에 아이템 추가
-            }
+            val uriStr = bundle.getString("cropped_image_uri") ?: return@setFragmentResultListener
+            val uri = Uri.parse(uriStr)
+
+            val newItem = OutfitItem2(
+                imageUri = uri,
+                imageResId = null,
+                isClosetButtonActive = true
+            )
+            adapter.addItem(newItem)
         }
+
 
         // SaveFragment에서 전달받은 이미지 경로 가져오기
         val imagePath = arguments?.getString("outfit_image_path")
