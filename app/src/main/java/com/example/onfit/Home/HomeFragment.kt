@@ -5,10 +5,17 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaScannerConnection
+import android.media.session.MediaSession.Token
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -39,6 +46,7 @@ import com.example.onfit.network.RetrofitInstance
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.OutfitRegister.RetrofitClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,14 +70,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     // 서버 추천 로딩 전 초기 플레이스홀더(로컬 이미지)
     private val clothSuggestList = listOf(
-        R.drawable.cloth1, R.drawable.cloth2, R.drawable.cloth3
+        R.drawable.latestcloth3, R.drawable.latestcloth3, R.drawable.latestcloth3
     )
 
     // 비슷한 날 섹션 초기 플레이스홀더
     private val similiarClothList = listOf(
-        SimItem(R.drawable.simcloth1, null, "딱 좋음"),
-        SimItem(R.drawable.simcloth2, null, "조금 추움"),
-        SimItem(R.drawable.simcloth3, null, "많이 더움")
+        SimItem(R.drawable.latestcloth3, null, "딱 좋음"),
+        SimItem(R.drawable.latestcloth3, null, "조금 추움"),
+        SimItem(R.drawable.latestcloth3, null, "많이 더움")
     )
 
     // 마지막 평균기온 저장 (refresh 시 재호출에 사용)
@@ -97,42 +105,120 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     // API에 파일 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
-        Log.d("HomeFragment", "업로드 함수 실행됨: ${file.absolutePath}")
-        val token = TokenProvider.getToken(requireContext())
-        val header = "Bearer $token"
-        val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
-        val body = MultipartBody.Part.createFormData("image", file.name, requestFile)
+        Log.d("HomeFragment", "Step 1: 함수 진입")
+        Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
 
+        // 1. 토큰 체크
+        val token = TokenProvider.getToken(requireContext())
+        require(!token.isNullOrBlank()) { "토큰이 없다" }
+        val header = "Bearer $token"
+        Log.d("UploadDebug", "Step 2: 토큰=$token")
+
+        // 2. 파일 검증 로그
+        val exists = file.exists()
+        val length = file.length()
+        val canRead = file.canRead()
+        val ext = file.extension.lowercase()
+        val bmpTest = BitmapFactory.decodeFile(file.absolutePath) != null
+
+        Log.d("UploadCheck", "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest")
+
+        require(exists && length > 0 && bmpTest) { "이미지 파일이 손상되었거나 크기가 0입니다." }
+
+        // 3. 확장자 기반 MIME 자동 지정
+        val mime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream" // 기타 확장자
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$mime")
+
+        // 확장자 기반 MIME 자동 지정
+        var uploadFile = file
+        var uploadMime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream"
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$uploadMime")
+
+        // 3-1. PNG -> JPG 변환
+        if (ext == "png") {
+            try {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                require(bitmap != null) { "PNG 디코딩 실패" }
+
+                val jpgFile = File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
+                FileOutputStream(jpgFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                uploadFile = jpgFile
+                uploadMime = "image/jpeg" // ← 변환했으니 MIME도 함께 변경
+                Log.d("UploadDebug", "PNG → JPG 변환 완료: ${jpgFile.absolutePath}")
+            } catch (e: Exception) {
+                Log.e("UploadDebug", "PNG → JPG 변환 실패", e)
+                // 변환 실패 시 원본 PNG 그대로 보낼 수도 있음(원하면 return으로 중단)
+                uploadFile = file
+                uploadMime = "image/png"
+            }
+        }
+
+        // 4. RequestBody + MultipartBody.Part 생성
+        val requestFile = uploadFile.asRequestBody(uploadMime.toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", uploadFile.name, requestFile)
+        Log.d("UploadREQ", "file=${uploadFile.name}, size=${uploadFile.length()}, mime=$uploadMime, fieldName=image")
+
+        // 5. 업로드 요청 정보 로그
+        Log.d("UploadREQ",
+            "url=/items/upload, header=$header, file=${file.name}, size=$length, mime=$mime, fieldName=image"
+        )
+
+        // 6. 업로드 실행
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val api = RetrofitClient.instance.create(ApiService::class.java)
                 val response = api.uploadImage(header, body)
 
-                val rawResponse = response.body()
-                Log.d("HomeFragment", "서버 응답 바디: $rawResponse")
+                Log.d("UploadDebug", "Step 5: API 호출 완료, 응답코드=${response.code()}")
+
+                // (1) 원본 JSON 통째로 로그 (성공/실패 모두)
+                try {
+                    val raw = response.raw().peekBody(Long.MAX_VALUE).string()
+                    Log.d("UploadRaw", raw)
+                } catch (_: Exception) {}
+
+                val bodyObj = response.body()
 
                 withContext(Dispatchers.Main) {
-                    if (response.isSuccessful && response.body()?.isSuccess == true) {
-                        val imageUrl = response.body()!!.result?.imageUrl
-                        Log.d("HomeFragment", "이미지 업로드 성공: $imageUrl")
+                    if (response.isSuccessful && bodyObj?.ok == true) {
+                        val imageUrl = bodyObj.payload?.imageUrl
+                        Log.d("HomeFragment", "이미지 업로드 성공, parsed imageUrl=$imageUrl")
+
+                        // ★ URL이 비어있으면 이동 금지(여기서 막아야 Register에서 null 안 받음)
+                        if (imageUrl.isNullOrBlank()) {
+                            Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
 
                         // RegisterFragment로 URL 전달
                         val bundle = Bundle().apply {
-                            putString("selectedImagePath", file.absolutePath)
-                            putString("uploadedImageUrl", imageUrl)
+                            putString("selectedImagePath", uploadFile.absolutePath) // 미리보기용 파일경로
+                            putString("uploadedImageUrl", imageUrl)                  // 서버 URL
                         }
-                        findNavController().navigate(
-                            R.id.action_homeFragment_to_registerFragment,
-                            bundle
-                        )
+                        // 현재 목적지가 Home일 때만 네비게이트(중복 내비 방지)
+                        val nav = findNavController()
+                        if (nav.currentDestination?.id == R.id.homeFragment) {
+                            nav.navigate(R.id.action_homeFragment_to_registerFragment, bundle)
+                        }
                     } else {
                         val errorMsg = response.errorBody()?.string()
-                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg")
-                        Toast.makeText(requireContext(), "업로드 실패", Toast.LENGTH_SHORT).show()
+                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
+                        Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.e("UploadDebug", "예외 발생", e)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "서버 오류", Toast.LENGTH_SHORT).show()
                 }
@@ -146,13 +232,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val token = TokenProvider.getToken(requireContext())
 
-        // 닉네임 적용
+        // 닉네임 적용 (sim_text_tv)
         val nickname = TokenProvider.getNickname(requireContext())
         binding.simTextTv.text = if (nickname.isNotEmpty())
             "비슷한 날, ${nickname}님의 스타일" else "비슷한 날, 회원님의 스타일"
 
+        // 닉네임 적용 (latest_style_tv) — 하드코딩 "수정" 제거
+        binding.latestStyleTv.text = if (nickname.isNotEmpty())
+            "${nickname}님의 지난 7일 코디" else "회원님의 지난 7일 코디"
+
         // ====== 옵저버 등록 ======
-        observeRecommend()
+        observeRecommend() // diurnalMsg 포함
         viewModel.similarOutfits.observe(viewLifecycleOwner) { items ->
             val hasItems = !items.isNullOrEmpty()
             binding.similarStyleRecyclerView.visibility = if (hasItems) View.VISIBLE else View.GONE
@@ -248,9 +338,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun fetchCurrentWeather() {
         val token = TokenProvider.getToken(requireContext())
         val location = TokenProvider.getLocation(requireContext())
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getCurrentWeather("Bearer $token")
+                if(!isAdded || _binding == null) return@launch
                 if (response.isSuccessful) {
                     val weather = response.body()?.result?.weather
                     val tempMax = weather?.tempMax?.toInt() ?: 0
@@ -263,17 +354,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     lastTempAvg = tempAvg
 
                     updateCombinedInfo(getTodayDateString(), location)
-                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
-                    binding.tempTv.text = "${tempAvg.toInt()}°C"
-
-                    val fullText = "오늘 ${tempAvg.toInt()}°C, 딱 맞는 스타일이에요!"
-                    val targetText = "${tempAvg.toInt()}°C"
-                    val spannable = SpannableString(fullText)
-                    val startIndex = fullText.indexOf(targetText)
-                    val endIndex = startIndex + targetText.length
-                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    binding.weatherTitle.text = spannable
+                    _binding?.apply {
+                        weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                        tempTv.text = "${tempAvg.toInt()}°C"
+                        val fullText = "오늘 ${tempAvg.toInt()}°C, 딱 맞는 스타일이에요!"
+                        val targetText = "${tempAvg.toInt()}°C"
+                        val spannable = SpannableString(fullText).apply {
+                            val startIndex = fullText.indexOf(targetText)
+                            val endIndex = startIndex + targetText.length
+                            val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                            setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                        weatherTitle.text = spannable
+                    }
 
                     updateWeatherImages(status)
 
@@ -283,12 +376,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         viewModel.fetchSimilarWeather(token, it)
                     }
                 } else {
-                    binding.weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
-                    binding.tempTv.text = ""
+                    _binding?.apply {
+                        weatherInformTv.text = "날씨 정보를 가져오지 못했습니다."
+                        tempTv.text = ""
+                    }
                 }
             } catch (e: Exception) {
-                binding.weatherInformTv.text = "날씨 오류: ${e.message}"
-                binding.tempTv.text = ""
+                if (!isAdded || _binding == null) return@launch
+                _binding?.apply {
+                    weatherInformTv.text = "날씨 오류: ${e.message}"
+                    tempTv.text = ""
+                }
             }
         }
     }
@@ -296,9 +394,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun fetchTomorrowWeather() {
         val token = TokenProvider.getToken(requireContext())
         val location = TokenProvider.getLocation(requireContext())
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getTomorrowWeather("Bearer $token")
+                if (!isAdded || _binding == null) return@launch
                 if (response.isSuccessful) {
                     val weather = response.body()?.result?.weather
                     val tempMax = weather?.tempMax?.toInt() ?: 0
@@ -311,17 +410,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     lastTempAvg = tempAvg
 
                     updateCombinedInfo(getTomorrowDateString(), location)
-                    binding.weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
-                    binding.tempTv.text = "${tempAvg.toInt()}°C"
-
-                    val fullText = "내일 ${tempAvg.toInt()}°C, 어떤 스타일일까요?"
-                    val targetText = "${tempAvg.toInt()}°C"
-                    val spannable = SpannableString(fullText)
-                    val startIndex = fullText.indexOf(targetText)
-                    val endIndex = startIndex + targetText.length
-                    val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
-                    spannable.setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    binding.weatherTitle.text = spannable
+                    _binding?.apply {
+                        weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 ${precipitation}%"
+                        tempTv.text = "${tempAvg.toInt()}°C"
+                        val fullText = "내일 ${tempAvg.toInt()}°C, 어떤 스타일일까요?"
+                        val targetText = "${tempAvg.toInt()}°C"
+                        val spannable = SpannableString(fullText).apply {
+                            val startIndex = fullText.indexOf(targetText)
+                            val endIndex = startIndex + targetText.length
+                            val color = ContextCompat.getColor(requireContext(), R.color.basic_blue)
+                            setSpan(ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        }
+                        weatherTitle.text = spannable
+                    }
 
                     updateWeatherImages(status)
 
@@ -330,12 +431,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         viewModel.fetchSimilarWeather(token, it)
                     }
                 } else {
-                    binding.weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
-                    binding.tempTv.text = ""
+                    _binding?.apply {
+                        weatherInformTv.text = "내일 날씨 정보를 가져오지 못했습니다."
+                        tempTv.text = ""
+                    }
                 }
             } catch (e: Exception) {
-                binding.weatherInformTv.text = "내일 날씨 오류: ${e.message}"
-                binding.tempTv.text = ""
+                if (!isAdded || _binding == null) return@launch
+                _binding?.apply {
+                    weatherInformTv.text = "내일 날씨 오류: ${e.message}"
+                    tempTv.text = ""
+                }
             }
         }
     }
@@ -369,8 +475,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
+        // ✅ 변경 포인트: 항상 텍스트를 세팅 (빈 값일 때도 기본 문구로 교체)
         viewModel.diurnalMsg.observe(viewLifecycleOwner) { msg ->
-            if (!msg.isNullOrBlank()) binding.subTv.text = msg
+            binding.subTv.text = if (!msg.isNullOrBlank()) msg else "오늘의 팁을 불러오는 중이에요"
         }
     }
 
@@ -437,11 +544,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         dialog.setContentView(view)
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
             // 카메라 → 현재는 등록 화면으로 이동만
-            findNavController().navigate(R.id.action_homeFragment_to_registerFragment)
             dialog.dismiss()
         }
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-            openGallery()
+            // 권한 확인 → Pictures 스캔 → 갤러리 열기
+            ensurePhotoPermission { rescanPicturesAndOpenGallery() }
             dialog.dismiss()
         }
         dialog.show()
@@ -469,6 +576,49 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         return file
     }
 
+    // 1) 권한 체크 (API33+ READ_MEDIA_IMAGES / 이하 READ_EXTERNAL_STORAGE)
+    private fun ensurePhotoPermission(onGranted: () -> Unit) {
+        val perm = if (Build.VERSION.SDK_INT >= 33)
+            android.Manifest.permission.READ_MEDIA_IMAGES
+        else
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+            PackageManager.PERMISSION_GRANTED) {
+            onGranted()
+        } else {
+            requestPermissionLauncher.launch(perm)
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                // 권한이 방금 허용되면 스캔 후 갤러리 열기
+                rescanPicturesAndOpenGallery()
+            } else {
+                Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    // 2) Pictures 폴더 스캔 후 갤러리 열기
+    private fun rescanPicturesAndOpenGallery() {
+        // 에뮬레이터/Device Explorer로 넣은 파일을 인덱싱
+        val picturesPath = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        ).absolutePath
+
+        MediaScannerConnection.scanFile(
+            requireContext(),
+            arrayOf(picturesPath),
+            null
+        ) { _, _ ->
+            // 스캔 콜백에서 갤러리 열기 (스캔 완료 후)
+            requireActivity().runOnUiThread { openGallery() }
+        }
+    }
+
+    // gallery_btn 클릭 시 실행
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         pickImageLauncher.launch(intent)
