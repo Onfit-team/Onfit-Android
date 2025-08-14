@@ -1,5 +1,6 @@
 package com.example.onfit.HomeRegister.fragment
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,11 +8,14 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.KakaoLogin.util.TokenProvider
@@ -75,7 +79,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             })
             dialog.show(parentFragmentManager, "TopSheet")
         }
-
 
         // 칩 3개까지만 선택(분위기)
         val chipGroup2 = binding.registerVibeChips
@@ -202,9 +205,21 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         )
                     }
                     else {
-                        val err = response.errorBody()?.string()
-                        Log.d("RegisterOutfit", "code=${response.code()}, error=$err, body=$body")
-                        Toast.makeText(requireContext(), body?.message ?: "등록 실패", Toast.LENGTH_SHORT).show()
+                        // 중복 날짜 실패 응답 처리 추가
+                        val duplicateByBody =
+                            (body?.isSuccess == false) &&
+                                    (body.message?.contains("이미 해당 날짜에 등록된 코디가 있습니다") == true)
+                        val duplicateByError = isDuplicateDateError(errorText)
+
+                        if (duplicateByBody || duplicateByError) {
+                            // 중복 날짜 다이얼로그 노출
+                            showExistDialog()   // <- 네가 갖고 있는 다이얼로그 호출
+                            // 버튼 재활성화만 하고 리턴
+                            if (isAdded) binding.registerSaveBtn.isEnabled = true
+                            return@launch
+                        }
+                        val msg = body?.message ?: parseServerReason(errorText) ?: "등록 실패"
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
                     }
                 } catch (ce: CancellationException) {
                     Log.w(
@@ -226,6 +241,50 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
         binding.registerBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
+    }
+
+    private fun isDuplicateDateError(err: String?): Boolean {
+        if (err.isNullOrBlank()) return false
+        return try {
+            val obj = org.json.JSONObject(err)
+            val error = obj.optJSONObject("error")
+            val code = error?.optString("errorCode")
+            val reason = error?.optString("reason") ?: ""
+            code == "INVALID_INPUT" && reason.contains("이미 해당 날짜에 등록된 코디가 있습니다")
+        } catch (_: Exception) { false }
+    }
+
+    private fun parseServerReason(err: String?): String? =
+        try {
+            if (err.isNullOrBlank()) null
+            else org.json.JSONObject(err).optJSONObject("error")
+                ?.optString("reason")?.takeIf { it.isNotBlank() }
+        } catch (_: Exception) { null }
+
+    private fun showExistDialog() {
+        val dialog = AlertDialog.Builder(requireContext()).create()
+        val dialogView = layoutInflater.inflate(R.layout.outfit_exist_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(false)
+
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.rounded_white_bg)
+        )
+
+        val yesBtn = dialogView.findViewById<Button>(R.id.exist_dialog_yes_btn)
+
+        // 액티비티 종료
+        yesBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // 다이얼로그 너비 294dp
+        val width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
+        ).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun onMemoDone(memoText: String) {
