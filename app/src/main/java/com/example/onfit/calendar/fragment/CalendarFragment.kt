@@ -1,24 +1,51 @@
 package com.example.onfit.calendar.fragment
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.calendar.adapter.CalendarAdapter
 import com.example.onfit.calendar.viewmodel.CalendarViewModel
 import com.example.onfit.calendar.viewmodel.CalendarUiState
 import com.example.onfit.calendar.Network.*
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 import java.util.*
 
 class CalendarFragment : Fragment() {
@@ -27,6 +54,9 @@ class CalendarFragment : Fragment() {
     private lateinit var rvCalendar: RecyclerView
     private lateinit var calendarAdapter: CalendarAdapter
     private lateinit var tvMostUsedStyle: TextView
+
+    private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
+    private var selectedImageUri: Uri? = null
 
     // MVVM
     private lateinit var viewModel: CalendarViewModel
@@ -50,6 +80,22 @@ class CalendarFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
+
+        // 갤러리 Launcher
+        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == AppCompatActivity.RESULT_OK) {
+                selectedImageUri = result.data?.data
+
+                // 선택 이미지 URI -> 캐시 파일로 변환 후 업로드
+                selectedImageUri?.let { uri ->
+                    Log.d("CalendarFragment", "선택된 이미지 URI: $uri")
+                    val cacheFile = uriToCacheFile(requireContext(), uri)
+                    Log.d("CalendarFragment", "파일 존재 여부: ${cacheFile.exists()}")
+                    Log.d("CalendarFragment", "파일 크기: ${cacheFile.length()}")
+                    uploadImageToServer(cacheFile)
+                }
+            }
+        }
     }
 
     override fun onCreateView(
@@ -69,6 +115,141 @@ class CalendarFragment : Fragment() {
 
         // 🔥 새 API로 가장 많이 사용된 태그 조회
         loadMostUsedTag()
+    }
+
+    // API에 갤러리에서 고른 사진 업로드하고 Url 받아오기
+    private fun uploadImageToServer(file: File) {
+        Log.d("Calendar", "Step 1: 함수 진입")
+        Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
+
+        // 1. 토큰 체크
+        val token = TokenProvider.getToken(requireContext())
+        require(!token.isNullOrBlank()) { "토큰이 없다" }
+        val header = "Bearer $token"
+        Log.d("UploadDebug", "Step 2: 토큰=$token")
+
+        // 2. 파일 검증 로그
+        val exists = file.exists()
+        val length = file.length()
+        val canRead = file.canRead()
+        val ext = file.extension.lowercase()
+        val bmpTest = BitmapFactory.decodeFile(file.absolutePath) != null
+
+        Log.d("UploadCheck", "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest")
+
+        require(exists && length > 0 && bmpTest) { "이미지 파일이 손상되었거나 크기가 0입니다." }
+
+        // 3. 확장자 기반 MIME 자동 지정
+        val mime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream" // 기타 확장자
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$mime")
+
+        // 확장자 기반 MIME 자동 지정
+        var uploadFile = file
+        var uploadMime = when (ext) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "application/octet-stream"
+        }
+        Log.d("UploadDebug", "Step 3: MIME=$uploadMime")
+
+        // 3-1. PNG -> JPG 변환
+        if (ext == "png") {
+            try {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                require(bitmap != null) { "PNG 디코딩 실패" }
+
+                val jpgFile = File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
+                FileOutputStream(jpgFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                }
+                uploadFile = jpgFile
+                uploadMime = "image/jpeg" // ← 변환했으니 MIME도 함께 변경
+                Log.d("UploadDebug", "PNG → JPG 변환 완료: ${jpgFile.absolutePath}")
+            } catch (e: Exception) {
+                Log.e("UploadDebug", "PNG → JPG 변환 실패", e)
+                // 변환 실패 시 원본 PNG 그대로 보낼 수도 있음(원하면 return으로 중단)
+                uploadFile = file
+                uploadMime = "image/png"
+            }
+        }
+
+        // 4. RequestBody + MultipartBody.Part 생성
+        val requestFile = uploadFile.asRequestBody(uploadMime.toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("image", uploadFile.name, requestFile)
+        Log.d("UploadREQ", "file=${uploadFile.name}, size=${uploadFile.length()}, mime=$uploadMime, fieldName=image")
+
+        // 5. 업로드 요청 정보 로그
+        Log.d("UploadREQ",
+            "url=/items/upload, header=$header, file=${file.name}, size=$length, mime=$mime, fieldName=image"
+        )
+
+        // 6. 업로드 실행
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val api = RetrofitClient.instance.create(ApiService::class.java)
+                val response = api.uploadImage(header, body)
+
+                Log.d("UploadDebug", "Step 5: API 호출 완료, 응답코드=${response.code()}")
+
+                // (1) 원본 JSON 통째로 로그 (성공/실패 모두)
+                try {
+                    val raw = response.raw().peekBody(Long.MAX_VALUE).string()
+                    Log.d("UploadRaw", raw)
+                } catch (_: Exception) {}
+
+                val bodyObj = response.body()
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && bodyObj?.ok == true) {
+                        val imageUrl = bodyObj.payload?.imageUrl
+                        Log.d("HomeFragment", "이미지 업로드 성공, parsed imageUrl=$imageUrl")
+
+                        // ★ URL이 비어있으면 이동 금지(여기서 막아야 Register에서 null 안 받음)
+                        if (imageUrl.isNullOrBlank()) {
+                            Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
+
+                        // RegisterFragment로 URL 전달
+                        val bundle = Bundle().apply {
+                            putString("selectedImagePath", uploadFile.absolutePath) // 미리보기용 파일경로
+                            putString("uploadedImageUrl", imageUrl)                  // 서버 URL
+                        }
+                        // 프래그먼트가 화면에 살아있는지 먼저 확인
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
+                                Lifecycle.State.STARTED)) {
+                            return@withContext
+                        }
+
+                        val nav = findNavController()
+
+                        // 액션으로 시도
+                        runCatching {
+                            nav.navigate(R.id.action_calendarFragment_to_registerFragment, bundle)
+                        }.onFailure {
+                            // 2차: 액션이 막혔을 때(현재 목적지 변화 등) 대상 ID로 폴백
+                            runCatching {
+                                nav.navigate(R.id.registerFragment, bundle)
+                            }
+                        }
+                    } else {
+                        val errorMsg = response.errorBody()?.string()
+                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
+                        Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e("UploadDebug", "예외 발생", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "서버 오류", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -93,7 +274,7 @@ class CalendarFragment : Fragment() {
 
         view.findViewById<View>(R.id.calendar_register_btn)?.setOnClickListener {
             try {
-                findNavController().navigate(R.id.action_calendarFragment_to_registerFragment)
+                showBottomSheet()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(requireContext(), "이동 실패: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -261,6 +442,80 @@ class CalendarFragment : Fragment() {
             e.printStackTrace()
             Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun showBottomSheet() {
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
+        val dialog = BottomSheetDialog(requireContext())
+        dialog.setContentView(view)
+        view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
+            // 카메라 → 현재는 등록 화면으로 이동만
+            dialog.dismiss()
+        }
+        view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
+            // 권한 확인 → Pictures 스캔 → 갤러리 열기
+            ensurePhotoPermission { rescanPicturesAndOpenGallery() }
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+    private fun uriToCacheFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val file = File(context.cacheDir, "selected_outfit.png")
+        val outputStream = FileOutputStream(file)
+        inputStream?.use { input ->
+            outputStream.use { output -> input.copyTo(output) }
+        }
+        return file
+    }
+
+    // 1) 권한 체크 (API33+ READ_MEDIA_IMAGES / 이하 READ_EXTERNAL_STORAGE)
+    private fun ensurePhotoPermission(onGranted: () -> Unit) {
+        val perm = if (Build.VERSION.SDK_INT >= 33)
+            android.Manifest.permission.READ_MEDIA_IMAGES
+        else
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+            PackageManager.PERMISSION_GRANTED) {
+            onGranted()
+        } else {
+            requestPermissionLauncher.launch(perm)
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) {
+                // 권한이 방금 허용되면 스캔 후 갤러리 열기
+                rescanPicturesAndOpenGallery()
+            } else {
+                Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    // 2) Pictures 폴더 스캔 후 갤러리 열기
+    private fun rescanPicturesAndOpenGallery() {
+        // 에뮬레이터/Device Explorer로 넣은 파일을 인덱싱
+        val picturesPath = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        ).absolutePath
+
+        MediaScannerConnection.scanFile(
+            requireContext(),
+            arrayOf(picturesPath),
+            null
+        ) { _, _ ->
+            // 스캔 콜백에서 갤러리 열기 (스캔 완료 후)
+            requireActivity().runOnUiThread { openGallery() }
+        }
+    }
+
+    // gallery_btn 클릭 시 실행
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+        pickImageLauncher.launch(intent)
     }
 
     /**
