@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.onfit.HomeRegister.model.DisplayImage
 
 class SaveImagePagerAdapter(
     private val items: MutableList<DisplayImage> = mutableListOf()

@@ -26,7 +26,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
 import com.example.onfit.HomeRegister.model.RetrofitClient
+import com.example.onfit.OutfitRegister.RetrofitClient as UploadRetrofit
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +41,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLConnection
 
 
 class OutfitRegisterFragment : Fragment() {
