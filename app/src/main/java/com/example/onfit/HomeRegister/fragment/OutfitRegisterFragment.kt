@@ -100,16 +100,23 @@ class OutfitRegisterFragment : Fragment() {
             "crop_result",
             viewLifecycleOwner
         ) { _, bundle ->
-            val imagePath = bundle.getString("cropped_image_path")
-            if (!imagePath.isNullOrEmpty()) {
-                val uri = Uri.fromFile(File(imagePath))
-                val newItem = OutfitItem2(
-                    imageUri = uri,
-                    imageResId = null,
-                    isClosetButtonActive = true
-                )
-                adapter.addItem(newItem) // RecyclerView에 아이템 추가
-            }
+            val uriStr = bundle.getString("cropped_image_uri") ?: return@setFragmentResultListener
+            val uri = Uri.parse(uriStr)
+
+            val newItem = OutfitItem2(
+                imageUri = uri,
+                imageResId = null,
+                isClosetButtonActive = true
+            )
+            adapter.addItem(newItem)
+        }
+
+
+        // SaveFragment에서 전달받은 이미지 경로 가져오기
+        val imagePath = arguments?.getString("outfit_image_path")
+        if (!imagePath.isNullOrEmpty()) {
+            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
+            uploadImageToServer(File(imagePath))
         }
 
         adapter = OutfitAdapter(
@@ -120,7 +127,13 @@ class OutfitRegisterFragment : Fragment() {
             },
             onCropButtonClick = { position ->
                 // OutfitCropFragment로 전환
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment)
+                val item = outfitList[position]
+                val imagePath = item.imageUri?.path ?: ""
+
+                val bundle = Bundle().apply {
+                    putString("outfit_image_path", imagePath)
+                }
+                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
             })
 
         binding.outfitRegisterRv.adapter = adapter
@@ -129,13 +142,6 @@ class OutfitRegisterFragment : Fragment() {
         // + 버튼 누르면 이미지 추가
         binding.outfitRegisterAddButton.setOnClickListener {
             openGallery()
-        }
-
-        // SaveFragment에서 전달받은 이미지 경로 가져오기
-        val imagePath = arguments?.getString("outfit_image_path")
-        if (!imagePath.isNullOrEmpty()) {
-            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
-            uploadImageToServer(File(imagePath))
         }
 
         // 이미지 넘겨주면서 OutfitSave 화면으로 이동
