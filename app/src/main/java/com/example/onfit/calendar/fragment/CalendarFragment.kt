@@ -17,7 +17,6 @@ import com.example.onfit.R
 import com.example.onfit.calendar.adapter.CalendarAdapter
 import com.example.onfit.calendar.viewmodel.CalendarViewModel
 import com.example.onfit.calendar.viewmodel.CalendarUiState
-import com.example.onfit.calendar.Network.*
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -104,7 +103,7 @@ class CalendarFragment : Fragment() {
         val months = generateMonths()
         calendarAdapter = CalendarAdapter(
             months = months,
-            registeredDates = dummyRegisteredDates.toMutableSet(), // 최초엔 더미만
+            registeredDates = dummyRegisteredDates.toMutableSet(),
             onDateClick = { dateString, hasOutfit -> handleDateClick(dateString, hasOutfit) }
         )
         rvCalendar.apply {
@@ -115,23 +114,15 @@ class CalendarFragment : Fragment() {
         scrollToCurrentMonth()
     }
 
+    // ★ 등록/저장 등 fragmentResult로 신호가 오면 항상 서버 fetch!
     private fun setupFragmentResultListeners() {
-        // Home 등에서 FragmentResult로 날짜가 추가되는 경우도 반영(보조)
         val resultKeys = listOf(
             "outfit_saved", "outfit_registered", "calendar_outfit_saved",
             "home_outfit_saved", "register_complete", "save_complete", "outfit_complete"
         )
         resultKeys.forEach { key ->
-            parentFragmentManager.setFragmentResultListener(key, viewLifecycleOwner) { _, bundle ->
-                val dateString = bundle.getString("saved_date")
-                    ?: bundle.getString("registered_date")
-                    ?: bundle.getString("date")
-                    ?: bundle.getString("outfit_date")
-                    ?: bundle.getString("save_date")
-                // 서버 fetch가 주가 되므로, 여기서는 별도 추가하지 않음
-                if (!dateString.isNullOrEmpty()) {
-                    // 필요시 UI에 임시 표시만
-                }
+            parentFragmentManager.setFragmentResultListener(key, viewLifecycleOwner) { _, _ ->
+                viewModel.refreshAllOutfitDates()
             }
         }
     }
