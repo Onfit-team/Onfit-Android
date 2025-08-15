@@ -3,9 +3,11 @@ package com.example.onfit.HomeRegister.fragment
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -47,6 +49,19 @@ class OutfitCropFragment : Fragment() {
     ): View? {
         _binding = FragmentOutfitCropBinding.inflate(inflater, container, false)
 
+        val path = arguments?.getString("outfit_image_path")
+        val iv = binding.cropOutfitIv
+        if (!path.isNullOrEmpty()) {
+            val uri = if (path.startsWith("content://") || path.startsWith("file://")) {
+                Uri.parse(path)
+            } else {
+                Uri.fromFile(File(path))
+            }
+            iv.setImageURI(uri)
+        } else {
+            Toast.makeText(requireContext(), "이미지 경로가 비어 있어요.", Toast.LENGTH_SHORT).show()
+        }
+
         binding.cropOutfitIv.setOnClickListener {
             val imageUri = getImageUriFromImageView()
 
@@ -63,6 +78,10 @@ class OutfitCropFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), "이미지가 없습니다.", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        binding.cropBackBtn.setOnClickListener {
+            findNavController().popBackStack()
         }
 
         binding.cropSaveBtn.setOnClickListener {

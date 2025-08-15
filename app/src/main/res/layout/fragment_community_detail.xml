@@ -92,7 +92,7 @@
                     android:id="@+id/likes_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="128"
+                    android:text="0"
                     android:textColor="@color/black"
                     android:textSize="13sp"
                     android:layout_gravity="bottom|end"
@@ -127,7 +127,7 @@
                 android:id="@+id/temp_iv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/weather_sun" />
+                android:src="@drawable/sun_black" />
 
             <TextView
                 android:id="@+id/temp_tv"

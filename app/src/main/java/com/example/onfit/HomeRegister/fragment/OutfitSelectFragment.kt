@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
@@ -32,6 +33,7 @@ class OutfitSelectFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 상단 프리뷰 이미지
         val iv = binding.outfitSelectOutfitIv
         val src = args.imageSource
 
@@ -58,6 +60,30 @@ class OutfitSelectFragment : Fragment() {
             .replace(R.id.outfit_select_fragment_container, WardrobeSelectFragment())
             .commit()
 
+        // 자식에서 선택된 이미지로 아이템 이미지 RegisterFragment에 돌려주고 종료
+        binding.outfitSelectSaveBtn.setOnClickListener {
+            val child = childFragmentManager
+                .findFragmentById(R.id.outfit_select_fragment_container) as? WardrobeSelectFragment
+
+            val selected = child?.getSelectedImages()?.firstOrNull()
+            if (selected == null) {
+                Toast.makeText(requireContext(), "이미지를 선택해 주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val bundle = Bundle().apply {
+                putInt("position", args.itemPosition)
+                putInt("imageResId", selected)
+            }
+
+            // 결과 전달 → 이전 화면(OutfitRegister)에서 observe 중
+            findNavController().previousBackStackEntry
+                ?.savedStateHandle
+                ?.set("wardrobe_result", bundle)
+            findNavController().popBackStack()
+        }
+
+
         // 뒤로가기 버튼 눌렀을 때 이전 프래그먼트로 돌아감
         binding.outfitSelectBackBtn.setOnClickListener {
             findNavController().popBackStack()
@@ -68,5 +94,4 @@ class OutfitSelectFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
 }

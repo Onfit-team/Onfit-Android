@@ -36,6 +36,8 @@ data class MostUsedTagResponse(
 data class MostUsedTagResult(
     val tag: String,
     val count: Int
+<<<<<<< HEAD
+=======
 )
 
 // 🔥 현재 날짜 응답 데이터 클래스
@@ -48,4 +50,5 @@ data class CurrentDateResponse(
 
 data class CurrentDateResult(
     val date: String  // "2025-07-11" 형태
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 )

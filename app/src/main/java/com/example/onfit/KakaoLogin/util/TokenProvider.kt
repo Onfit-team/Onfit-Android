@@ -8,7 +8,8 @@ object TokenProvider {
 
     private const val PREFS_NAME = "auth_prefs"
     private const val KEY_TOKEN = "access_token"
-    private const val KEY_LOCATION = "location" // 🔹 위치 키 추가
+    private const val KEY_LOCATION = "location" // 위치 키
+    private const val KEY_NICKNAME = "nickname" // 닉네임 키
 
     // 토큰 저장
     fun saveToken(context: Context, token: String) {
@@ -32,6 +33,18 @@ object TokenProvider {
     fun getLocation(context: Context): String {
         val prefs = getPrefs(context)
         return prefs.getString(KEY_LOCATION, " 위치를 설정해주세요") ?: "위치를 설정해주세요"
+    }
+
+    // 닉네임 저장
+    fun saveNickname(context: Context, nickname: String) {
+        val prefs = getPrefs(context)
+        prefs.edit { putString(KEY_NICKNAME, nickname) }
+    }
+
+    // 닉네임 조회
+    fun getNickname(context: Context): String {
+        val prefs = getPrefs(context)
+        return prefs.getString(KEY_NICKNAME, "") ?: ""
     }
 
     // 공통 SharedPreferences 접근자

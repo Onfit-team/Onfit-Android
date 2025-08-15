@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.KakaoLogin.api.KakaoAuthService
 import com.example.onfit.KakaoLogin.util.NicknameProvider
+import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentNicknameBinding
 import com.example.onfit.network.RetrofitInstance
@@ -84,9 +85,11 @@ class NicknameFragment : Fragment() {
         }
 
         // 가입하기 버튼
+        // 가입하기 버튼
         binding.btnNext.setOnClickListener {
             if (isNicknameAvailable) {
                 NicknameProvider.nickname = nickname
+                TokenProvider.saveNickname(requireContext(), nickname) // 닉네임 저장
                 Log.d("NicknameLog", "가입하기 버튼 클릭 → 닉네임 등록됨: $nickname")
                 findNavController().navigate(R.id.action_nicknameFragment_to_locationSettingFragment)
             } else {
@@ -94,6 +97,7 @@ class NicknameFragment : Fragment() {
                 showErrorDialog("닉네임 중복 확인을 해주세요.")
             }
         }
+
     }
 
     private fun isValidNickname(nickname: String): Boolean {

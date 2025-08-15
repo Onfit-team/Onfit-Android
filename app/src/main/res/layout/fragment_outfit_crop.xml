@@ -4,7 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_marginTop="24dp"
+    android:layout_marginTop="35dp"
+    android:layout_marginLeft="15dp"
+    android:layout_marginRight="15dp"
+    android:layout_marginBottom="15dp"
     android:fillViewport="true"
     android:scrollbars="none"
     tools:context=".HomeRegister.fragment.OutfitCropFragment">

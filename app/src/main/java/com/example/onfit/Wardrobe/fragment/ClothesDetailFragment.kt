@@ -109,13 +109,38 @@ class ClothesDetailFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val token = getAccessToken()
+<<<<<<< HEAD
+=======
                 Log.d("ClothesDetailFragment", "API 호출 시작 - itemId: $itemId, token: ${token.take(20)}...")
 
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 val response = RetrofitClient.wardrobeService.getWardrobeItemDetail(itemId, token)
 
                 if (response.isSuccessful && response.body()?.isSuccess == true) {
                     val itemDetail = response.body()?.result
                     if (itemDetail != null) {
+<<<<<<< HEAD
+                        Log.d("ClothesDetailFragment", "API 응답 - 이미지 URL: ${itemDetail.image}")
+
+                        // 이미지 URL이 비어있는 경우에도 나머지 정보는 표시
+                        displayItemDetail(itemDetail)
+
+                        // 이미지가 없으면 기본 이미지 사용
+                        if (itemDetail.image.isNullOrEmpty()) {
+                            Log.w("ClothesDetailFragment", "이미지 URL이 비어있음 - 기본 이미지 사용")
+                            view?.findViewById<ImageView>(R.id.clothes_image)?.setImageResource(R.drawable.clothes8)
+                        }
+                    } else {
+                        showError("아이템 정보를 불러올 수 없습니다.")
+                    }
+                } else {
+                    Log.e("ClothesDetailFragment", "API 응답 실패: ${response.code()}")
+                    showError("아이템을 찾을 수 없습니다.")
+                }
+            } catch (e: Exception) {
+                Log.e("ClothesDetailFragment", "API 호출 실패", e)
+                showError("네트워크 오류가 발생했습니다.")
+=======
                         Log.d("ClothesDetailFragment", "API 응답 성공")
                         Log.d("ClothesDetailFragment", "응답 데이터: $itemDetail")
                         Log.d("ClothesDetailFragment", "이미지 URL: '${itemDetail.image}'")
@@ -136,6 +161,7 @@ class ClothesDetailFragment : Fragment() {
             } catch (e: Exception) {
                 Log.e("ClothesDetailFragment", "API 호출 실패", e)
                 showError("네트워크 오류가 발생했습니다: ${e.message}")
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
             }
         }
     }
@@ -143,6 +169,48 @@ class ClothesDetailFragment : Fragment() {
     private fun displayItemDetail(itemDetail: WardrobeItemDetail) {
         val clothesImageView = view?.findViewById<ImageView>(R.id.clothes_image)
 
+<<<<<<< HEAD
+        // 🔥 이미지 로딩 강화 - 이 부분을 수정
+        clothesImageView?.let { imageView ->
+            Log.d("ClothesDetailFragment", "이미지 처리 시작")
+            Log.d("ClothesDetailFragment", "이미지 URL: '${itemDetail.image}'")
+            Log.d("ClothesDetailFragment", "이미지 URL 길이: ${itemDetail.image?.length}")
+            Log.d("ClothesDetailFragment", "이미지 URL 비어있음?: ${itemDetail.image.isNullOrEmpty()}")
+
+            when {
+                // 1. URL이 유효한 경우
+                !itemDetail.image.isNullOrEmpty() && itemDetail.image.startsWith("http") -> {
+                    Log.d("ClothesDetailFragment", "네트워크 이미지 로딩 시도: ${itemDetail.image}")
+                    Glide.with(this)
+                        .load(itemDetail.image)
+                        .transform(CenterCrop(), RoundedCorners(16))
+                        .placeholder(R.drawable.clothes8)
+                        .error(R.drawable.clothes1)
+                        .into(imageView)
+                }
+
+                // 2. URL이 비어있는 경우 - 더미 이미지 사용 (itemId 기반)
+                else -> {
+                    Log.d("ClothesDetailFragment", "URL 비어있음 - 더미 이미지 사용, itemId: $imageResId")
+
+                    // 더미 이미지 배열
+                    val dummyImages = listOf(
+                        R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
+                        R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+                        R.drawable.clothes7, R.drawable.clothes8
+                    )
+
+                    // imageResId(실제로는 itemId)를 기반으로 순환하여 이미지 선택
+                    val imageIndex = if (imageResId > 0) {
+                        (imageResId - 1) % dummyImages.size
+                    } else {
+                        0 // 기본값
+                    }
+
+                    val selectedImage = dummyImages[imageIndex]
+                    imageView.setImageResource(selectedImage)
+                    Log.d("ClothesDetailFragment", "더미 이미지 설정: $selectedImage (index: $imageIndex)")
+=======
         clothesImageView?.let { imageView ->
             Log.d("ClothesDetailFragment", "이미지 표시 시작")
             Log.d("ClothesDetailFragment", "원본 이미지 URL: '${itemDetail.image}'")
@@ -162,16 +230,23 @@ class ClothesDetailFragment : Fragment() {
                 else -> {
                     Log.w("ClothesDetailFragment", "유효하지 않은 URL - 더미 이미지 사용")
                     loadDummyImage(imageView)
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 }
             }
         }
 
+<<<<<<< HEAD
+        // 나머지 정보 표시는 그대로 유지
+=======
         // 나머지 정보 표시
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         displayCategoryInfo(itemDetail)
         displayPurchaseInfo(itemDetail)
         displayTags(itemDetail.tags)
     }
 
+<<<<<<< HEAD
+=======
     /**
      * 이미지 URL 정규화 함수
      */
@@ -278,6 +353,7 @@ class ClothesDetailFragment : Fragment() {
         imageView.setImageResource(selectedImage)
         Log.d("ClothesDetailFragment", "더미 이미지 설정: $selectedImage (index: $imageIndex, itemId: $imageResId)")
     }
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
     private fun displayCategoryInfo(itemDetail: WardrobeItemDetail) {
         // 카테고리명 찾기
@@ -411,7 +487,11 @@ class ClothesDetailFragment : Fragment() {
         }
     }
 
+<<<<<<< HEAD
+    // 매핑 함수들
+=======
     // 매핑 함수들 (기존과 동일)
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     private fun getCategoryName(categoryId: Int): String {
         return when (categoryId) {
             1 -> "상의"
@@ -419,7 +499,10 @@ class ClothesDetailFragment : Fragment() {
             3 -> "원피스"
             4 -> "아우터"
             5 -> "신발"
+<<<<<<< HEAD
+=======
             6 -> "악세사리"
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
             else -> "기타"
         }
     }
@@ -427,6 +510,52 @@ class ClothesDetailFragment : Fragment() {
     private fun getSubcategoryName(subcategoryId: Int): String {
         return when (subcategoryId) {
             // 상의 (category 1)
+<<<<<<< HEAD
+            1 -> "반팔티"
+            2 -> "긴팔티"
+            3 -> "셔츠"
+            4 -> "블라우스"
+            5 -> "니트"
+            6 -> "후드티"
+            7 -> "탱크톱"
+            8 -> "나시티"
+
+            // 하의 (category 2)
+            9 -> "청바지"
+            10 -> "면바지"
+            11 -> "반바지"
+            12 -> "슬랙스"
+            13 -> "치마"
+            14 -> "레깅스"
+            15 -> "조거팬츠"
+
+            // 원피스 (category 3)
+            16 -> "미니원피스"
+            17 -> "미디원피스"
+            18 -> "롱원피스"
+            19 -> "니트원피스"
+            20 -> "셔츠원피스"
+
+            // 아우터 (category 4)
+            21 -> "자켓"
+            22 -> "패딩"
+            23 -> "코트"
+            24 -> "바람막이"
+            25 -> "가디건"
+            26 -> "점퍼"
+            27 -> "블레이저"
+            28 -> "바람막이"
+
+            // 신발 (category 5)
+            29 -> "운동화"
+            30 -> "구두"
+            31 -> "부츠"
+            32 -> "샌들"
+            33 -> "슬리퍼"
+            34 -> "하이힐"
+            35 -> "플랫슈즈"
+            36 -> "워커"
+=======
             1 -> "반팔티셔츠"
             2 -> "긴팔티셔츠"
             3 -> "민소매"
@@ -480,6 +609,7 @@ class ClothesDetailFragment : Fragment() {
             41 -> "가방"
             42 -> "시계/팔찌/목걸이"
             43 -> "기타"
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
             else -> "기타"
         }
@@ -521,12 +651,24 @@ class ClothesDetailFragment : Fragment() {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
+<<<<<<< HEAD
+    private fun displayAdditionalInfo(itemDetail: WardrobeItemDetail) {
+        // 이 함수는 더 이상 필요하지 않음 - displayItemDetail에서 모든 정보를 처리
+        Log.d("ClothesDetailFragment", "아이템 정보 로드 완료: ${itemDetail.brand}, ${itemDetail.size}")
+    }
+
+    private fun getAccessToken(): String {
+        return try {
+            val token = TokenProvider.getToken(requireContext())
+            if (token.isNotEmpty()) "Bearer $token" else ""
+=======
     private fun getAccessToken(): String {
         return try {
             val token = TokenProvider.getToken(requireContext())
             val bearerToken = if (token.isNotEmpty()) "Bearer $token" else ""
             Log.d("ClothesDetailFragment", "토큰 길이: ${token.length}, Bearer 토큰: ${bearerToken.take(20)}...")
             bearerToken
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         } catch (e: Exception) {
             Log.e("ClothesDetailFragment", "토큰 가져오기 실패: ${e.message}")
             ""
@@ -535,12 +677,17 @@ class ClothesDetailFragment : Fragment() {
 
     private fun showError(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+<<<<<<< HEAD
+        // 에러 시에도 기본 이미지라도 표시
+        setupDummyData(requireView())
+=======
         Log.e("ClothesDetailFragment", "에러 표시: $message")
 
         // 에러 시에도 더미 이미지 표시
         view?.findViewById<ImageView>(R.id.clothes_image)?.let { imageView ->
             loadDummyImage(imageView)
         }
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     }
 
     override fun onResume() {
@@ -773,4 +920,41 @@ class ClothesDetailFragment : Fragment() {
             }
         }
     }
+<<<<<<< HEAD
+
+    private fun loadImageSafely(imageUrl: String?, imageView: ImageView) {
+        when {
+            imageUrl.isNullOrEmpty() -> {
+                Log.w("ClothesDetailFragment", "이미지 URL이 비어있음 - 더미 이미지 사용")
+
+                // 더미 이미지 사용
+                val dummyImages = listOf(
+                    R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
+                    R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+                    R.drawable.clothes7, R.drawable.clothes8
+                )
+
+                val imageIndex = if (imageResId > 0) {
+                    (imageResId - 1) % dummyImages.size
+                } else {
+                    0
+                }
+
+                imageView.setImageResource(dummyImages[imageIndex])
+            }
+            !imageUrl.startsWith("http") -> {
+                Log.w("ClothesDetailFragment", "유효하지 않은 URL: $imageUrl")
+                imageView.setImageResource(R.drawable.clothes8)
+            }
+            else -> {
+                Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.clothes8)
+                    .error(R.drawable.clothes1)
+                    .into(imageView)
+            }
+        }
+    }
+=======
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 }

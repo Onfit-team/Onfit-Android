@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.Gravity
 import android.widget.HorizontalScrollView
 import com.example.onfit.Wardrobe.adapter.WardrobeAdapter
+import com.example.onfit.Wardrobe.Network.WardrobeItemDto
 
 class StyleOutfitsFragment : Fragment() {
 
@@ -21,21 +22,6 @@ class StyleOutfitsFragment : Fragment() {
     private lateinit var wardrobeAdapter: WardrobeAdapter
     private lateinit var styleFilterLayout: LinearLayout
     private lateinit var styleFilterScrollView: HorizontalScrollView
-
-    // 전체 의류 아이템 (WardrobeFragment와 완전히 동일)
-    private val allImageList = listOf(
-        R.drawable.clothes1,
-        R.drawable.clothes2,
-        R.drawable.clothes3,
-        R.drawable.clothes4,
-        R.drawable.clothes5,
-        R.drawable.clothes6,
-        R.drawable.clothes7,
-        R.drawable.clothes8,
-        R.drawable.cody_image1,
-        R.drawable.cody_image4,
-        R.drawable.cody_image5
-    )
 
     // 스타일 필터 목록
     private val styleFilters = listOf("포멀", "빈티지", "미니멀", "캐주얼", "꾸안꾸")
@@ -72,9 +58,15 @@ class StyleOutfitsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        // WardrobeAdapter 사용
-        wardrobeAdapter = WardrobeAdapter(allImageList) { imageResId ->
-            navigateToClothesDetail(imageResId)
+        // API 데이터만 사용 - 빈 리스트로 시작
+        wardrobeAdapter = WardrobeAdapter(emptyList<WardrobeItemDto>()) { item ->
+            // API 데이터용 네비게이션
+            if (item is WardrobeItemDto) {
+                val bundle = Bundle().apply {
+                    putInt("item_id", item.id)
+                }
+                findNavController().navigate(R.id.clothesDetailFragment, bundle)
+            }
         }
         rvOutfitItems.layoutManager = GridLayoutManager(requireContext(), 2)
         rvOutfitItems.adapter = wardrobeAdapter
@@ -187,7 +179,7 @@ class StyleOutfitsFragment : Fragment() {
                 findNavController().navigateUp()
             } catch (e: Exception) {
                 // Navigation 실패시 onBackPressed 사용
-                requireActivity().onBackPressed()
+                requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
     }

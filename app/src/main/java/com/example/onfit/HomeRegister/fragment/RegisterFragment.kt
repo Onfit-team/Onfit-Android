@@ -1,5 +1,6 @@
 package com.example.onfit.HomeRegister.fragment
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -7,11 +8,14 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.KakaoLogin.util.TokenProvider
@@ -21,7 +25,9 @@ import com.example.onfit.R
 import com.example.onfit.TopSheetDialogFragment
 import com.example.onfit.databinding.FragmentRegisterBinding
 import com.google.android.material.chip.Chip
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
@@ -30,6 +36,7 @@ import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlin.coroutines.cancellation.CancellationException
 
 class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
     private var _binding: FragmentRegisterBinding? = null
@@ -45,6 +52,10 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val recvUrl = arguments?.getString("uploadedImageUrl")
+        val recvPath = arguments?.getString("selectedImagePath")
+        Log.d("RegisterArg", "uploadedImageUrl=$recvUrl, selectedImagePath=$recvPath")
 
         // HomeFragment 갤러리에서 선택한 사진 받아오기
         val imagePath = arguments?.getString("selectedImagePath")
@@ -68,7 +79,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             })
             dialog.show(parentFragmentManager, "TopSheet")
         }
-
 
         // 칩 3개까지만 선택(분위기)
         val chipGroup2 = binding.registerVibeChips
@@ -110,11 +120,29 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
         // 저장 버튼 누르면 날짜, 이미지 Bundle로 전달, 코디 등록 API 연동
         binding.registerSaveBtn.setOnClickListener {
             // 날짜 변환(API 용)
-            val parts = binding.registerDateTv.text.toString().split(".")
-            val formattedDateForAPI = "${parts[0]}-${parts[1]}-${parts[2]}"
+            binding.registerSaveBtn.isEnabled = false
 
-            //  HomeFragment의 갤러리에서 고른 이미지의 URL
-            val imageUrl = arguments?.getString("uploadedImageUrl")
+            // 1) 날짜 안전 파싱 ('.'는 정규식이라 반드시 이스케이프)
+            val rawDate = binding.registerDateTv.text.toString().trim()
+            val parts = rawDate.split("\\.".toRegex()).map { it.trim() }
+            if (parts.size != 3 || parts.any { it.isBlank() }) {
+                Toast.makeText(requireContext(), "날짜 형식이 올바르지 않습니다. (예: 2025.08.12)", Toast.LENGTH_SHORT).show()
+                binding.registerSaveBtn.isEnabled = true
+                return@setOnClickListener
+            }
+            // 날짜(API용)
+            val formattedDateForAPI = "${parts[0]}-${parts[1]}-${parts[2]}"
+            // 날짜(Bundle용)
+            val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"
+
+            // 2) 이미지 URL 필수 확인 (HomeFragment에서 전달한 키 이름 정확히 일치해야 함)
+            val imageUrl = arguments?.getString("uploadedImageUrl")?.trim()
+            Log.d("RegisterOutfit", "uploadedImageUrl='$imageUrl'")
+            if (imageUrl.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "이미지 업로드 후 등록해 주세요.", Toast.LENGTH_SHORT).show()
+                binding.registerSaveBtn.isEnabled = true
+                return@setOnClickListener
+            }
 
             // 메모 텍스트
             val memoText = binding.registerMemoEt.text.toString()
@@ -146,50 +174,117 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 put("feelsLikeTemp", selectedWeatherTags.firstOrNull() ?: 0)
                 put("moodTags", JSONArray(finalMoodTags))
                 put("purposeTags", JSONArray(finalPurposeTags))
-                put("locationId", 1) // 임시 위치값
             }
+            Log.d("RegisterOutfit", "jsonBody=$jsonBody")
 
             // RequestBody로 변환
             val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
             // Retrofit API 호출(발급받은 임시 토큰 사용)
-            lifecycleScope.launch {
+            viewLifecycleOwner.lifecycleScope.launch {
                 try {
                     val api = RetrofitClient.instance.create(ApiService::class.java)
+                    val header = "Bearer ${TokenProvider.getToken(requireContext())}"
+                    val response = withContext(Dispatchers.IO) { api.registerOutfit(header, requestBody) }
 
-                    val token = TokenProvider.getToken(requireContext())
-                    val header = "Bearer $token"
-                    val response = api.registerOutfit(header, requestBody)
+                    // errorBody 읽기
+                    val errorText = response.errorBody()?.string()
+                    Log.d("RegisterOutfit", "code=${response.code()}, error=$errorText, body=${response.body()}")
 
-                    if (response.isSuccessful && response.body()?.isSuccess == true) {
+                    val body = response.body()
+                    if (response.isSuccessful && body?.isSuccess == true) {
                         Toast.makeText(requireContext(), "아웃핏 등록 성공!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(requireContext(), "등록 실패", Toast.LENGTH_SHORT).show()
+
+                        val bundle = Bundle().apply {
+                            putString("save_date", formattedDate)
+                            putString("outfit_image_path", imagePath)
+                        }
+                        if (!isAdded) return@launch
+                        findNavController().navigate(
+                            R.id.action_registerFragment_to_saveFragment, bundle
+                        )
                     }
-                } catch (e: Exception) {
+                    else {
+                        // 중복 날짜 실패 응답 처리 추가
+                        val duplicateByBody =
+                            (body?.isSuccess == false) &&
+                                    (body.message?.contains("이미 해당 날짜에 등록된 코디가 있습니다") == true)
+                        val duplicateByError = isDuplicateDateError(errorText)
+
+                        if (duplicateByBody || duplicateByError) {
+                            // 중복 날짜 다이얼로그 노출
+                            showExistDialog()   // <- 네가 갖고 있는 다이얼로그 호출
+                            // 버튼 재활성화만 하고 리턴
+                            if (isAdded) binding.registerSaveBtn.isEnabled = true
+                            return@launch
+                        }
+                        val msg = body?.message ?: parseServerReason(errorText) ?: "등록 실패"
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    }
+                } catch (ce: CancellationException) {
+                    Log.w(
+                        "RegisterOutfit",
+                        "Job cancelled (lifecycle=${lifecycle.currentState}, isAdded=$isAdded)",
+                        ce
+                    )
+                    return@launch
+                }catch (e: Exception) {
                     Log.e("RegisterOutfit", "API 호출 실패: ${e.message}", e)
-                    e.printStackTrace()
                     Toast.makeText(requireContext(), "서버 오류 발생", Toast.LENGTH_SHORT).show()
+                } finally {
+                    if (isAdded) binding.registerSaveBtn.isEnabled = true
                 }
             }
-
-            // 날짜 변환(Bundle용)
-            val formattedDate = "${parts[1].toInt()}월 ${parts[2].toInt()}일"
-            // Fragment에서 전달받은 이미지 파일 경로 사용
-            val imagePath = arguments?.getString("selectedImagePath")
-
-            // 파일 경로만 전달
-            val bundle = Bundle().apply {
-                putString("save_date", formattedDate)
-                putString("outfit_image_path", imagePath)
-            }
-            findNavController().navigate(R.id.action_registerFragment_to_saveFragment, bundle)
         }
 
         // 뒤로가기 버튼
         binding.registerBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
+    }
+
+    private fun isDuplicateDateError(err: String?): Boolean {
+        if (err.isNullOrBlank()) return false
+        return try {
+            val obj = org.json.JSONObject(err)
+            val error = obj.optJSONObject("error")
+            val code = error?.optString("errorCode")
+            val reason = error?.optString("reason") ?: ""
+            code == "INVALID_INPUT" && reason.contains("이미 해당 날짜에 등록된 코디가 있습니다")
+        } catch (_: Exception) { false }
+    }
+
+    private fun parseServerReason(err: String?): String? =
+        try {
+            if (err.isNullOrBlank()) null
+            else org.json.JSONObject(err).optJSONObject("error")
+                ?.optString("reason")?.takeIf { it.isNotBlank() }
+        } catch (_: Exception) { null }
+
+    private fun showExistDialog() {
+        val dialog = AlertDialog.Builder(requireContext()).create()
+        val dialogView = layoutInflater.inflate(R.layout.outfit_exist_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(false)
+
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.rounded_white_bg)
+        )
+
+        val yesBtn = dialogView.findViewById<Button>(R.id.exist_dialog_yes_btn)
+
+        // 액티비티 종료
+        yesBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // 다이얼로그 너비 294dp
+        val width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
+        ).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     override fun onMemoDone(memoText: String) {
