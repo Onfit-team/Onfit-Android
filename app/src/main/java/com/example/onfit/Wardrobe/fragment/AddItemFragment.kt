@@ -38,7 +38,10 @@ class AddItemFragment : Fragment() {
     // 이미지 관련 변수들
     private lateinit var ivClothes: ImageView
     private lateinit var tvTitle: TextView
+    private lateinit var btnChangeToDefault: Button
     private var selectedImageUri: Uri? = null
+    private var aiImageFailed: Boolean = false
+    private val defaultImageResId = R.drawable.clothes8 // 기본 이미지(수정 가능)
 
     // 편집 모드 관련 변수들
     private var isEditMode = false
@@ -104,11 +107,20 @@ class AddItemFragment : Fragment() {
         saveButton?.setOnClickListener {
             saveItemToWardrobeWithRepository()
         }
+
+        // 기본 이미지로 변경 버튼 처리
+        btnChangeToDefault.setOnClickListener {
+            ivClothes.setImageResource(defaultImageResId)
+            selectedImageUri = null
+            btnChangeToDefault.visibility = View.GONE
+            aiImageFailed = false
+        }
     }
 
     private fun initViews(view: View) {
         ivClothes = view.findViewById(R.id.iv_clothes)
         tvTitle = view.findViewById(R.id.tv_title)
+        btnChangeToDefault = view.findViewById(R.id.btn_change_to_default)
     }
 
     private fun setupArguments() {
@@ -143,13 +155,15 @@ class AddItemFragment : Fragment() {
                         selectedImageUri = Uri.parse(imageUriString)
                         ivClothes.setImageURI(selectedImageUri)
                         tvTitle.text = "선택한 이미지로\n아이템을 등록해주세요!"
+                        btnChangeToDefault.visibility = View.GONE
                     }
                 }
 
                 else -> {
                     // 기본 이미지 표시
-                    ivClothes.setImageResource(R.drawable.clothes8)
+                    ivClothes.setImageResource(defaultImageResId)
                     tvTitle.text = "새 아이템을 등록해주세요"
+                    btnChangeToDefault.visibility = View.GONE
                 }
             }
         }
@@ -160,17 +174,20 @@ class AddItemFragment : Fragment() {
             // 네트워크 이미지
             Glide.with(this)
                 .load(imageUrl)
-                .placeholder(R.drawable.clothes8)
-                .error(R.drawable.clothes1)
+                .placeholder(defaultImageResId)
+                .error(defaultImageResId)
                 .into(ivClothes)
+            btnChangeToDefault.visibility = View.GONE
         } else {
             // 로컬 이미지나 URI
             try {
                 val uri = Uri.parse(imageUrl)
                 ivClothes.setImageURI(uri)
                 selectedImageUri = uri
+                btnChangeToDefault.visibility = View.GONE
             } catch (e: Exception) {
-                ivClothes.setImageResource(R.drawable.clothes8)
+                ivClothes.setImageResource(defaultImageResId)
+                btnChangeToDefault.visibility = View.GONE
             }
         }
     }
@@ -224,9 +241,18 @@ class AddItemFragment : Fragment() {
                 repository.uploadImage(selectedImageUri!!)
                     .onSuccess { url ->
                         Log.d("AddItemFragment", "이미지 업로드 성공: $url")
+                        aiImageFailed = false
+                        btnChangeToDefault.visibility = View.GONE
                     }
                     .onFailure { exception ->
                         Log.e("AddItemFragment", "이미지 업로드 실패: ${exception.message}")
+                        aiImageFailed = true
+                        // AI 이미지 실패 시: 기본 이미지, 버튼 표시
+                        withContext(Dispatchers.Main) {
+                            ivClothes.setImageResource(defaultImageResId)
+                            btnChangeToDefault.visibility = View.VISIBLE
+                            Toast.makeText(requireContext(), "AI 이미지 생성에 실패하여 기본 이미지로 변경됩니다.", Toast.LENGTH_SHORT).show()
+                        }
                         throw exception
                     }
                     .getOrThrow()
@@ -256,7 +282,8 @@ class AddItemFragment : Fragment() {
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
                 notifyRegistrationComplete(false, null)
-                handleError(e, "아이템 등록에 실패했습니다")
+                // 이미지 실패 시 이미 기본 이미지 및 버튼 노출됨
+                if (!aiImageFailed) handleError(e, "아이템 등록에 실패했습니다")
             }
         }
     }
