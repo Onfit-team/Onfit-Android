@@ -117,9 +117,23 @@ class OutfitRegisterFragment : Fragment() {
 
         adapter = OutfitAdapter(
             outfitList,
-            onClosetButtonClick = {
-                // OutfitSelectFragment로 전환
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
+            onClosetButtonClick = { pos ->
+                val item = outfitList.getOrNull(pos)
+
+                val source: String? = when {
+                    item?.imageUri != null   -> item.imageUri.toString()           // content:// 또는 file://
+                    item?.imageResId != null -> "res://${item.imageResId}"         // 리소스일 경우
+                    else -> null
+                }
+                if (source == null) {
+                    Toast.makeText(requireContext(), "이미지 소스가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@OutfitAdapter
+                }
+                // Safe Args 권장
+                val directions =
+                    OutfitRegisterFragmentDirections
+                        .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
+                findNavController().navigate(directions)
             },
             onCropButtonClick = { position ->
                 val imagePath = imagePath
