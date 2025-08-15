@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/loginStartFragment">
-<!-- loginStartFragment -->
+
     <!-- loginStartFragment -->
     <fragment
         android:id="@+id/loginStartFragment"
@@ -12,28 +12,22 @@
         android:label="로그인 시작"
         tools:layout="@layout/fragment_login_start">
 
-        <!-- 로그인 화면으로 (기존 액션 그대로 유지) -->
         <action
             android:id="@+id/action_loginStartFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
 
-        <!-- 토큰/닉네임/위치가 모두 있을 때 → 홈으로 -->
         <action
             android:id="@+id/action_loginStartFragment_to_homeFragment"
             app:destination="@id/homeFragment" />
 
-        <!-- 토큰만 있고 닉네임 없음 → 닉네임 설정으로 -->
         <action
             android:id="@+id/action_loginStartFragment_to_nicknameFragment"
             app:destination="@id/nicknameFragment" />
 
-        <!-- 토큰 + 닉네임만 있고 위치 없음 → 위치 설정으로-->
         <action
             android:id="@+id/action_loginStartFragment_to_locationSettingFragment"
-            app:destination="@id/locationSettingFragment">
-        </action>
+            app:destination="@id/locationSettingFragment" />
     </fragment>
-
 
     <fragment
         android:id="@+id/loginFragment"
@@ -75,7 +69,6 @@
         android:name="com.example.onfit.KakaoLogin.fragment.LocationSettingFragment"
         android:label="위치 설정"
         tools:layout="@layout/fragment_location_setting">
-        <!-- fromHome 인자 정의 -->
         <argument
             android:name="fromHome"
             app:argType="boolean"
@@ -90,7 +83,6 @@
         android:name="com.example.onfit.Home.HomeFragment"
         android:label="홈"
         tools:layout="@layout/fragment_home">
-        <!-- 액션에도 인자 전달되도록 수정 -->
         <action
             android:id="@+id/action_homeFragment_to_locationSettingFragment"
             app:destination="@id/locationSettingFragment">
@@ -101,7 +93,18 @@
         <action
             android:id="@+id/action_homeFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
+        <!-- 홈 → 마이페이지 이동 액션 추가 -->
+        <action
+            android:id="@+id/action_homeFragment_to_myPageFragment"
+            app:destination="@id/myPageFragment" />
     </fragment>
+
+    <!-- 마이페이지 Destination 추가 -->
+    <fragment
+        android:id="@+id/myPageFragment"
+        android:name="com.example.onfit.MyPageFragment"
+        android:label="마이페이지"
+        tools:layout="@layout/fragment_my_page" />
 
     <fragment
         android:id="@+id/registerFragment"
@@ -119,10 +122,10 @@
         <action
             android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
             app:destination="@id/outfitRegisterFragment" >
-        <argument
-            android:name="saveDate"
-            app:argType="string"
-            app:nullable="true" />
+            <argument
+                android:name="saveDate"
+                app:argType="string"
+                app:nullable="true" />
         </action>
     </fragment>
 
@@ -275,12 +278,10 @@
         android:id="@+id/communityDetailFragment"
         android:name="com.example.onfit.Community.fragment.CommunityDetailFragment"
         android:label="CommunityDetailFragment">
-
         <argument
             android:name="outfitId"
             app:argType="integer"
             android:defaultValue="-1" />
-
         <argument
             android:name="imageUrl"
             app:argType="string"
@@ -288,14 +289,18 @@
             android:defaultValue="@null" />
     </fragment>
 
-
-
     <!-- 글로벌 홈 이동 -->
     <action
         android:id="@+id/action_global_homeFragment"
         app:destination="@id/homeFragment"
         app:popUpTo="@id/homeFragment"
         app:popUpToInclusive="true"
+        app:launchSingleTop="true" />
+
+    <!-- 글로벌 마이페이지 이동(필요 시 어디서든 사용) -->
+    <action
+        android:id="@+id/action_global_myPageFragment"
+        app:destination="@id/myPageFragment"
         app:launchSingleTop="true" />
 
     <fragment
