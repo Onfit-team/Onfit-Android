@@ -37,6 +37,7 @@ import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.LatestStyleAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
 import com.example.onfit.Home.model.SimItem
+import com.example.onfit.Home.model.BestOutfitItem   // ★ 추가: 더미 리스트 생성용
 import com.example.onfit.Home.viewmodel.HomeViewModel
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
@@ -56,11 +57,14 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Calendar
+import kotlin.collections.isNotEmpty
+import kotlin.jvm.java
 import kotlin.math.roundToInt
 
 // 개발 편의용 스위치
 private const val USE_DUMMY_RECOMMEND = true          // 오늘의 추천 더미 on/off
 private const val USE_SIMILAR_FROM_ASSETS = true      // Similar 섹션을 assets로 고정
+private const val USE_DUMMY_BEST_WHEN_EMPTY = true    // ★ 추가: BEST 3가 비었을 때만 더미 사용
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private var _binding: FragmentHomeBinding? = null
@@ -143,7 +147,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && bodyObj?.ok == true) {
-                        val imageUrl = bodyObj.payload?.imageUrl
+                        val imageUrl = bodyObj?.payload?.imageUrl
                         if (imageUrl.isNullOrBlank()) {
                             Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
                             return@withContext
@@ -217,11 +221,44 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         msg?.let { binding.subTv.text = it }
     }
 
-    // -----------------------------
-    // Similar 섹션: 날짜 썸네일 5장 + 라벨 분류
-    // -----------------------------
+    // ★ BEST OUTFIT 더미: 파일명에 온도가 있는 asset만 사용, 현재 온도에 가장 가까운 순으로 선택
+    private fun loadBestDummyFromAssetsByTemp(count: Int, currentTemp: Double?): List<BestOutfitItem> {
+        if (count <= 0) return emptyList()
+        val am = requireContext().assets
+        val all = am.list("dummy_recommend")
+            ?.filter { n ->
+                val l = n.lowercase()
+                (l.endsWith(".png") || l.endsWith(".jpg") || l.endsWith(".jpeg") || l.endsWith(".jfif") || l.endsWith(".webp")) &&
+                        extractTempFromName(n) != null  // 파일명에 온도 있어야 함
+            } ?: emptyList()
 
-    // (파일명 → 참조온도) : 닫는 괄호 유무/공백 모두 허용
+        if (all.isEmpty()) return emptyList()
+
+        val withTemp = all.map { name -> name to extractTempFromName(name) }
+            .filter { it.second != null }
+
+        val picked = if (currentTemp != null) {
+            withTemp
+                .sortedBy { kotlin.math.abs((it.second ?: currentTemp) - currentTemp) }
+                .map { it.first }
+                .distinct()
+                .take(count)
+        } else {
+            withTemp.shuffled().map { it.first }.take(count)
+        }
+
+        return picked.mapIndexed { idx, name ->
+            BestOutfitItem(
+                id = -1000 - idx,                              // 더미 표식용 음수 id
+                nickname = "게스트",
+                mainImage = "file:///android_asset/dummy_recommend/$name",
+                likeCount = 0,
+                rank = 0                                       // UI에서 1~3으로 재부여
+            )
+        }
+    }
+
+    // Similar 섹션: 날짜 썸네일 5장 + 라벨 분류
     private fun extractTempFromName(raw: String): Double? {
         val nameNoExt = raw.substringBeforeLast('.').replace(" ", "")
         val rxTail = Regex("""\(([\d.]+)\s*도?\)?$""")
@@ -281,9 +318,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.similarEmptyTv.visibility = View.GONE
     }
 
-    // -----------------------------
-    // 생명주기 / 화면 초기화
-    // -----------------------------
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentHomeBinding.bind(view)
@@ -333,23 +367,33 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
 
-
-
         // 베스트
         viewModel.fetchBestOutfits(token)
         viewModel.bestOutfitList.observe(viewLifecycleOwner) { list ->
-            if (list.isNullOrEmpty()) {
+            val server = (list ?: emptyList()).sortedBy { it.rank }
+            val need = (3 - server.size).coerceAtLeast(0)
+
+            val dummies = if (USE_DUMMY_BEST_WHEN_EMPTY && need > 0) {
+                loadBestDummyFromAssetsByTemp(need, lastTempAvg)     // ★ 온도 포함 파일만 사용
+            } else emptyList()
+
+            val filled = (server + dummies).take(3)
+                .mapIndexed { idx, item -> item.copy(rank = idx + 1) } // UI용 rank 재부여
+
+            if (filled.isEmpty()) {
                 binding.bestOutfitEmptyTv.visibility = View.VISIBLE
                 binding.bestoutfitRecycleView.visibility = View.GONE
             } else {
                 binding.bestOutfitEmptyTv.visibility = View.GONE
                 binding.bestoutfitRecycleView.visibility = View.VISIBLE
                 binding.bestoutfitRecycleView.apply {
-                    adapter = BestOutfitAdapter(list)
+                    adapter = BestOutfitAdapter(filled)
                     layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 }
             }
         }
+
+
 
         // 날짜/오류 문구
         viewModel.fetchDate()
@@ -466,9 +510,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
-    // -----------------------------
     // 내일 날씨 (기존 유지, 라벨은 '현재' 기준 요구라서 갱신 X)
-    // -----------------------------
     private fun fetchTomorrowWeather() {
         val token = TokenProvider.getToken(requireContext())
         if (token.isBlank()) {
