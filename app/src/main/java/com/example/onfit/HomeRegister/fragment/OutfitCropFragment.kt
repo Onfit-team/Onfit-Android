@@ -49,17 +49,10 @@ class OutfitCropFragment : Fragment() {
     ): View? {
         _binding = FragmentOutfitCropBinding.inflate(inflater, container, false)
 
-        val path = arguments?.getString("outfit_image_path")
-        val iv = binding.cropOutfitIv
-        if (!path.isNullOrEmpty()) {
-            val uri = if (path.startsWith("content://") || path.startsWith("file://")) {
-                Uri.parse(path)
-            } else {
-                Uri.fromFile(File(path))
-            }
-            iv.setImageURI(uri)
-        } else {
-            Toast.makeText(requireContext(), "이미지 경로가 비어 있어요.", Toast.LENGTH_SHORT).show()
+        val imagePath = arguments?.getString("outfit_image_path")
+        if(!imagePath.isNullOrEmpty()) {
+            val bitmap = BitmapFactory.decodeFile(imagePath)
+            binding.cropOutfitIv.setImageBitmap(bitmap)
         }
 
         binding.cropOutfitIv.setOnClickListener {

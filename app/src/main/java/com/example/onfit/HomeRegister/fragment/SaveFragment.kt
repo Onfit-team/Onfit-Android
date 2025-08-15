@@ -21,19 +21,16 @@ class SaveFragment : Fragment() {
     private lateinit var receivedDate: String
     private lateinit var outfitImage: Bitmap
     private var imagePath: String? = null
-    private var outfitIdText: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // UI 관련 코드 X (arguments만 저장)
-        arguments?.let { args ->
-            receivedDate = args.getString("save_date") ?: "날짜 없음"
+        arguments?.let {
+            receivedDate = it.getString("save_date") ?: "날짜 없음"
             // RegisterFragment로부터 이미지 경로 받기
-            imagePath  = args.getString("outfit_image_path")
-            // 아웃핏 id 받기
-            outfitIdText = args.getString("outfit_id")
+            imagePath  = it.getString("outfit_image_path")
         }
     }
 
@@ -71,11 +68,6 @@ class SaveFragment : Fragment() {
                 putString("outfit_image_path", imagePath) // 이미지 경로
             }
             findNavController().navigate(R.id.action_saveFragment_to_outfitRegisterFragment, bundle)
-        }
-
-        // community 화면으로 이동
-        binding.saveCommunityBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_saveFragment_to_communityFragment)
         }
     }
 

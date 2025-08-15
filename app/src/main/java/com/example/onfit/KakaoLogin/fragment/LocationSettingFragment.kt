@@ -70,48 +70,50 @@ class LocationSettingFragment : Fragment() {
             }
         })
 
+        // LocationSettingFragment.kt - onViewCreated() 내부, btnSave.setOnClickListener { ... } 교체
         binding.btnSave.setOnClickListener {
             val fullAddress = selectedLocation?.fullAddress ?: return@setOnClickListener
             val token = TokenProvider.getToken(requireContext())
-            val nickname = NicknameProvider.nickname
+            if (token.isBlank()) {
+                showErrorDialog("로그인이 필요합니다.")
+                return@setOnClickListener
+            }
 
-            lifecycleScope.launch {
+            val fromHome = args.fromHome   // 홈에서 왔는지 여부
+
+            viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    val selectResponse = api.selectLocation(
+                    // 1) 서버에 선택한 위치 반영 (두 플로우 공통)
+                    val selectRes = api.selectLocation(
                         token = "Bearer $token",
                         body = SelectLocationRequest(query = fullAddress)
                     )
-                    if (!selectResponse.isSuccessful) {
-                        val errorBody = selectResponse.errorBody()?.string()
+                    if (!selectRes.isSuccessful) {
+                        val errorBody = selectRes.errorBody()?.string()
                         val error = Gson().fromJson(errorBody, ErrorResponse::class.java)
-                        showErrorDialog("위치 저장 실패\n${error?.error?.reason}")
+                        showErrorDialog("위치 저장 실패\n${error?.error?.reason ?: ""}")
                         return@launch
                     }
 
-                    val signUpResponse = api.signUp(
+                    // 2) 분기: 홈에서 온 경우는 여기서 끝
+                    if (fromHome) {
+                        TokenProvider.setLocation(requireContext(), fullAddress) // 로컬 저장
+                        findNavController().popBackStack()                       // 뒤로가기
+                        return@launch
+                    }
+
+                    // 3) 온보딩(회원가입) 플로우: 회원가입까지 진행
+                    val nickname = NicknameProvider.nickname
+                    val signUpRes = api.signUp(
                         token = "Bearer $token",
                         body = SignUpRequest(nickname = nickname, location = fullAddress)
                     )
-
-                    val fromHome = args.fromHome
-
-
-                    if (signUpResponse.isSuccessful) {
-                        // 위치 정보를 로컬에 저장
+                    if (signUpRes.isSuccessful) {
                         TokenProvider.setLocation(requireContext(), fullAddress)
-                        Log.d("TokenProvider", "위치 저장됨: $fullAddress")
-
-                        if (fromHome) {
-                            // 홈에서 들어왔으면 뒤로가기
-                            findNavController().popBackStack()
-                        } else {
-                            // 회원가입 플로우라면 홈으로 이동
-                            findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
-                        }
+                        findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
                     } else {
                         showErrorDialog("회원가입 실패\n잠시 후 다시 시도해주세요.")
                     }
-
 
                 } catch (e: HttpException) {
                     showErrorDialog("HTTP 오류 발생\n${e.message}")
@@ -120,6 +122,7 @@ class LocationSettingFragment : Fragment() {
                 }
             }
         }
+
 
 
         binding.btnBack.setOnClickListener {

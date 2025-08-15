@@ -1,45 +1,20 @@
 package com.example.onfit
 
 import android.app.DatePickerDialog
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.databinding.FragmentCalendarRewriteBinding
-import java.io.File
-import java.io.FileOutputStream
 
 class CalendarRewriteFragment : Fragment() {
     private var _binding: FragmentCalendarRewriteBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: CalendarRewriteAdapter
-    private lateinit var pickImageLauncher: ActivityResultLauncher<String>
-    private var selectedImageUri: Uri? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        pickImageLauncher = registerForActivityResult(
-            ActivityResultContracts.GetContent()
-        ) { uri: Uri? ->
-            selectedImageUri = uri
-            // 화면이 살아있을 때만 이미지 세팅
-            if (_binding != null && uri != null) {
-                binding.calendarRewriteOutfitIv.setImageURI(uri)
-            }
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -90,30 +65,14 @@ class CalendarRewriteFragment : Fragment() {
             TopSheetDialogFragment().show(parentFragmentManager, "TopSheet")
         }
 
-        // 갤러리 열기
-        binding.calendarRewriteAlbumIv.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
-
-        // 화면 재생성 시 선택된 이미지 복원
-        selectedImageUri?.let { binding.calendarRewriteOutfitIv.setImageURI(it) }
-
         // 뒤로가기 (프래그먼트 백스택에서 pop)
         binding.calendarRewriteBackBtn.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
         // 옷장 선택 화면으로
-        binding.calendarRewriteFl2.setOnClickListener {
-            val ctx = requireContext()
-            val source: String? = selectedImageUri?.toString()
-                ?: drawableToCacheUri(ctx, binding.calendarRewriteOutfitIv.drawable)?.toString()
-
-            val bundle = bundleOf("imageSource" to source)
-            findNavController().navigate(
-                R.id.action_calendarRewriteFragment_to_calendarSelectFragment,
-                bundle
-            )
+        binding.calendarRewriteFl.setOnClickListener {
+            findNavController().navigate(R.id.action_calendarRewriteFragment_to_calendarSelectFragment)
         }
 
         // 저장하면 수정한 정보 담아서 뒤로가기
@@ -136,24 +95,6 @@ class CalendarRewriteFragment : Fragment() {
 
             datePickerDialog.show()
         }
-    }
-
-    // drawable → 캐시 파일 → file:// Uri
-    private fun drawableToCacheUri(context: Context, d: Drawable?): Uri? {
-        d ?: return null
-        val bmp = when (d) {
-            is BitmapDrawable -> d.bitmap
-            else -> {
-                val w = maxOf(1, d.intrinsicWidth)
-                val h = maxOf(1, d.intrinsicHeight)
-                Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { b ->
-                    val c = Canvas(b); d.setBounds(0,0,w,h); d.draw(c)
-                }
-            }
-        }
-        val out = File(context.cacheDir, "rewrite_${System.currentTimeMillis()}.jpg")
-        FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-        return Uri.fromFile(out)
     }
 
     fun onMemoDone(memoText: String) {

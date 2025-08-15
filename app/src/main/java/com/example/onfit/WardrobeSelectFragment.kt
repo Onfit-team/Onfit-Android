@@ -13,6 +13,7 @@ import com.example.onfit.Wardrobe.fragment.WardrobeFragment
 
 
 class WardrobeSelectFragment : WardrobeFragment() {
+
     private lateinit var adapter: WardrobeSelectAdapter
     private lateinit var recyclerView: RecyclerView
 
@@ -50,6 +51,4 @@ class WardrobeSelectFragment : WardrobeFragment() {
 
         return view
     }
-
-    fun getSelectedImages(): List<Int> = adapter.getSelectedImages()
 }
