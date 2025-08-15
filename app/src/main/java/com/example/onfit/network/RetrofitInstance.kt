@@ -8,7 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "http://15.164.35.198:3000/"
+    //private const val BASE_URL = "http://15.164.35.198:3001/"
+    private const val BASE_URL = "http://3.36.113.173/"
 
     //  네트워크 로그 보기용 Interceptor
     private val logging = HttpLoggingInterceptor().apply {
