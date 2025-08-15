@@ -1,11 +1,14 @@
 package com.example.onfit
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.databinding.FragmentCalendarRewriteBinding
@@ -14,7 +17,22 @@ class CalendarRewriteFragment : Fragment() {
     private var _binding: FragmentCalendarRewriteBinding? = null
     private val binding get() = _binding!!
     private lateinit var adapter: CalendarRewriteAdapter
+    private lateinit var pickImageLauncher: ActivityResultLauncher<String>
+    private var selectedImageUri: Uri? = null
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        pickImageLauncher = registerForActivityResult(
+            ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            selectedImageUri = uri
+            // 화면이 살아있을 때만 이미지 세팅
+            if (_binding != null && uri != null) {
+                binding.calendarRewriteOutfitIv.setImageURI(uri)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,6 +77,14 @@ class CalendarRewriteFragment : Fragment() {
                     ?.savedStateHandle
                     ?.remove<List<Int>>("calendar_select_result")
             }
+
+        // 앨범 버튼 → 갤러리 열기
+        binding.calendarRewriteAlbumIv.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
+        // 화면 재생성 시 선택된 이미지 복원
+        selectedImageUri?.let { binding.calendarRewriteOutfitIv.setImageURI(it) }
 
         // 다이얼로그 띄우기
         binding.calendarRewriteMemoTv.setOnClickListener {

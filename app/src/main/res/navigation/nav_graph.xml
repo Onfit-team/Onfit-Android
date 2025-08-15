@@ -253,7 +253,11 @@
     <fragment
         android:id="@+id/calendarSelectFragment"
         android:name="com.example.onfit.CalendarSelectFragment"
-        android:label="옷장 아이템 선택 화면" />
+        android:label="옷장 아이템 선택 화면" >
+        <argument
+            android:name="imageSource"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
