@@ -1,6 +1,7 @@
 package com.example.onfit.Wardrobe.Network
 
 /**
+<<<<<<< HEAD
  * 옷장 전체 조회 응답 데이터
  */
 data class WardrobeResponseDto(
@@ -9,6 +10,40 @@ data class WardrobeResponseDto(
     val subcategories: List<SubcategoryDto>,
     val items: List<WardrobeItemDto>,
     val appliedFilter: AppliedFilterDto?
+=======
+ * ===== 옷장 데이터 모델들 =====
+ */
+
+/**
+ * 옷장 아이템 정보
+ */
+data class WardrobeItemDto(
+    val id: Int,
+    val image: String,
+    val brand: String,
+    val season: Int,
+    val color: Int,
+    val category: Int,
+    val subcategory: Int
+)
+
+/**
+ * 옷장 아이템 상세 정보
+ */
+data class WardrobeItemDetail(
+    val id: Int,
+    val category: Int,
+    val subcategory: Int,
+    val brand: String,
+    val color: Int,
+    val size: String,
+    val season: Int,
+    val purchaseDate: String?,
+    val image: String,
+    val price: Int?,
+    val purchaseSite: String?,
+    val tags: WardrobeItemTags
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 )
 
 /**
@@ -25,13 +60,19 @@ data class CategoryDto(
  */
 data class SubcategoryDto(
     val subcategory: Int,
+<<<<<<< HEAD
     val name: String
+=======
+    val name: String,
+    val count: Int? = null
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 )
 
 /**
  * 적용된 필터 정보
  */
 data class AppliedFilterDto(
+<<<<<<< HEAD
     val category: Int,
     val categoryName: String,
     val subcategory: Int?,
@@ -51,6 +92,32 @@ data class WardrobeItemDto(
     val subcategory: Int
 )
 
+=======
+    val category: Int? = null,
+    val categoryName: String? = null,
+    val subcategory: Int? = null,
+    val subcategoryName: String? = null
+)
+
+/**
+ * 아이템 태그 정보
+ */
+data class WardrobeItemTags(
+    val moodTags: List<WardrobeTag>,
+    val purposeTags: List<WardrobeTag>
+)
+
+data class WardrobeTag(
+    val id: Int,
+    val name: String,
+    val type: String
+)
+
+/**
+ * ===== 요청 데이터 모델들 =====
+ */
+
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 /**
  * 아이템 등록 요청 데이터
  */
@@ -62,12 +129,17 @@ data class RegisterItemRequestDto(
     val brand: String,
     val size: String,
     val purchaseDate: String,
+<<<<<<< HEAD
     val image: String,
+=======
+    val image: String, // <-- 반드시 non-nullable String
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     val price: Int,
     val purchaseSite: String,
     val tagIds: List<Int>
 )
 
+<<<<<<< HEAD
 
 data class ItemRegistrationResult(
     val id: Int,
@@ -79,4 +151,35 @@ data class ItemRegistrationResult(
  */
 data class RegisterItemResponseDto(
     val itemId: Int
+=======
+/**
+ * 아이템 수정 요청 데이터
+ */
+data class UpdateItemRequestDto(
+    val category: Int? = null,
+    val subcategory: Int? = null,
+    val season: Int? = null,
+    val color: Int? = null,
+    val brand: String? = null,
+    val size: String? = null,
+    val purchaseDate: String? = null,
+    val image: String? = null,
+    val price: Int? = null,
+    val purchaseSite: String? = null,
+    val tagIds: List<Int>? = null
+)
+
+/**
+ * 검색 필터 요청 데이터
+ */
+data class SearchFilterRequest(
+    val category: Int? = null,
+    val subcategory: Int? = null,
+    val season: Int? = null,
+    val color: Int? = null,
+    val brand: String? = null,
+    val tagIds: List<Int>? = null,
+    val priceMin: Int? = null,
+    val priceMax: Int? = null
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 )

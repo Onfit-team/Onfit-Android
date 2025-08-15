@@ -78,6 +78,12 @@
         <action
             android:id="@+id/action_homeFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
+<<<<<<< HEAD
+=======
+        <action
+            android:id="@+id/action_calendarFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     </fragment>
 
     <fragment

@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.lifecycleScope
+<<<<<<< HEAD
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import com.example.onfit.R
@@ -15,10 +16,24 @@ import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDto
 import com.google.android.flexbox.FlexboxLayout
+=======
+import kotlinx.coroutines.launch
+import com.example.onfit.R
+import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.Wardrobe.Network.WardrobeRetrofitClient
+import com.example.onfit.Wardrobe.Network.WardrobeItemDto
+import com.example.onfit.Wardrobe.repository.WardrobeRepository
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 import android.util.Log
 
 class WardrobeSearchFragment : Fragment() {
 
+<<<<<<< HEAD
+=======
+    // Repository 추가
+    private lateinit var repository: WardrobeRepository
+
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     // Views
     private lateinit var icBack: ImageButton
     private lateinit var spinnerColor: Spinner
@@ -38,7 +53,11 @@ class WardrobeSearchFragment : Fragment() {
 
     // Data
     private val colorOptions = arrayOf("색상 선택", "블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플", "스카이블루", "오트밀", "아이보리")
+<<<<<<< HEAD
     private var brandOptions = arrayOf("브랜드 로딩 중...") // API에서 동적으로 로드
+=======
+    private var brandOptions = arrayOf("브랜드 로딩 중...")
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
     private var selectedSeason = ""
     private var selectedColor = ""
@@ -50,6 +69,15 @@ class WardrobeSearchFragment : Fragment() {
     private var currentSearchQuery = ""
     private var wardrobeItems = listOf<WardrobeItemDto>()
 
+<<<<<<< HEAD
+=======
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // Repository 초기화
+        repository = WardrobeRepository(requireContext())
+    }
+
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,7 +93,11 @@ class WardrobeSearchFragment : Fragment() {
         setupListeners()
         setupSpinners()
         setupButtons()
+<<<<<<< HEAD
         setupSearchResultListener() // 이 함수를 여기로 이동
+=======
+        setupSearchResultListener()
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
         // API에서 브랜드 목록 로드
         loadBrandsFromAPI()
@@ -105,7 +137,11 @@ class WardrobeSearchFragment : Fragment() {
         addButtonsFromLinearLayout(styleLayout1, styleButtons)
         addButtonsFromLinearLayout(styleLayout2, styleButtons)
 
+<<<<<<< HEAD
         // Purpose buttons - 둘 다 LinearLayout으로 통일
+=======
+        // Purpose buttons - LinearLayout
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         val purposeLayout1 = view.findViewById<LinearLayout>(R.id.topCategoryLayout3)
         val purposeLayout2 = view.findViewById<LinearLayout>(R.id.topCategoryLayout4)
 
@@ -125,11 +161,16 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     /**
+<<<<<<< HEAD
      * API에서 브랜드 목록 로드
+=======
+     * Repository를 사용한 브랜드 목록 로드
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
      */
     private fun loadBrandsFromAPI() {
         lifecycleScope.launch {
             try {
+<<<<<<< HEAD
                 val token = "Bearer " + TokenProvider.getToken(requireContext())
 
                 // API가 구현되지 않은 경우 임시로 더미 데이터 사용
@@ -138,6 +179,10 @@ class WardrobeSearchFragment : Fragment() {
 
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
                         val brands = response.body()?.result ?: emptyList()
+=======
+                repository.getBrandsList()
+                    .onSuccess { brands ->
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                         if (brands.isNotEmpty()) {
                             brandOptions = brands.toTypedArray()
                             setupBrandSelectionWithAPI(brands)
@@ -145,6 +190,7 @@ class WardrobeSearchFragment : Fragment() {
                         } else {
                             setupDummyBrands()
                         }
+<<<<<<< HEAD
                     } else {
                         setupDummyBrands()
                     }
@@ -153,6 +199,13 @@ class WardrobeSearchFragment : Fragment() {
                     setupDummyBrands()
                 }
 
+=======
+                    }
+                    .onFailure { exception ->
+                        Log.w("WardrobeSearchFragment", "브랜드 API 호출 실패: ${exception.message}")
+                        setupDummyBrands()
+                    }
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
             } catch (e: Exception) {
                 Log.e("WardrobeSearchFragment", "브랜드 목록 로드 실패", e)
                 setupDummyBrands()
@@ -174,11 +227,18 @@ class WardrobeSearchFragment : Fragment() {
      * API에서 받은 브랜드 목록으로 브랜드 선택 UI 업데이트
      */
     private fun setupBrandSelectionWithAPI(brands: List<String>) {
+<<<<<<< HEAD
         // 브랜드 팝업의 기존 브랜드 목록을 동적으로 생성
         val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
         val brandContainer = brandScrollView?.getChildAt(0) as? LinearLayout
 
         brandContainer?.removeAllViews() // 기존 뷰 제거
+=======
+        val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
+        val brandContainer = brandScrollView?.getChildAt(0) as? LinearLayout
+
+        brandContainer?.removeAllViews()
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
         brands.forEach { brandName ->
             val brandTextView = TextView(requireContext()).apply {
@@ -195,7 +255,10 @@ class WardrobeSearchFragment : Fragment() {
                 }
             }
 
+<<<<<<< HEAD
             // 브랜드 아이템 사이 구분선 추가
+=======
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
             val divider = View(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -205,7 +268,11 @@ class WardrobeSearchFragment : Fragment() {
             }
 
             brandContainer?.addView(brandTextView)
+<<<<<<< HEAD
             if (brandName != brands.last()) { // 마지막 아이템이 아닌 경우만 구분선 추가
+=======
+            if (brandName != brands.last()) {
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 brandContainer?.addView(divider)
             }
         }
@@ -222,17 +289,28 @@ class WardrobeSearchFragment : Fragment() {
             showBrandPopup()
         }
 
+<<<<<<< HEAD
         // Brand popup overlay (close popup when clicking outside)
+=======
+        // Brand popup overlay
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         brandPopupOverlay.setOnClickListener {
             hideBrandPopup()
         }
 
+<<<<<<< HEAD
         // Prevent popup from closing when clicking on the popup content
         brandPopupOverlay.getChildAt(1)?.setOnClickListener {
             // Do nothing - prevents the click from bubbling up to the overlay
         }
 
         // Save button - API 필터 검색 호출
+=======
+        // Prevent popup from closing when clicking on content
+        brandPopupOverlay.getChildAt(1)?.setOnClickListener { }
+
+        // Save button
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         btnSave.setOnClickListener {
             applyFiltersWithAPI()
         }
@@ -366,11 +444,17 @@ class WardrobeSearchFragment : Fragment() {
         if (selectedStyleTags.contains(tag)) {
             selectedStyleTags.remove(tag)
             button.isSelected = false
+<<<<<<< HEAD
             Log.d("WardrobeSearchFragment", "분위기 태그 해제: $tag")
         } else {
             selectedStyleTags.add(tag)
             button.isSelected = true
             Log.d("WardrobeSearchFragment", "분위기 태그 선택: $tag")
+=======
+        } else {
+            selectedStyleTags.add(tag)
+            button.isSelected = true
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         }
 
         Log.d("WardrobeSearchFragment", "현재 분위기 태그들: ${selectedStyleTags.joinToString(", ")}")
@@ -382,11 +466,17 @@ class WardrobeSearchFragment : Fragment() {
         if (selectedPurposeTags.contains(tag)) {
             selectedPurposeTags.remove(tag)
             button.isSelected = false
+<<<<<<< HEAD
             Log.d("WardrobeSearchFragment", "용도 태그 해제: $tag")
         } else {
             selectedPurposeTags.add(tag)
             button.isSelected = true
             Log.d("WardrobeSearchFragment", "용도 태그 선택: $tag")
+=======
+        } else {
+            selectedPurposeTags.add(tag)
+            button.isSelected = true
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
         }
 
         Log.d("WardrobeSearchFragment", "현재 용도 태그들: ${selectedPurposeTags.joinToString(", ")}")
@@ -445,6 +535,7 @@ class WardrobeSearchFragment : Fragment() {
         brandPopupOverlay.visibility = View.GONE
     }
 
+<<<<<<< HEAD
     // 검색 결과 리스너를 별도 함수로 분리
     private fun setupSearchResultListener() {
         // 검색 결과 받기 - 중복 제거
@@ -456,6 +547,14 @@ class WardrobeSearchFragment : Fragment() {
                 // 필터링된 아이템만 표시
                 val filteredItems = wardrobeItems.filter { it.id in filteredIds }
 
+=======
+    private fun setupSearchResultListener() {
+        parentFragmentManager.setFragmentResultListener("search_results", this) { _, bundle ->
+            val filteredIds = bundle.getIntArray("filtered_item_ids")
+
+            if (filteredIds != null) {
+                val filteredItems = wardrobeItems.filter { it.id in filteredIds }
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 Log.d("WardrobeSearchFragment", "${filteredItems.size}개 아이템 검색됨")
                 Toast.makeText(context, "${filteredItems.size}개 아이템 검색됨", Toast.LENGTH_SHORT).show()
             }
@@ -463,7 +562,11 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     /**
+<<<<<<< HEAD
      * API를 사용한 필터 검색
+=======
+     * Repository를 사용한 필터 검색
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
      */
     private fun applyFiltersWithAPI() {
         val hasFilters = selectedSeason.isNotEmpty() ||
@@ -479,6 +582,7 @@ class WardrobeSearchFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
+<<<<<<< HEAD
                 val token = "Bearer " + TokenProvider.getToken(requireContext())
 
                 // 필터 파라미터 변환
@@ -524,14 +628,39 @@ class WardrobeSearchFragment : Fragment() {
                     // API 실패 시 임시 처리
                     val bundle = Bundle().apply {
                         putString("filter_applied", "true")
+=======
+                // Repository를 통한 검색 (현재는 로컬 검색 구현)
+                val allItems = repository.getAllWardrobeItems().getOrDefault(
+                    com.example.onfit.Wardrobe.Network.WardrobeResult(
+                        totalCount = 0,
+                        items = emptyList(),
+                        categories = emptyList()
+                    )
+                ).items
+
+                val filteredItems = performLocalFilter(allItems)
+
+                if (filteredItems.isNotEmpty()) {
+                    val bundle = Bundle().apply {
+                        putIntArray("filtered_item_ids", filteredItems.map { it.id }.toIntArray())
+                        putString("search_query", "필터 검색")
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                         putString("filter_season", selectedSeason)
                         putString("filter_color", selectedColor)
                         putString("filter_brand", selectedBrand)
                     }
 
+<<<<<<< HEAD
                     parentFragmentManager.setFragmentResult("filter_results", bundle)
                     Toast.makeText(context, "필터가 적용되었습니다", Toast.LENGTH_SHORT).show()
                     findNavController().navigateUp()
+=======
+                    parentFragmentManager.setFragmentResult("search_results", bundle)
+                    Toast.makeText(context, "${filteredItems.size}개의 아이템을 찾았습니다", Toast.LENGTH_SHORT).show()
+                    findNavController().navigateUp()
+                } else {
+                    Toast.makeText(context, "검색 결과가 없습니다", Toast.LENGTH_SHORT).show()
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 }
 
             } catch (e: Exception) {
@@ -542,6 +671,43 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * 로컬 필터링
+     */
+    private fun performLocalFilter(items: List<WardrobeItemDto>): List<WardrobeItemDto> {
+        return items.filter { item ->
+            var matches = true
+
+            // 계절 필터
+            if (selectedSeason.isNotEmpty()) {
+                val seasonId = convertSeasonToAPI(selectedSeason)
+                if (seasonId != null && item.season != seasonId) {
+                    matches = false
+                }
+            }
+
+            // 색상 필터
+            if (selectedColor.isNotEmpty()) {
+                val colorId = convertColorToAPI(selectedColor)
+                if (colorId != null && item.color != colorId) {
+                    matches = false
+                }
+            }
+
+            // 브랜드 필터
+            if (selectedBrand.isNotEmpty()) {
+                if (!item.brand.contains(selectedBrand, ignoreCase = true)) {
+                    matches = false
+                }
+            }
+
+            matches
+        }
+    }
+
+    /**
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
      * 계절을 API 파라미터로 변환
      */
     private fun convertSeasonToAPI(season: String): Int? {
@@ -574,6 +740,7 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
+<<<<<<< HEAD
     /**
      * 태그를 API 파라미터로 변환
      */
@@ -600,6 +767,8 @@ class WardrobeSearchFragment : Fragment() {
         return if (tagIds.isNotEmpty()) tagIds.joinToString(",") else null
     }
 
+=======
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
     private fun showError(message: String) {
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
         Log.e("WardrobeSearchFragment", message)
