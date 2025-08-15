@@ -100,9 +100,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
-    // -----------------------------
-    // 업로드 (기존 유지)
-    // -----------------------------
     private fun uploadImageToServer(file: File) {
         val token = TokenProvider.getToken(requireContext())
         require(!token.isNullOrBlank()) { "토큰이 없다" }
@@ -316,18 +313,27 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         // 최근 7일
         viewModel.fetchRecentOutfits(token)
         viewModel.recentOutfits.observe(viewLifecycleOwner) { outfits ->
-            if (outfits.isNullOrEmpty()) {
+            // 최대 7개만 표시할 목록 생성 (7개보다 적으면 있는 만큼 그대로)
+            val top7 = outfits?.take(7).orEmpty()
+
+            if (top7.isEmpty()) {
                 binding.latestStyleEmptyTv.visibility = View.VISIBLE
                 binding.latestStyleRecyclerView.visibility = View.GONE
             } else {
                 binding.latestStyleEmptyTv.visibility = View.GONE
                 binding.latestStyleRecyclerView.visibility = View.VISIBLE
                 binding.latestStyleRecyclerView.apply {
-                    adapter = LatestStyleAdapter(outfits)
-                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                    adapter = LatestStyleAdapter(top7) // ← 7개로 자른 목록만 전달
+                    layoutManager = LinearLayoutManager(
+                        context,
+                        LinearLayoutManager.HORIZONTAL,
+                        false
+                    )
                 }
             }
         }
+
+
 
         // 베스트
         viewModel.fetchBestOutfits(token)

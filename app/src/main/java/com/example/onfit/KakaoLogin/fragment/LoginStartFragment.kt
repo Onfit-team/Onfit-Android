@@ -24,40 +24,18 @@ class LoginStartFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // 1) 현재 상태 조회
-        val token = TokenProvider.getToken(requireContext())
-        val hasToken = !token.isNullOrBlank()
-        val hasNickname = TokenProvider.getNickname(requireContext()).isNotBlank()
-        val hasLocation = TokenProvider.getLocation(requireContext()).isNotBlank()
-
-        // 2) 자동 분기 (버튼 누를 필요 없이 즉시 이동)
         val nav = findNavController()
-        if (hasToken && hasNickname && hasLocation) {
+        val hasToken = TokenProvider.getToken(requireContext()).isNotBlank()
+
+        if (hasToken) {
+            // 저장된 로그인 정보가 있으면 바로 홈으로
             if (nav.currentDestination?.id == R.id.loginStartFragment) {
                 nav.navigate(R.id.action_loginStartFragment_to_homeFragment)
             }
             return
         }
-        if (hasToken && !hasNickname) {
-            if (nav.currentDestination?.id == R.id.loginStartFragment) {
-                // 닉네임 설정 화면으로
-                nav.navigate(R.id.action_loginStartFragment_to_nicknameFragment)
-            }
-            return
-        }
-        if (hasToken && hasNickname && !hasLocation) {
-            if (nav.currentDestination?.id == R.id.loginStartFragment) {
-                // 위치 설정 화면으로 (온보딩 플로우이므로 fromHome = false)
-                val action = LoginStartFragmentDirections.actionLoginStartFragmentToLocationSettingFragment()
-                action.fromHome = false // 또는 action.setFromHome(false)
-                nav.navigate(action)
-            }
-            return
-        }
 
-        // 3) 토큰이 없을 때만 "카카오 로그인" 버튼 노출 → 로그인 화면으로
+        // 토큰이 없으면 로그인 시작
         binding.KakaoLoginBtn.setOnClickListener {
             if (nav.currentDestination?.id == R.id.loginStartFragment) {
                 nav.navigate(R.id.action_loginStartFragment_to_loginFragment)
