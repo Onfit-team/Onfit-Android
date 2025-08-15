@@ -144,32 +144,49 @@ class CommunityDetailFragment : Fragment() {
 
                 if (d.mainImage.isNotBlank()) {
                     currentMainImageUrl = d.mainImage
-                    Glide.with(this@CommunityDetailFragment).load(d.mainImage).into(binding.mainIv)
+                    Glide.with(this@CommunityDetailFragment)
+                        .load(d.mainImage)
+                        .into(binding.mainIv)
                 }
 
                 binding.descTv.text = d.memo ?: ""
                 binding.tempTv.text = d.weatherTempAvg?.let { "${it}°" } ?: "-"
 
-                // ▼ 태그 칩: 오른쪽 예시처럼 둥근 회색 필칩으로 표시
-                binding.styleChips.removeAllViews() // (중복 호출 제거)
+                // 태그 칩
+                binding.styleChips.removeAllViews()
                 (d.tags.moodTags + d.tags.purposeTags).forEach { tag ->
                     binding.styleChips.addView(createTagChip("#${tag.name}"))
                 }
-                // ▲------------------------------------------------------------▲
 
                 isLiked = d.likes.isLikedByCurrentUser
                 likeCount = d.likes.count
                 renderLike()
                 binding.deleteIv.visibility = if (d.isMyPost) View.VISIBLE else View.GONE
 
+                // 착장 아이템 리스트
                 val itemUrls = d.items.mapNotNull { it.image }.filter { it.isNotBlank() }
-                binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
+                android.util.Log.d(
+                    "CommunityDetail",
+                    "items.size=${d.items.size}, itemUrls.size=${itemUrls.size}, firstUrl=${itemUrls.firstOrNull()}"
+                )
+
+                if (itemUrls.isEmpty()) {
+                    // 데이터가 없으면 영역 감춤
+                    binding.clothRecyclerview.visibility = View.GONE
+                } else {
+                    // 데이터가 있으면 보이게 하고 어댑터 연결
+                    binding.clothRecyclerview.visibility = View.VISIBLE
+                    binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
+                }
+                // ▲ 착장 아이템 리스트 끝
 
             } catch (_: Exception) {
                 Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
+
 
     // dp → px 변환 (Chip 패딩/코너: Float(px), 마진: Int(px))
     private fun dpF(value: Int): Float = value * resources.displayMetrics.density
