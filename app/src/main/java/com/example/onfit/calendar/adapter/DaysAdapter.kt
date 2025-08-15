@@ -8,10 +8,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class DaysAdapter(
-    private val days: List<DayData>,
-    private val registeredDates: Set<String>,
+    private var days: List<DayData>, // 🔥 var로 변경
+    private var registeredDates: Set<String>, // 🔥 var로 변경
     private val onDateClick: (String, Boolean) -> Unit
 ) : RecyclerView.Adapter<DaysAdapter.DayViewHolder>() {
+
+    // 🔥 데이터 업데이트 메서드 추가
+    fun updateDays(newDays: List<DayData>, newRegisteredDates: Set<String>) {
+        days = newDays
+        registeredDates = newRegisteredDates
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -26,8 +33,8 @@ class DaysAdapter(
     override fun getItemCount(): Int = days.size
 
     inner class DayViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val tvDay: TextView = itemView.findViewById(R.id.tvDay)
-        private val vOutfitIndicator: View = itemView.findViewById(R.id.vOutfitIndicator)
+        private val tvDay: TextView = itemView.findViewById(R.id.tvDay) // 기존 ID 사용
+        private val vOutfitIndicator: View = itemView.findViewById(R.id.vOutfitIndicator) // 기존 ID 사용
 
         fun bind(dayData: DayData) {
             if (dayData.day == 0) {
@@ -38,7 +45,7 @@ class DaysAdapter(
             } else {
                 tvDay.text = dayData.day.toString()
 
-                // 코디 등록 표시 점 표시/숨김
+                // 🔥 코디 등록 표시 점 표시/숨김 (기존 로직 유지)
                 if (dayData.hasData) {
                     vOutfitIndicator.visibility = View.VISIBLE
                 } else {

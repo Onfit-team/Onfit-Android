@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="294dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/rounded_white_bg"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="이미 아웃핏이 등록된 날짜입니다."
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendardsemibold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="다른 날짜를 선택해주세요."
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendardsemibold"
+        android:layout_marginBottom="16dp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/exist_dialog_yes_btn"
+        android:layout_width="105dp"
+        android:layout_height="30dp"
+        android:text="확인"
+        android:textSize="16.17sp"
+        android:fontFamily="@font/pretendardsemibold"
+        android:background="@drawable/rounded_button"
+        android:textColor="@android:color/white"/>
+
+</LinearLayout>
