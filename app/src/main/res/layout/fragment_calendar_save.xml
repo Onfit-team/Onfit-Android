@@ -59,7 +59,7 @@
 
         <ImageView
             android:id="@+id/calendar_save_outfit_iv"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/calendar_save_image"
             android:adjustViewBounds="true"

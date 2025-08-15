@@ -14,10 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: (position: Int) -> Unit,
+                    private val onClosetButtonClick: () -> Unit,
                     private val onCropButtonClick: (position: Int) -> Unit) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
-
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
         val remove: ImageView = itemView.findViewById(R.id.item_outfit_remove)
@@ -33,12 +32,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
     override fun onBindViewHolder(holder: OutfitViewHolder, position: Int) {
         val item = items[position]
-        holder.image.setImageDrawable(null)
-
-        item.imageUri
-
-        item.imageUri?.let { holder.image.setImageURI(it) }
-            ?: item.imageResId?.let { holder.image.setImageResource(it) }
+        if (item.imageUri != null) {
+            holder.image.setImageURI(item.imageUri)
+        } else if (item.imageResId != null) {
+            holder.image.setImageResource(item.imageResId)
+        }
 
         // 옷장에 있어요 클릭 시 옷장 프래그먼트로 이동, 버튼 회색으로 비활성화
         val btnImageRes = if (item.isClosetButtonActive) {
@@ -50,14 +48,10 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
         // 옷장 버튼 클릭 리스너
         holder.closetBtn.setOnClickListener {
-            val p = holder.bindingAdapterPosition
-            if (p != RecyclerView.NO_POSITION) {
-                val i = items[p]
-                if (i.isClosetButtonActive) {
-                    i.isClosetButtonActive = false
-                    notifyItemChanged(p)
-                    onClosetButtonClick(p)
-                }
+            if (item.isClosetButtonActive) {
+                item.isClosetButtonActive = false
+                notifyItemChanged(position)
+                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
             }
         }
 
@@ -79,8 +73,11 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             // 이미지 설정
             val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
-            item.imageUri?.let { dialogImage.setImageURI(it) }
-                ?: item.imageResId?.let(dialogImage::setImageResource)
+            if (item.imageUri != null) {
+                dialogImage.setImageURI(item.imageUri)
+            } else if (item.imageResId != null) {
+                dialogImage.setImageResource(item.imageResId)
+            }
 
             // 예 버튼 클릭 → 아이템 삭제
             dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {

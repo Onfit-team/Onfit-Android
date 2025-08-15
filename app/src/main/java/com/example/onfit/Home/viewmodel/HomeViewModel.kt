@@ -86,7 +86,8 @@ class HomeViewModel : ViewModel() {
     }
 
     // ====== 추천 호출 (기존 유지) ======
-    fun fetchRecommendItems(token: String, tempAvg: Double) {
+    // 파라미터 silent: true(기본)면 실패해도 토스트용 에러를 내보내지 않음
+    fun fetchRecommendItems(token: String, tempAvg: Double, silent: Boolean = true) {
         viewModelScope.launch {
             try {
                 val res = repository.getRecommendItems(token, tempAvg)
@@ -95,32 +96,37 @@ class HomeViewModel : ViewModel() {
                     if (body?.isSuccess == true) {
                         _recommendItems.value = body.result?.items ?: emptyList()
                         _diurnalMsg.value = body.result?.diurnalMsg
-                        if ((_recommendItems.value ?: emptyList()).isEmpty()) {
+                        if ((_recommendItems.value ?: emptyList()).isEmpty() && !silent) {
                             errorLiveData.value = "오늘은 추천 아이템이 없어요."
                         }
                     } else {
                         _recommendItems.value = emptyList()
                         _diurnalMsg.value = null
-                        errorLiveData.value = body?.message ?: body?.error?.reason ?: "오늘은 추천 아이템이 없어요."
+                        if (!silent) {
+                            errorLiveData.value = body?.message ?: body?.error?.reason ?: "오늘은 추천 아이템이 없어요."
+                        }
                     }
                 } else {
-                    if (res.code() == 404) {
-                        _recommendItems.value = emptyList()
-                        _diurnalMsg.value = null
-                        errorLiveData.value = "오늘은 추천 아이템이 없어요."
-                    } else {
-                        _recommendItems.value = emptyList()
-                        _diurnalMsg.value = null
-                        errorLiveData.value = "추천 조회에 문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+                    _recommendItems.value = emptyList()
+                    _diurnalMsg.value = null
+                    if (!silent) {
+                        errorLiveData.value = if (res.code() == 404) {
+                            "오늘은 추천 아이템이 없어요."
+                        } else {
+                            "추천 조회에 문제가 발생했어요. 잠시 후 다시 시도해 주세요."
+                        }
                     }
                 }
             } catch (e: Exception) {
                 _recommendItems.value = emptyList()
                 _diurnalMsg.value = null
-                errorLiveData.value = "네트워크 상태를 확인해 주세요."
+                if (!silent) {
+                    errorLiveData.value = "네트워크 상태를 확인해 주세요."
+                }
             }
         }
     }
+
     // ====== /추천 호출 ======
 
     // similar-weather 호출
@@ -144,7 +150,7 @@ class HomeViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _similarOutfits.value = emptyList()
-                errorLiveData.value = "비슷한 날 스타일을 불러오지 못했습니다."
+                //errorLiveData.value = "비슷한 날 스타일을 불러오지 못했습니다."
             }
         }
     }

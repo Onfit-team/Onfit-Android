@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- 로그인 시작 주소 -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">15.164.35.198</domain>
+    </domain-config>
+
+    <!-- 카카오 콜백 주소 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">3.36.113.173</domain>
     </domain-config>
 </network-security-config>

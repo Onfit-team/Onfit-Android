@@ -16,12 +16,11 @@ data class WeatherLocation(
     val sigungu: String,
     val dong: String
 )
-
 data class WeatherInfo(
     val tempAvg: Double,
     val tempMin: Double,
     val tempMax: Double,
     val feelsLike: Double,
-    val precipitation: Int,
+    val precipitation: Double,
     val status: String
 )

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLoginStartBinding
+import com.example.onfit.KakaoLogin.util.TokenProvider
 
 class LoginStartFragment : Fragment() {
 
@@ -25,9 +26,42 @@ class LoginStartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 카카오 로그인 버튼 클릭 → LoginFragment로 이동
+        // 1) 현재 상태 조회
+        val token = TokenProvider.getToken(requireContext())
+        val hasToken = !token.isNullOrBlank()
+        val hasNickname = TokenProvider.getNickname(requireContext()).isNotBlank()
+        val hasLocation = TokenProvider.getLocation(requireContext()).isNotBlank()
+
+        // 2) 자동 분기 (버튼 누를 필요 없이 즉시 이동)
+        val nav = findNavController()
+        if (hasToken && hasNickname && hasLocation) {
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                nav.navigate(R.id.action_loginStartFragment_to_homeFragment)
+            }
+            return
+        }
+        if (hasToken && !hasNickname) {
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                // 닉네임 설정 화면으로
+                nav.navigate(R.id.action_loginStartFragment_to_nicknameFragment)
+            }
+            return
+        }
+        if (hasToken && hasNickname && !hasLocation) {
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                // 위치 설정 화면으로 (온보딩 플로우이므로 fromHome = false)
+                val action = LoginStartFragmentDirections.actionLoginStartFragmentToLocationSettingFragment()
+                action.fromHome = false // 또는 action.setFromHome(false)
+                nav.navigate(action)
+            }
+            return
+        }
+
+        // 3) 토큰이 없을 때만 "카카오 로그인" 버튼 노출 → 로그인 화면으로
         binding.KakaoLoginBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_loginStartFragment_to_loginFragment)
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                nav.navigate(R.id.action_loginStartFragment_to_loginFragment)
+            }
         }
     }
 

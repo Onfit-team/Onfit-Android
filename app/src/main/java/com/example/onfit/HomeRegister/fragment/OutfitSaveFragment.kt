@@ -12,7 +12,6 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.HomeRegister.adapter.SaveImagePagerAdapter
 import com.example.onfit.HomeRegister.model.DisplayImage
@@ -73,6 +72,8 @@ class OutfitSaveFragment : Fragment() {
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
+
+
 
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
@@ -331,20 +332,19 @@ class OutfitSaveFragment : Fragment() {
 
                 // 성공한 게 1개 이상일 때만 이동
                 if (success > 0) {
-                    val nav = findNavController()
-                    val opts = NavOptions.Builder()
-                        .setLaunchSingleTop(true)
-                        .setRestoreState(true) // Navigation 2.4+ 사용 시 탭 상태 복원
-                        // 그래프의 "시작 목적지"까지 pop (그래프 자체를 날리지 않음!)
-                        .setPopUpTo(nav.graph.startDestinationId, /*inclusive=*/false)
-                        .build()
-
-                    nav.navigate(R.id.wardrobeFragment, null, opts)
+                    findNavController().navigate(
+                        R.id.action_outfitSaveFragment_to_wardrobeFragment,
+                        null,
+                        androidx.navigation.NavOptions.Builder()
+                            .setPopUpTo(R.id.outfitSaveFragment, true)
+                            .build()
+                    )
                 } else {
                     // 실패만 발생한 경우 화면에 남아서 재시도 가능
                     binding.outfitSaveSaveBtn.isEnabled = true
                 }
             }
+
         }
     }
 

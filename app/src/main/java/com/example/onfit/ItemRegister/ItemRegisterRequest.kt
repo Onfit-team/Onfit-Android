@@ -23,8 +23,7 @@ data class ApiEnvelope<T>(
     @SerializedName("code")      val code: String? = null,
     @SerializedName("message")   val message: String? = null,
     @SerializedName("result")    val result: T? = null,
-    @SerializedName("data")      val data: T? = null,
-    @SerializedName("payload")   val payloadField: T? = null // ← 실제 JSON 'payload' 받는 용도
+    @SerializedName("data")      val data: T? = null
 ) {
     val ok: Boolean get() = (isSuccess == true) || (successAlt == true)
     val payload: T? get() = result ?: data

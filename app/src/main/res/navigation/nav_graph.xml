@@ -3,17 +3,37 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/homeFragment">
+    app:startDestination="@id/loginStartFragment">
 <!-- loginStartFragment -->
+    <!-- loginStartFragment -->
     <fragment
         android:id="@+id/loginStartFragment"
         android:name="com.example.onfit.KakaoLogin.fragment.LoginStartFragment"
         android:label="로그인 시작"
         tools:layout="@layout/fragment_login_start">
+
+        <!-- 로그인 화면으로 (기존 액션 그대로 유지) -->
         <action
             android:id="@+id/action_loginStartFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+
+        <!-- 토큰/닉네임/위치가 모두 있을 때 → 홈으로 -->
+        <action
+            android:id="@+id/action_loginStartFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+
+        <!-- 토큰만 있고 닉네임 없음 → 닉네임 설정으로 -->
+        <action
+            android:id="@+id/action_loginStartFragment_to_nicknameFragment"
+            app:destination="@id/nicknameFragment" />
+
+        <!-- 토큰 + 닉네임만 있고 위치 없음 → 위치 설정으로-->
+        <action
+            android:id="@+id/action_loginStartFragment_to_locationSettingFragment"
+            app:destination="@id/locationSettingFragment">
+        </action>
     </fragment>
+
 
     <fragment
         android:id="@+id/loginFragment"
@@ -22,6 +42,9 @@
         <action
             android:id="@+id/action_loginFragment_to_termsFragment"
             app:destination="@id/termsFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
         <action
             android:id="@+id/action_loginFragment_to_nicknameFragment"
             app:destination="@id/nicknameFragment" />
@@ -93,12 +116,6 @@
         android:id="@+id/saveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.SaveFragment"
         android:label="homeFragment">
-        <argument
-            android:name="outfit_id"
-            app:argType="string" />
-        <action
-            android:id="@+id/action_saveFragment_to_communityFragment"
-            app:destination="@id/communityFragment"/>
         <action
             android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
             app:destination="@id/outfitRegisterFragment" >
@@ -134,23 +151,12 @@
     <fragment
         android:id="@+id/outfitSelectFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
-        android:label="outfitSelectFragment" >
-        <argument
-            android:name="imageSource"
-            app:argType="string" />
-        <argument
-            android:name="itemPosition"
-            app:argType="integer" />
-    </fragment>
+        android:label="outfitSelectFragment" />
 
     <fragment
         android:id="@+id/outfitCropFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment" >
-        <argument
-            android:name="outfit_image_path"
-            app:argType="string" />
-    </fragment>
+        android:label="outfitCropFragment" />
 
     <fragment
         android:id="@+id/outfitSaveFragment"
@@ -247,11 +253,7 @@
     <fragment
         android:id="@+id/calendarSelectFragment"
         android:name="com.example.onfit.CalendarSelectFragment"
-        android:label="옷장 아이템 선택 화면" >
-        <argument
-            android:name="imageSource"
-            app:argType="string" />
-    </fragment>
+        android:label="옷장 아이템 선택 화면" />
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
