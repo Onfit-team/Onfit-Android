@@ -78,9 +78,6 @@
         <action
             android:id="@+id/action_homeFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
-        <action
-            android:id="@+id/action_calendarFragment_to_registerFragment"
-            app:destination="@id/registerFragment" />
     </fragment>
 
     <fragment
@@ -131,12 +128,23 @@
     <fragment
         android:id="@+id/outfitSelectFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
-        android:label="outfitSelectFragment" />
+        android:label="outfitSelectFragment" >
+        <argument
+            android:name="imageSource"
+            app:argType="string" />
+        <argument
+            android:name="itemPosition"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/outfitCropFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment" />
+        android:label="outfitCropFragment" >
+        <argument
+            android:name="outfit_image_path"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/outfitSaveFragment"

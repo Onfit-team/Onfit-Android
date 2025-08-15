@@ -19,11 +19,11 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.example.onfit.R
-import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
 import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.Wardrobe.Network.RetrofitClient
 import javax.sql.DataSource
 
 class ClothesDetailFragment : Fragment() {
