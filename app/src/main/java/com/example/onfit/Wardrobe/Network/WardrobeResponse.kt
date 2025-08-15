@@ -70,7 +70,7 @@ data class ImageUploadResponse(
 )
 
 data class ImageUploadResult(
-    val id: Int? = null,
+    val id: String? = null,
     @SerializedName("image_url") val imageUrl: String
 )
 

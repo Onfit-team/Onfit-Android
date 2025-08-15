@@ -1,6 +1,7 @@
 package com.example.onfit.Wardrobe.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,11 +11,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.onfit.R
-import com.example.onfit.KakaoLogin.util.TokenProvider
-import com.example.onfit.Wardrobe.Network.WardrobeRetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDto
 import com.example.onfit.Wardrobe.repository.WardrobeRepository
-import android.util.Log
 
 class WardrobeSearchFragment : Fragment() {
 
@@ -54,7 +52,6 @@ class WardrobeSearchFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Repository 초기화
         repository = WardrobeRepository(requireContext())
     }
 
@@ -73,7 +70,6 @@ class WardrobeSearchFragment : Fragment() {
         setupListeners()
         setupSpinners()
         setupButtons()
-        setupSearchResultListener()
 
         // API에서 브랜드 목록 로드
         loadBrandsFromAPI()
@@ -97,26 +93,20 @@ class WardrobeSearchFragment : Fragment() {
         brandPopupOverlay = view.findViewById(R.id.brand_popup_overlay)
         btnSave = view.findViewById(R.id.btn_save)
 
-        // Season buttons
         btnSpringFall = view.findViewById(R.id.btnTopCategory1)
         btnSummer = view.findViewById(R.id.btnTopCategory2)
         btnWinter = view.findViewById(R.id.btnTopCategory3)
 
-        // Initialize button lists
         styleButtons = mutableListOf()
         purposeButtons = mutableListOf()
 
-        // Style buttons (mood) - LinearLayout
         val styleLayout1 = view.findViewById<LinearLayout>(R.id.topCategoryLayout1)
         val styleLayout2 = view.findViewById<LinearLayout>(R.id.topCategoryLayout2)
-
         addButtonsFromLinearLayout(styleLayout1, styleButtons)
         addButtonsFromLinearLayout(styleLayout2, styleButtons)
 
-        // Purpose buttons - LinearLayout
         val purposeLayout1 = view.findViewById<LinearLayout>(R.id.topCategoryLayout3)
         val purposeLayout2 = view.findViewById<LinearLayout>(R.id.topCategoryLayout4)
-
         addButtonsFromLinearLayout(purposeLayout1, purposeButtons)
         addButtonsFromLinearLayout(purposeLayout2, purposeButtons)
     }
@@ -132,9 +122,6 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
-    /**
-     * Repository를 사용한 브랜드 목록 로드
-     */
     private fun loadBrandsFromAPI() {
         lifecycleScope.launch {
             try {
@@ -143,41 +130,27 @@ class WardrobeSearchFragment : Fragment() {
                         if (brands.isNotEmpty()) {
                             brandOptions = brands.toTypedArray()
                             setupBrandSelectionWithAPI(brands)
-                            Log.d("WardrobeSearchFragment", "브랜드 목록 로드 성공: ${brands.size}개")
                         } else {
                             setupDummyBrands()
                         }
                     }
-                    .onFailure { exception ->
-                        Log.w("WardrobeSearchFragment", "브랜드 API 호출 실패: ${exception.message}")
-                        setupDummyBrands()
-                    }
-            } catch (e: Exception) {
-                Log.e("WardrobeSearchFragment", "브랜드 목록 로드 실패", e)
+                    .onFailure { setupDummyBrands() }
+            } catch (_: Exception) {
                 setupDummyBrands()
             }
         }
     }
 
-    /**
-     * 더미 브랜드 데이터 설정
-     */
     private fun setupDummyBrands() {
         val dummyBrands = listOf("아디다스", "나이키", "자라", "유니클로", "H&M", "무신사", "SPAO")
         brandOptions = dummyBrands.toTypedArray()
         setupBrandSelectionWithAPI(dummyBrands)
-        Log.d("WardrobeSearchFragment", "더미 브랜드 데이터 설정: ${dummyBrands.size}개")
     }
 
-    /**
-     * API에서 받은 브랜드 목록으로 브랜드 선택 UI 업데이트
-     */
     private fun setupBrandSelectionWithAPI(brands: List<String>) {
         val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
         val brandContainer = brandScrollView?.getChildAt(0) as? LinearLayout
-
         brandContainer?.removeAllViews()
-
         brands.forEach { brandName ->
             val brandTextView = TextView(requireContext()).apply {
                 text = brandName
@@ -192,15 +165,12 @@ class WardrobeSearchFragment : Fragment() {
                     hideBrandPopup()
                 }
             }
-
             val divider = View(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    1
+                    LinearLayout.LayoutParams.MATCH_PARENT, 1
                 )
                 setBackgroundColor(resources.getColor(R.color.gray, requireContext().theme))
             }
-
             brandContainer?.addView(brandTextView)
             if (brandName != brands.last()) {
                 brandContainer?.addView(divider)
@@ -209,32 +179,14 @@ class WardrobeSearchFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        // Back button
-        icBack.setOnClickListener {
-            findNavController().navigateUp()
-        }
-
-        // Brand dropdown
-        brandDropdownContainer.setOnClickListener {
-            showBrandPopup()
-        }
-
-        // Brand popup overlay
-        brandPopupOverlay.setOnClickListener {
-            hideBrandPopup()
-        }
-
-        // Prevent popup from closing when clicking on content
+        icBack.setOnClickListener { findNavController().navigateUp() }
+        brandDropdownContainer.setOnClickListener { showBrandPopup() }
+        brandPopupOverlay.setOnClickListener { hideBrandPopup() }
         brandPopupOverlay.getChildAt(1)?.setOnClickListener { }
-
-        // Save button
-        btnSave.setOnClickListener {
-            applyFiltersWithAPI()
-        }
+        btnSave.setOnClickListener { applyFiltersWithAPI() }
     }
 
     private fun setupSpinners() {
-        // Color spinner
         val colorAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, colorOptions)
         colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerColor.adapter = colorAdapter
@@ -243,36 +195,23 @@ class WardrobeSearchFragment : Fragment() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 selectedColor = if (position == 0) "" else colorOptions[position]
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                selectedColor = ""
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) { selectedColor = "" }
         }
-
         setupColorSpinnerClick()
     }
 
     private fun setupColorSpinnerClick() {
         val colorSpinnerContainer = spinnerColor.parent as? LinearLayout
-
         spinnerColor.setOnTouchListener { _, _ ->
-            spinnerColor.post {
-                adjustColorDropdownPosition(spinnerColor, colorSpinnerContainer)
-            }
+            spinnerColor.post { adjustColorDropdownPosition(spinnerColor, colorSpinnerContainer) }
             false
         }
-
-        colorSpinnerContainer?.setOnClickListener {
-            spinnerColor.performClick()
-        }
-
+        colorSpinnerContainer?.setOnClickListener { spinnerColor.performClick() }
         colorSpinnerContainer?.let { container ->
             for (i in 0 until container.childCount) {
                 val child = container.getChildAt(i)
                 if (child is ImageView) {
-                    child.setOnClickListener {
-                        spinnerColor.performClick()
-                    }
+                    child.setOnClickListener { spinnerColor.performClick() }
                 }
             }
         }
@@ -280,63 +219,37 @@ class WardrobeSearchFragment : Fragment() {
 
     private fun adjustColorDropdownPosition(spinner: Spinner, spinnerContainer: LinearLayout?) {
         if (spinnerContainer == null) return
-
         try {
             val popupField = Spinner::class.java.getDeclaredField("mPopup")
             popupField.isAccessible = true
             val popupWindow = popupField.get(spinner) ?: return
-
             val spinnerLocation = IntArray(2)
             val containerLocation = IntArray(2)
-
             spinner.getLocationOnScreen(spinnerLocation)
             spinnerContainer.getLocationOnScreen(containerLocation)
-
             val horizontalOffsetToContainerLeft = spinnerLocation[0] - containerLocation[0]
             val verticalOffset = -(16 * resources.displayMetrics.density).toInt()
-
             val containerWidth = spinnerContainer.width
             val setWidthMethod = popupWindow.javaClass.getMethod("setWidth", Int::class.java)
             setWidthMethod.invoke(popupWindow, containerWidth)
-
             val maxHeight = (250 * resources.displayMetrics.density).toInt()
             val setHeightMethod = popupWindow.javaClass.getMethod("setHeight", Int::class.java)
             setHeightMethod.invoke(popupWindow, maxHeight)
-
             val setHorizontalOffsetMethod = popupWindow.javaClass.getMethod("setHorizontalOffset", Int::class.java)
             setHorizontalOffsetMethod.invoke(popupWindow, -horizontalOffsetToContainerLeft)
-
             try {
                 val setVerticalOffsetMethod = popupWindow.javaClass.getMethod("setVerticalOffset", Int::class.java)
                 setVerticalOffsetMethod.invoke(popupWindow, verticalOffset)
-            } catch (e: Exception) {
-                Log.e("ColorSpinner", "Vertical offset failed: ${e.message}")
-            }
-
-        } catch (e: Exception) {
-            Log.e("ColorSpinner", "Failed to adjust color dropdown: ${e.message}")
-        }
+            } catch (_: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun setupButtons() {
-        // Season buttons
         btnSpringFall.setOnClickListener { selectSeason("봄ㆍ가을", btnSpringFall) }
         btnSummer.setOnClickListener { selectSeason("여름", btnSummer) }
         btnWinter.setOnClickListener { selectSeason("겨울", btnWinter) }
-
-        // Style buttons
-        styleButtons.forEach { button ->
-            button.setOnClickListener {
-                toggleStyleTag(button)
-            }
-        }
-
-        // Purpose buttons
-        purposeButtons.forEach { button ->
-            button.setOnClickListener {
-                togglePurposeTag(button)
-            }
-        }
+        styleButtons.forEach { button -> button.setOnClickListener { toggleStyleTag(button) } }
+        purposeButtons.forEach { button -> button.setOnClickListener { togglePurposeTag(button) } }
     }
 
     private fun selectSeason(season: String, selectedButton: Button) {
@@ -345,19 +258,13 @@ class WardrobeSearchFragment : Fragment() {
             selectedButton.isSelected = false
             return
         }
-
         selectedSeason = season
-
-        listOf(btnSpringFall, btnSummer, btnWinter).forEach { btn ->
-            btn.isSelected = false
-        }
-
+        listOf(btnSpringFall, btnSummer, btnWinter).forEach { btn -> btn.isSelected = false }
         selectedButton.isSelected = true
     }
 
     private fun toggleStyleTag(button: Button) {
         val tag = button.text.toString().replace("#", "")
-
         if (selectedStyleTags.contains(tag)) {
             selectedStyleTags.remove(tag)
             button.isSelected = false
@@ -365,13 +272,10 @@ class WardrobeSearchFragment : Fragment() {
             selectedStyleTags.add(tag)
             button.isSelected = true
         }
-
-        Log.d("WardrobeSearchFragment", "현재 분위기 태그들: ${selectedStyleTags.joinToString(", ")}")
     }
 
     private fun togglePurposeTag(button: Button) {
         val tag = button.text.toString().replace("#", "")
-
         if (selectedPurposeTags.contains(tag)) {
             selectedPurposeTags.remove(tag)
             button.isSelected = false
@@ -379,8 +283,6 @@ class WardrobeSearchFragment : Fragment() {
             selectedPurposeTags.add(tag)
             button.isSelected = true
         }
-
-        Log.d("WardrobeSearchFragment", "현재 용도 태그들: ${selectedPurposeTags.joinToString(", ")}")
     }
 
     private fun showBrandPopup() {
@@ -390,27 +292,18 @@ class WardrobeSearchFragment : Fragment() {
 
     private fun adjustBrandPopupHeight() {
         val brandScrollView = brandPopupOverlay.findViewById<ScrollView>(R.id.brand_scroll_view)
-
         if (brandScrollView != null) {
             val brandListContainer = brandScrollView.getChildAt(0) as LinearLayout
-
             val itemCount = brandListContainer.childCount
             val itemHeight = 60 * resources.displayMetrics.density
             val totalContentHeight = (itemCount * itemHeight).toInt()
-
             val displayMetrics = resources.displayMetrics
             val screenHeight = displayMetrics.heightPixels
             val maxScrollViewHeight = (screenHeight * 0.6).toInt()
-
             val scrollViewLayoutParams = brandScrollView.layoutParams
-            scrollViewLayoutParams.height = if (totalContentHeight > maxScrollViewHeight) {
-                maxScrollViewHeight
-            } else {
-                totalContentHeight
-            }
+            scrollViewLayoutParams.height = if (totalContentHeight > maxScrollViewHeight) maxScrollViewHeight else totalContentHeight
             brandScrollView.layoutParams = scrollViewLayoutParams
         }
-
         setBrandPopupCornerRadius()
     }
 
@@ -418,7 +311,6 @@ class WardrobeSearchFragment : Fragment() {
         val popupContent = brandPopupOverlay.getChildAt(1) as? LinearLayout
         popupContent?.let {
             val cornerRadius = 20f * resources.displayMetrics.density
-
             val drawable = android.graphics.drawable.GradientDrawable()
             drawable.setColor(android.graphics.Color.WHITE)
             drawable.cornerRadii = floatArrayOf(
@@ -427,25 +319,12 @@ class WardrobeSearchFragment : Fragment() {
                 0f, 0f,
                 0f, 0f
             )
-
             it.background = drawable
         }
     }
 
     private fun hideBrandPopup() {
         brandPopupOverlay.visibility = View.GONE
-    }
-
-    private fun setupSearchResultListener() {
-        parentFragmentManager.setFragmentResultListener("search_results", this) { _, bundle ->
-            val filteredIds = bundle.getIntArray("filtered_item_ids")
-
-            if (filteredIds != null) {
-                val filteredItems = wardrobeItems.filter { it.id in filteredIds }
-                Log.d("WardrobeSearchFragment", "${filteredItems.size}개 아이템 검색됨")
-                Toast.makeText(context, "${filteredItems.size}개 아이템 검색됨", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     /**
@@ -465,7 +344,7 @@ class WardrobeSearchFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // Repository를 통한 검색 (현재는 로컬 검색 구현)
+                // 전체 아이템 불러오기
                 val allItems = repository.getAllWardrobeItems().getOrDefault(
                     com.example.onfit.Wardrobe.Network.WardrobeResult(
                         totalCount = 0,
@@ -474,23 +353,21 @@ class WardrobeSearchFragment : Fragment() {
                     )
                 ).items
 
+                wardrobeItems = allItems // 필터 결과 리스너에서 쓸 수 있게 미리 저장
+
                 val filteredItems = performLocalFilter(allItems)
 
-                if (filteredItems.isNotEmpty()) {
-                    val bundle = Bundle().apply {
-                        putIntArray("filtered_item_ids", filteredItems.map { it.id }.toIntArray())
-                        putString("search_query", "필터 검색")
-                        putString("filter_season", selectedSeason)
-                        putString("filter_color", selectedColor)
-                        putString("filter_brand", selectedBrand)
-                    }
-
-                    parentFragmentManager.setFragmentResult("search_results", bundle)
-                    Toast.makeText(context, "${filteredItems.size}개의 아이템을 찾았습니다", Toast.LENGTH_SHORT).show()
-                    findNavController().navigateUp()
-                } else {
-                    Toast.makeText(context, "검색 결과가 없습니다", Toast.LENGTH_SHORT).show()
+                val bundle = Bundle().apply {
+                    putIntArray("filtered_item_ids", filteredItems.map { it.id }.toIntArray())
+                    putString("search_query", "필터 검색")
+                    putString("filter_season", selectedSeason)
+                    putString("filter_color", selectedColor)
+                    putString("filter_brand", selectedBrand)
+                    putBoolean("filter_applied", true) // 필터 적용됨 표시
                 }
+
+                parentFragmentManager.setFragmentResult("search_results", bundle)
+                findNavController().navigateUp()
 
             } catch (e: Exception) {
                 Log.e("WardrobeSearchFragment", "필터 검색 실패", e)
@@ -522,9 +399,9 @@ class WardrobeSearchFragment : Fragment() {
                 }
             }
 
-            // 브랜드 필터
+            // 브랜드 필터 (null-safe!)
             if (selectedBrand.isNotEmpty()) {
-                if (!item.brand.contains(selectedBrand, ignoreCase = true)) {
+                if (item.brand?.contains(selectedBrand, ignoreCase = true) != true) {
                     matches = false
                 }
             }
@@ -533,9 +410,6 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
-    /**
-     * 계절을 API 파라미터로 변환
-     */
     private fun convertSeasonToAPI(season: String): Int? {
         return when (season) {
             "봄ㆍ가을" -> 1
@@ -545,9 +419,6 @@ class WardrobeSearchFragment : Fragment() {
         }
     }
 
-    /**
-     * 색상을 API 파라미터로 변환
-     */
     private fun convertColorToAPI(color: String): Int? {
         return when (color) {
             "블랙" -> 1
