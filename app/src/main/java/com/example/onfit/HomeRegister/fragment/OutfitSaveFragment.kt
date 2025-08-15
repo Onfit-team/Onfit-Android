@@ -74,8 +74,6 @@ class OutfitSaveFragment : Fragment() {
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
-
-
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
             val prev = (binding.outfitSaveOutfitVp.currentItem - 1).coerceAtLeast(0)

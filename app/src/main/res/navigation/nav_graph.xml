@@ -93,6 +93,12 @@
         android:id="@+id/saveFragment"
         android:name="com.example.onfit.HomeRegister.fragment.SaveFragment"
         android:label="homeFragment">
+        <argument
+            android:name="outfit_id"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_saveFragment_to_communityFragment"
+            app:destination="@id/communityFragment"/>
         <action
             android:id="@+id/action_saveFragment_to_outfitRegisterFragment"
             app:destination="@id/outfitRegisterFragment" >
