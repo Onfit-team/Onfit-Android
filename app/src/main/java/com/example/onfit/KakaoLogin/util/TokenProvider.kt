@@ -8,47 +8,33 @@ object TokenProvider {
 
     private const val PREFS_NAME = "auth_prefs"
     private const val KEY_TOKEN = "access_token"
-    private const val KEY_LOCATION = "location" // 위치 키
-    private const val KEY_NICKNAME = "nickname" // 닉네임 키
+    private const val KEY_LOCATION = "location"
+    private const val KEY_NICKNAME = "nickname"
 
-    // 토큰 저장
+    private fun prefs(context: Context): SharedPreferences =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    /** 토큰 */
     fun saveToken(context: Context, token: String) {
-        val prefs = getPrefs(context)
-        prefs.edit { putString(KEY_TOKEN, token) }
+        prefs(context).edit { putString(KEY_TOKEN, token) }
     }
-
-    // 토큰 조회
     fun getToken(context: Context): String {
-        val prefs = getPrefs(context)
-        return prefs.getString(KEY_TOKEN, "") ?: ""
+        return prefs(context).getString(KEY_TOKEN, "") ?: ""
     }
 
-    // 위치 저장
+    /** 위치 */
     fun setLocation(context: Context, location: String) {
-        val prefs = getPrefs(context)
-        prefs.edit { putString(KEY_LOCATION, location) }
+        prefs(context).edit { putString(KEY_LOCATION, location) }
     }
-
-    // 위치 조회
     fun getLocation(context: Context): String {
-        val prefs = getPrefs(context)
-        return prefs.getString(KEY_LOCATION, " 위치를 설정해주세요") ?: "위치를 설정해주세요"
+        return prefs(context).getString(KEY_LOCATION, "") ?: ""
     }
 
-    // 닉네임 저장
+    /** 닉네임 */
     fun saveNickname(context: Context, nickname: String) {
-        val prefs = getPrefs(context)
-        prefs.edit { putString(KEY_NICKNAME, nickname) }
+        prefs(context).edit { putString(KEY_NICKNAME, nickname) }
     }
-
-    // 닉네임 조회
     fun getNickname(context: Context): String {
-        val prefs = getPrefs(context)
-        return prefs.getString(KEY_NICKNAME, "") ?: ""
-    }
-
-    // 공통 SharedPreferences 접근자
-    private fun getPrefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs(context).getString(KEY_NICKNAME, "") ?: ""
     }
 }
