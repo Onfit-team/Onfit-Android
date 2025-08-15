@@ -67,14 +67,14 @@ data class AppliedFilterDto(
  * 아이템 태그 정보
  */
 data class WardrobeItemTags(
-    val moodTags: List<WardrobeTag>,
-    val purposeTags: List<WardrobeTag>
+    val moodTags: List<WardrobeTag>?,
+    val purposeTags: List<WardrobeTag>?
 )
 
 data class WardrobeTag(
     val id: Int,
-    val name: String,
-    val type: String
+    val name: String?,
+    val type: String? // 만약 type이 서버에서 안 내려오면 ?로
 )
 
 /**
