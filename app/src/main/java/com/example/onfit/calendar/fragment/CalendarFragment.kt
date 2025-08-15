@@ -23,28 +23,15 @@ import java.util.*
 
 class CalendarFragment : Fragment() {
 
-    // 기존 UI 멤버 변수들
     private lateinit var rvCalendar: RecyclerView
     private lateinit var calendarAdapter: CalendarAdapter
     private lateinit var tvMostUsedStyle: TextView
-
-    // MVVM
     private lateinit var viewModel: CalendarViewModel
 
-    // 기존 데이터들
-    private val outfitRegisteredDates = setOf(
-        "2025-04-03", "2025-04-04", "2025-04-05", "2025-04-06", "2025-04-07",
-        "2025-04-08", "2025-04-09", "2025-04-10", "2025-04-11", "2025-04-12",
-        "2025-04-13", "2025-04-14", "2025-04-15", "2025-04-16", "2025-04-17",
-        "2025-04-18", "2025-04-19", "2025-04-20", "2025-04-21", "2025-04-22",
-        "2025-04-23", "2025-04-24", "2025-04-25", "2025-04-26", "2025-04-27",
-        "2025-04-28", "2025-04-29",
-        "2025-07-03", "2025-07-04", "2025-07-05", "2025-07-06", "2025-07-07",
-        "2025-07-08", "2025-07-09", "2025-07-10", "2025-07-11", "2025-07-12",
-        "2025-07-13", "2025-07-14", "2025-07-15", "2025-07-16", "2025-07-17",
-        "2025-07-18", "2025-07-19", "2025-07-20", "2025-07-21", "2025-07-22",
-        "2025-07-23", "2025-07-24", "2025-07-25", "2025-07-26", "2025-07-27",
-        "2025-07-28", "2025-07-29"
+    // 더미 데이터
+    private val dummyRegisteredDates = setOf(
+        "2025-04-03", "2025-04-04", // ...생략...
+        "2025-07-29"
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,23 +43,22 @@ class CalendarFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_calendar, container, false)
-    }
+    ): View? = inflater.inflate(R.layout.fragment_calendar, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews(view)
         setupCalendar()
         observeViewModel()
-
-        // 🔥 새 API로 가장 많이 사용된 태그 조회
+        setupFragmentResultListeners()
         loadMostUsedTag()
     }
 
     override fun onResume() {
         super.onResume()
+        // 항상 서버 fetch로 동기화!
+        viewModel.refreshAllOutfitDates()
+
         rvCalendar.post {
             try {
                 val currentMonthIndex = 24
@@ -83,6 +69,21 @@ class CalendarFragment : Fragment() {
         }
     }
 
+    private fun navigateToStyleOutfits() {
+        try {
+            val navController = findNavController()
+            val targetDestination = navController.graph.findNode(R.id.styleOutfitsFragment)
+            if (targetDestination != null) {
+                navController.navigate(R.id.styleOutfitsFragment)
+            } else {
+                Toast.makeText(requireContext(), "StyleOutfitsFragment를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun setupViews(view: View) {
         rvCalendar = view.findViewById(R.id.rvCalendar)
         tvMostUsedStyle = view.findViewById(R.id.tvMostUsedStyle)
@@ -90,12 +91,10 @@ class CalendarFragment : Fragment() {
         view.findViewById<View>(R.id.btnStyleOutfits)?.setOnClickListener {
             navigateToStyleOutfits()
         }
-
         view.findViewById<View>(R.id.calendar_register_btn)?.setOnClickListener {
             try {
                 findNavController().navigate(R.id.action_calendarFragment_to_registerFragment)
             } catch (e: Exception) {
-                e.printStackTrace()
                 Toast.makeText(requireContext(), "이동 실패: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
@@ -103,62 +102,102 @@ class CalendarFragment : Fragment() {
 
     private fun setupCalendar() {
         val months = generateMonths()
-
         calendarAdapter = CalendarAdapter(
             months = months,
-            registeredDates = outfitRegisteredDates,
-            onDateClick = { dateString, hasOutfit ->
-                handleDateClick(dateString, hasOutfit)
-            }
+            registeredDates = dummyRegisteredDates.toMutableSet(), // 최초엔 더미만
+            onDateClick = { dateString, hasOutfit -> handleDateClick(dateString, hasOutfit) }
         )
-
         rvCalendar.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = calendarAdapter
             PagerSnapHelper().attachToRecyclerView(this)
         }
-
         scrollToCurrentMonth()
     }
 
-    /**
-     * API로 가장 많이 사용된 태그 조회
-     */
-    private fun loadMostUsedTag() {
-        viewModel.loadMostUsedTag()
-    }
-
-    /**
-     * ViewModel 상태 관찰
-     */
-    private fun observeViewModel() {
-        lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                // 기존 코디 데이터 처리
-                handleOutfitData(state)
-
-                // 새로 추가: 태그 통계 UI 업데이트
-                updateTagUI(state)
+    private fun setupFragmentResultListeners() {
+        // Home 등에서 FragmentResult로 날짜가 추가되는 경우도 반영(보조)
+        val resultKeys = listOf(
+            "outfit_saved", "outfit_registered", "calendar_outfit_saved",
+            "home_outfit_saved", "register_complete", "save_complete", "outfit_complete"
+        )
+        resultKeys.forEach { key ->
+            parentFragmentManager.setFragmentResultListener(key, viewLifecycleOwner) { _, bundle ->
+                val dateString = bundle.getString("saved_date")
+                    ?: bundle.getString("registered_date")
+                    ?: bundle.getString("date")
+                    ?: bundle.getString("outfit_date")
+                    ?: bundle.getString("save_date")
+                // 서버 fetch가 주가 되므로, 여기서는 별도 추가하지 않음
+                if (!dateString.isNullOrEmpty()) {
+                    // 필요시 UI에 임시 표시만
+                }
             }
         }
     }
 
-    /**
-     * 기존 코디 데이터 처리
-     */
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                // 코디 날짜 UI 갱신(더미+서버 날짜 병합)
+                val allDates = mutableSetOf<String>()
+                allDates.addAll(dummyRegisteredDates)
+                allDates.addAll(state.datesWithOutfits)
+                calendarAdapter.updateRegisteredDates(allDates)
+                // 태그 통계 UI
+                updateTagUI(state)
+                handleOutfitData(state)
+            }
+        }
+    }
+
+    private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
+        if (hasOutfit) {
+            viewModel.onDateSelected(dateString)
+            navigateToOutfitSave(dateString)
+        } else {
+            navigateToOutfitRegister(dateString)
+        }
+    }
+
+    private fun navigateToOutfitSave(dateString: String) {
+        try {
+            val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
+            findNavController().navigate(action)
+        } catch (e: Exception) {
+            Toast.makeText(context, "코디 상세보기로 이동 실패", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun navigateToOutfitRegister(dateString: String) {
+        try {
+            findNavController().navigate(R.id.action_calendarFragment_to_registerFragment)
+        } catch (e: Exception) {
+            Toast.makeText(context, "코디 등록으로 이동 실패", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadMostUsedTag() {
+        viewModel.loadMostUsedTag()
+    }
+
+    private fun updateTagUI(state: CalendarUiState) {
+        when {
+            state.isTagLoading -> tvMostUsedStyle.text = "데이터를 불러오는 중..."
+            state.mostUsedTag != null -> tvMostUsedStyle.text =
+                "#${state.mostUsedTag.tag} 스타일이 가장 많았어요! (${state.mostUsedTag.count}개)"
+            state.tagErrorMessage != null -> {
+                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+                viewModel.clearTagError()
+            }
+            else -> tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+        }
+    }
+
     private fun handleOutfitData(state: CalendarUiState) {
         when {
-            state.isLoading -> {
-                // 로딩 중
-            }
-            state.hasOutfitData -> {
-                state.outfitImage?.let { image ->
-                    println("Calendar API - 이미지 데이터 수신: ${image.mainImage}")
-                }
-                state.outfitText?.let { text ->
-                    println("Calendar API - 텍스트 데이터 수신: ${text.memo}")
-                }
-            }
+            state.isLoading -> { /* 로딩 중 */ }
+            state.hasOutfitData -> { /* 상세 데이터 사용 */ }
             state.errorMessage != null -> {
                 Toast.makeText(context, "코디 데이터: ${state.errorMessage}", Toast.LENGTH_SHORT).show()
                 viewModel.clearErrorMessage()
@@ -166,40 +205,10 @@ class CalendarFragment : Fragment() {
         }
     }
 
-    /**
-     * 태그 UI 업데이트
-     */
-    private fun updateTagUI(state: CalendarUiState) {
-        when {
-            state.isTagLoading -> {
-                // 태그 로딩 중
-                tvMostUsedStyle.text = "데이터를 불러오는 중..."
-            }
-            state.mostUsedTag != null -> {
-                // 🔥 실제 API 데이터로 업데이트
-                val tag = state.mostUsedTag
-                tvMostUsedStyle.text = "#${tag.tag} 스타일이 가장 많았어요! (${tag.count}개)"
-            }
-            state.tagErrorMessage != null -> {
-                // 에러 시 기본값
-                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
-
-                // 에러 메시지 자동 제거
-                viewModel.clearTagError()
-            }
-            else -> {
-                // 초기 상태
-                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
-            }
-        }
-    }
-
     private fun generateMonths(): List<MonthData> {
         val months = mutableListOf<MonthData>()
         val calendar = Calendar.getInstance()
-
         calendar.add(Calendar.MONTH, -24)
-
         repeat(37) {
             val year = calendar.get(Calendar.YEAR)
             val month = calendar.get(Calendar.MONTH) + 1
@@ -207,7 +216,6 @@ class CalendarFragment : Fragment() {
             months.add(monthData)
             calendar.add(Calendar.MONTH, 1)
         }
-
         return months
     }
 
@@ -222,52 +230,6 @@ class CalendarFragment : Fragment() {
                 }
             }, 100)
         }
-    }
-
-    private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
-        if (hasOutfit) {
-            loadOutfitDataInBackground(dateString)
-            navigateToOutfitDetail(dateString)
-        } else {
-            navigateToOutfitRegister(dateString)
-        }
-    }
-
-    private fun loadOutfitDataInBackground(dateString: String) {
-        viewModel.onDateSelected(dateString)  // String 전달 (outfitId 계산 불필요)
-    }
-
-    private fun navigateToOutfitDetail(dateString: String) {
-        Toast.makeText(context, "코디 상세: $dateString", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun navigateToOutfitRegister(dateString: String) {
-        val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
-        findNavController().navigate(action)
-    }
-
-    private fun navigateToStyleOutfits() {
-        try {
-            val navController = findNavController()
-            val targetDestination = navController.graph.findNode(R.id.styleOutfitsFragment)
-
-            if (targetDestination != null) {
-                navController.navigate(R.id.styleOutfitsFragment)
-            } else {
-                Toast.makeText(requireContext(), "StyleOutfitsFragment를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-            }
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    /**
-     * 외부에서 태그 통계 새로고침
-     */
-    fun refreshMostUsedTag() {
-        loadMostUsedTag()
     }
 }
 

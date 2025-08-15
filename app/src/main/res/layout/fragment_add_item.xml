@@ -50,16 +50,24 @@
                 android:id="@+id/iv_clothes"
                 android:layout_width="match_parent"
                 android:layout_height="372dp"
+<<<<<<< HEAD
                 android:scaleType="fitCenter"
                 android:src="@drawable/clothes8" />
+=======
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_image_background"
+                android:contentDescription="옷 이미지" />
+>>>>>>> 3677f88 (refactor: 코드 리팩토링)
 
             <!-- 기존 이미지로 바꾸기 버튼 -->
             <Button
-                android:id="@+id/btn_change_to_original"
+                android:id="@+id/btn_change_to_default"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="기존 이미지로 바꾸기"
-                android:visibility="gone" />
+                android:text="기존 이미지로 변경"
+                android:visibility="gone"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"/>
 
             <Button
                 android:id="@+id/btn_change_to_refined"
