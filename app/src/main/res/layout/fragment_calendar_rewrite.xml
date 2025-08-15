@@ -75,42 +75,49 @@
                 android:layout_gravity="top|end" />
         </FrameLayout>
 
-        <LinearLayout
-            android:id="@+id/calendar_rewrite_layout"
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:id="@+id/calendar_rewrite_scroller"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            app:layout_constraintTop_toBottomOf="@+id/calendar_rewrite_fl"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            app:layout_constraintTop_toBottomOf="@id/calendar_rewrite_fl"
             app:layout_constraintStart_toStartOf="parent"
-            android:orientation="horizontal">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/calendar_rewrite_rv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"
-                android:paddingEnd="8dp"
-                android:nestedScrollingEnabled="false"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                app:layout_constraintTop_toBottomOf="@+id/calendar_rewrite_fl"
-                app:layout_constraintStart_toStartOf="parent" />
-
-            <FrameLayout
-                android:id="@+id/calendar_rewrite_fl2"
+            app:layout_constraintEnd_toEndOf="parent">
+            <LinearLayout
+                android:id="@+id/calendar_rewrite_layout"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-                <ImageView
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/calendar_rewrite_rv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/calendar_rewrite_bg"
-                    android:background="@drawable/rounded_gray_bg"/>
-                <ImageView
-                    android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:src="@drawable/register_btn_gray"
-                    android:layout_gravity="center"/>
-            </FrameLayout>
-        </LinearLayout>
+                    android:clipToPadding="false"
+                    android:paddingEnd="8dp"
+                    android:nestedScrollingEnabled="false"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                <FrameLayout
+                    android:id="@+id/calendar_rewrite_fl2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/calendar_rewrite_bg"
+                        android:background="@drawable/rounded_gray_bg"/>
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/register_btn_gray"
+                        android:layout_gravity="center"/>
+                </FrameLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
 
         <LinearLayout
             android:id="@+id/calendar_rewrite_layout2"
@@ -118,7 +125,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="20dp"
-            app:layout_constraintTop_toBottomOf="@+id/calendar_rewrite_layout"
+            app:layout_constraintTop_toBottomOf="@+id/calendar_rewrite_scroller"
             app:layout_constraintStart_toStartOf="parent">
 
             <ImageView

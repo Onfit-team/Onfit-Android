@@ -64,6 +64,27 @@ class CalendarRewriteFragment : Fragment() {
         adapter = CalendarRewriteAdapter(dummyItems)
         recyclerView.adapter = adapter
 
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<List<Int>>("calendar_select_result")
+            ?.observe(viewLifecycleOwner) { resIds ->
+                if (resIds.isNullOrEmpty()) return@observe
+
+                // 하나씩 어댑터에 추가
+                resIds.forEach { resId ->
+                    adapter.addItem(CalendarRewriteItem(resId))
+                }
+                // 맨 끝으로 스크롤 (선택사항)
+                binding.calendarRewriteRv.post {
+                    binding.calendarRewriteRv.smoothScrollToPosition(adapter.itemCount - 1)
+                }
+
+                // 재관찰로 인한 중복 추가 방지
+                findNavController().currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.remove<List<Int>>("calendar_select_result")
+            }
+
         // 다이얼로그 띄우기
         binding.calendarRewriteMemoTv.setOnClickListener {
             TopSheetDialogFragment().show(parentFragmentManager, "TopSheet")
