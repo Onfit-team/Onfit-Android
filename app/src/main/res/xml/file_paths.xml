@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <!-- 외부 앱(카메라)이 쓸 수 있는 앱 전용 Pictures 디렉토리 -->
-    <external-files-path name="images" path="Pictures/" />
-    <!-- 캐시에 바로 저장하는 경우 대비 -->
-    <cache-path name="cache" path="." />
-</paths>

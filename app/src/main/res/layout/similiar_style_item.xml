@@ -5,7 +5,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <!-- ShapeableImageView에 모서리 둥근 스타일 적용 -->
+    <!-- 둥근 모서리 이미지 -->
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/sim_cloth1_iv"
         android:layout_width="140dp"
@@ -17,17 +17,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <TextView
-        android:id="@+id/date_tv"
+    <com.google.android.material.chip.Chip
+        android:id="@+id/date_chip"
+        style="@style/Widget.MaterialComponents.Chip.Choice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="4월 20일"
-        android:textSize="14sp"
-        android:textColor="#777777"
         android:layout_marginTop="6dp"
+        android:text="딱 좋음"
+        android:textSize="12sp"
+        android:textColor="@color/black"
+        android:includeFontPadding="false"
+        android:checkable="false"
+        app:chipMinHeight="28dp"
+        app:chipCornerRadius="16dp"
+        app:chipStrokeWidth="0dp"
+        app:rippleColor="@android:color/transparent"
+        app:chipBackgroundColor="@color/basic_gray"
         app:layout_constraintTop_toBottomOf="@id/sim_cloth1_iv"
         app:layout_constraintStart_toStartOf="parent"
-
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
