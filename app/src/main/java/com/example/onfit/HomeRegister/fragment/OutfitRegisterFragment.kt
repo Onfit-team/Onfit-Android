@@ -121,8 +121,8 @@ class OutfitRegisterFragment : Fragment() {
                 val item = outfitList.getOrNull(pos)
 
                 val source: String? = when {
-                    item?.imageUri != null   -> item.imageUri.toString()           // content:// 또는 file://
-                    item?.imageResId != null -> "res://${item.imageResId}"         // 리소스일 경우
+                    item?.imageUri != null -> item.imageUri.toString() // content:// 또는 file://일 경우
+                    item?.imageResId != null -> "res://${item.imageResId}" // 리소스일 경우
                     else -> null
                 }
                 if (source == null) {
@@ -140,13 +140,41 @@ class OutfitRegisterFragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("outfit_image_path", imagePath)
                 }
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
+                findNavController().navigate(
+                    R.id.action_outfitRegisterFragment_to_outfitCropFragment,
+                    bundle
+                )
             })
 
         if (!imagePath.isNullOrEmpty()) {
             Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
             uploadImageToServer(File(imagePath))
         }
+
+        findNavController().currentBackStackEntry?.savedStateHandle
+            ?.getLiveData<Bundle>("wardrobe_result")
+            ?.observe(viewLifecycleOwner) { result ->
+                val position = result.getInt("position", -1)
+                val imageResId = result.getInt("imageResId", 0)
+                val imageUri = result.getString("imageUriString")
+
+                if (position in outfitList.indices) {
+                    when {
+                        imageResId != 0 -> {
+                            outfitList[position].imageResId = imageResId
+                            outfitList[position].imageUri = null
+                        }
+
+                        !imageUri.isNullOrBlank() -> {
+                            outfitList[position].imageUri = Uri.parse(imageUri)
+                            outfitList[position].imageResId = null
+                        }
+
+                        else -> return@observe
+                    }
+                    adapter.notifyItemChanged(position)
+                }
+            }
 
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())

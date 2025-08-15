@@ -33,12 +33,12 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
     override fun onBindViewHolder(holder: OutfitViewHolder, position: Int) {
         val item = items[position]
+        holder.image.setImageDrawable(null)
 
-        if (item.imageUri != null) {
-            holder.image.setImageURI(item.imageUri)
-        } else if (item.imageResId != null) {
-            holder.image.setImageResource(item.imageResId)
-        }
+        item.imageUri
+
+        item.imageUri?.let { holder.image.setImageURI(it) }
+            ?: item.imageResId?.let { holder.image.setImageResource(it) }
 
         // 옷장에 있어요 클릭 시 옷장 프래그먼트로 이동, 버튼 회색으로 비활성화
         val btnImageRes = if (item.isClosetButtonActive) {
@@ -79,11 +79,8 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             // 이미지 설정
             val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
-            if (item.imageUri != null) {
-                dialogImage.setImageURI(item.imageUri)
-            } else if (item.imageResId != null) {
-                dialogImage.setImageResource(item.imageResId)
-            }
+            item.imageUri?.let { dialogImage.setImageURI(it) }
+                ?: item.imageResId?.let(dialogImage::setImageResource)
 
             // 예 버튼 클릭 → 아이템 삭제
             dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {
