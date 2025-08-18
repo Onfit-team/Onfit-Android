@@ -76,6 +76,9 @@ class CalendarFragment : Fragment() {
     // ⭐ 중복 실행 방지를 위한 플래그
     private var isLoadingDates = false
 
+    // ⭐ 캘린더에서 선택한 날짜를 저장할 변수
+    private var selectedDateForRegistration: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
@@ -237,6 +240,10 @@ class CalendarFragment : Fragment() {
             showOutfitWithImageUrl(dateString)
         } else {
             Log.d("CalendarFragment", "등록되지 않은 날짜 클릭: $dateString")
+
+            // ⭐ 캘린더에서 클릭한 날짜 저장
+            selectedDateForRegistration = dateString
+
             showBottomSheet()
         }
     }
@@ -430,6 +437,26 @@ class CalendarFragment : Fragment() {
                     Toast.makeText(requireContext(), "코디가 등록되었습니다!", Toast.LENGTH_SHORT).show()
 
                     findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>("registered_date")
+                }
+            }
+
+        // ⭐ 새로 추가: SaveFragment에서 돌아올 때 처리
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<String>("newly_registered_date")
+            ?.observe(viewLifecycleOwner) { newlyRegisteredDate ->
+                if (!newlyRegisteredDate.isNullOrBlank()) {
+                    Log.d("CalendarFragment", "SaveFragment에서 등록된 날짜 수신: $newlyRegisteredDate")
+
+                    val outfitId = findNavController().currentBackStackEntry?.savedStateHandle?.get<Int>("newly_registered_outfit_id") ?: -1
+
+                    // 새로 등록된 날짜를 캘린더에 추가
+                    addRegisteredDate(newlyRegisteredDate, outfitId)
+                    saveOutfitRegistration(newlyRegisteredDate, outfitId)
+
+                    Toast.makeText(requireContext(), "코디가 캘린더에 추가되었습니다!", Toast.LENGTH_SHORT).show()
+
+                    // 사용 후 제거
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>("newly_registered_date")
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Int>("newly_registered_outfit_id")
                 }
             }
     }
@@ -649,10 +676,17 @@ class CalendarFragment : Fragment() {
                             return@withContext
                         }
 
+                        // ⭐ 캘린더에서 선택한 날짜가 있으면 그 날짜로, 없으면 오늘 날짜로
+                        val dateToRegister = selectedDateForRegistration
+                            ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+                        Log.d("CalendarFragment", "등록할 날짜: $dateToRegister (선택된 날짜: $selectedDateForRegistration)")
+
                         // RegisterFragment로 URL 전달
                         val bundle = Bundle().apply {
                             putString("selectedImagePath", uploadFile.absolutePath)
                             putString("uploadedImageUrl", imageUrl)
+                            putString("selectedDate", dateToRegister) // ⭐ 선택한 날짜 전달
                         }
 
                         if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
@@ -668,6 +702,10 @@ class CalendarFragment : Fragment() {
                                 nav.navigate(R.id.registerFragment, bundle)
                             }
                         }
+
+                        // ⭐ 사용 후 선택 날짜 초기화
+                        selectedDateForRegistration = null
+
                     } else {
                         val errorMsg = response.errorBody()?.string()
                         Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
