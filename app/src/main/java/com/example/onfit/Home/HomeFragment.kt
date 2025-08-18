@@ -27,10 +27,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -76,11 +74,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
     private var selectedImageUri: Uri? = null
 
-    private lateinit var takePictureLauncher: ActivityResultLauncher<Uri>
-    private var cameraImageUri: Uri? = null
-    private var cameraImageFile: File? = null
-
-    // 서버 추천 로딩 전 초기 플레이스홀더(로컬 이미지)
+    // 추천 섹션 drawable fallback
     private val clothSuggestList = listOf(
         R.drawable.latestcloth3, R.drawable.latestcloth3, R.drawable.latestcloth3
     )
@@ -106,24 +100,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val cacheFile = uriToCacheFile(requireContext(), uri)
                     uploadImageToServer(cacheFile)
                 }
-            }
-        }
-
-        // 카메라 Launcher
-        takePictureLauncher = registerForActivityResult(
-            ActivityResultContracts.TakePicture()
-        ) { success ->
-            if (success) {
-                val file = cameraImageFile
-                if (file != null && file.exists()) {
-                    // 갤러리와 동일하게 업로드 재사용
-                    uploadImageToServer(file)
-                } else {
-                    Toast.makeText(requireContext(), "촬영 파일을 찾을 수 없어요.", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                // 취소 시 임시파일 정리
-                cameraImageFile?.takeIf { it.exists() }?.delete()
             }
         }
     }
@@ -177,19 +153,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                             return@withContext
                         }
                         val bundle = Bundle().apply {
-                            putString("selectedImagePath", uploadFile.absolutePath) // 미리보기용 파일경로
-                            putString("uploadedImageUrl", imageUrl) // 서버 URL
+                            putString("selectedImagePath", uploadFile.absolutePath)
+                            putString("uploadedImageUrl", imageUrl)
                         }
-                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
-                                Lifecycle.State.STARTED)) return@withContext
-
-                        // 현재 목적지가 Home일 때만 네비게이트(중복 내비 방지)
                         val nav = findNavController()
-                        runCatching {
+                        if (nav.currentDestination?.id == R.id.homeFragment) {
                             nav.navigate(R.id.action_homeFragment_to_registerFragment, bundle)
-                        }.onFailure {
-                            // 액션이 막혔으면 대상 ID로 풀백
-                            runCatching { nav.navigate(R.id.registerFragment, bundle) }
                         }
                     } else {
                         Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
@@ -715,12 +684,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(view)
-        view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            ensureCameraPermission {
-                openCamera()
-            }
-            dialog.dismiss()
-        }
+        view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener { dialog.dismiss() }
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
             ensurePhotoPermission { rescanPicturesAndOpenGallery() }
             dialog.dismiss()
@@ -766,22 +730,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             else Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
         }
 
-    private fun ensureCameraPermission(onGranted: () -> Unit) {
-        val perm = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
-            PackageManager.PERMISSION_GRANTED) {
-            onGranted()
-        } else {
-            // 재사용 가능하게 RequestPermission launcher 하나 더 써도 되고,
-            // 여기선 간단히 임시로 런처 생성
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-                if (granted) onGranted() else
-                    Toast.makeText(requireContext(),"카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
-            }.launch(perm)
-        }
-    }
-
-    // 2) Pictures 폴더 스캔 후 갤러리 열기
     private fun rescanPicturesAndOpenGallery() {
         val picturesPath = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES
@@ -794,26 +742,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         ) { _, _ -> requireActivity().runOnUiThread { openGallery() } }
     }
 
-    private fun openCamera() {
-        try {
-            val (file, uri) = createCameraOutput(requireContext()) // ← 지역 val
-            cameraImageFile = file
-            cameraImageUri = uri
-            takePictureLauncher.launch(uri) // 지역 val은 non-null
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "카메라 실행 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun createCameraOutput(ctx: Context): Pair<File, Uri> {
-        val baseDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: ctx.cacheDir
-        val outDir = File(baseDir, "camera").apply { mkdirs() }
-        val file = File(outDir, "camera_${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-        return file to uri
-    }
-
-    // gallery_btn 클릭 시 실행
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         pickImageLauncher.launch(intent)

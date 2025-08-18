@@ -129,6 +129,9 @@
                 android:name="saveDate"
                 app:argType="string"
                 app:nullable="true" />
+            <argument
+                android:name="outfit_id"
+                app:argType="string"/>
         </action>
     </fragment>
 
@@ -160,7 +163,8 @@
         android:label="outfitSelectFragment" >
         <argument
             android:name="imageSource"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"/>
         <argument
             android:name="itemPosition"
             app:argType="integer" />
@@ -172,7 +176,7 @@
         android:label="outfitCropFragment" >
         <argument
             android:name="outfit_image_path"
-            app:argType="string" />
+            app:argType="string"/>
     </fragment>
 
     <fragment

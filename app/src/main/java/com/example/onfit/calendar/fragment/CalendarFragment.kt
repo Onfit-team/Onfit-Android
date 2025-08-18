@@ -230,26 +230,77 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ 날짜 클릭 이벤트 처리 - outfit_id로 코디 상세 데이터 확인 후 상세 화면으로 이동
+     * ⭐ 이미지 URL 기반으로 코디 상세 표시 (API 호출 없음)
      */
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
         if (hasOutfit) {
-            // 날짜에 등록된 코디 ID 가져오기
-            val outfitId = dateToOutfitIdMap[dateString]
-            if (outfitId != null) {
-                fetchOutfitDetails(outfitId) { fetchedDate, memo ->
-                    if (!fetchedDate.isNullOrBlank() && !memo.isNullOrBlank()) {
-                        navigateToOutfitDetail(fetchedDate, outfitId, memo)
-                    } else {
-                        Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-            }
+            showOutfitWithImageUrl(dateString)
         } else {
             Log.d("CalendarFragment", "등록되지 않은 날짜 클릭: $dateString")
             showBottomSheet()
+        }
+    }
+
+    /**
+     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시
+     */
+    private fun showOutfitWithImageUrl(dateString: String) {
+        Log.d("OutfitDebug", "=== 코디 상세 찾기 ===")
+        Log.d("OutfitDebug", "찾는 날짜: $dateString")
+
+        val allOutfits = homeViewModel.recentOutfits.value
+        Log.d("OutfitDebug", "HomeViewModel 데이터 개수: ${allOutfits?.size}")
+
+        allOutfits?.forEachIndexed { index, outfit ->
+            val outfitDate = outfit.date.substring(0, 10)
+            Log.d("OutfitDebug", "[$index] 날짜: $outfitDate, 이미지: ${outfit.image}")
+        }
+
+        val matchingOutfit = allOutfits?.find {
+            it.date.substring(0, 10) == dateString
+        }
+
+        if (matchingOutfit != null) {
+            Log.d("OutfitDebug", "✅ 매칭 성공: $dateString -> ${matchingOutfit.image}")
+            navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+        } else {
+            Log.d("OutfitDebug", "❌ 매칭 실패: $dateString")
+            Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
+     */
+    private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
+        try {
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putString("main_image_url", imageUrl)  // ⭐ 변경: image_url -> main_image_url
+
+                // ⭐ 개별 아이템 이미지들이 있다면 추가 (현재는 메인 이미지만)
+                // putStringArrayList("item_image_urls", arrayListOf(...))
+
+                // outfit_id는 전달하지 않음 (현재 -1로 설정됨)
+            }
+
+            val navController = findNavController()
+
+            runCatching {
+                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+            }.onFailure {
+                runCatching {
+                    navController.navigate(R.id.calendarSaveFragment, bundle)
+                }.onFailure {
+                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
+                    // 이미지 URL 표시 (테스트용)
+                    Toast.makeText(context, "$dateString 코디\n이미지: $imageUrl", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -292,26 +343,21 @@ class CalendarFragment : Fragment() {
 
         Log.d("RealOutfits", "HomeViewModel을 통해 실제 코디 로드 시작")
 
-        // HomeFragment와 동일한 방식
         homeViewModel.fetchRecentOutfits(token)
         homeViewModel.recentOutfits.observe(viewLifecycleOwner) { outfits ->
             val top7 = outfits?.take(7).orEmpty()
 
             Log.d("RealOutfits", "받은 코디 개수: ${top7.size}")
 
-            top7.forEachIndexed { index, outfit ->
-                val fullDate = outfit.date
-                // ⭐ 서버에서 id를 안 보내므로 임시 고유 ID 생성
-                val tempOutfitId = System.currentTimeMillis().toInt() + index
+            // 중복 제거: 날짜별로 그룹핑해서 하나씩만 처리
+            val uniqueOutfits = top7.groupBy { it.date.substring(0, 10) }
+                .mapValues { it.value.first() }
 
-                if (!fullDate.isNullOrBlank() && fullDate.length >= 10) {
-                    val date = fullDate.substring(0, 10)
+            uniqueOutfits.forEach { (date, outfit) ->
+                Log.d("RealOutfits", "실제 코디: $date -> 이미지: ${outfit.image}")
 
-                    Log.d("RealOutfits", "실제 코디: $date -> 임시 ID: $tempOutfitId")
-
-                    addRegisteredDate(date, tempOutfitId)
-                    saveOutfitRegistration(date, tempOutfitId)
-                }
+                // outfit_id는 필요 없으므로 임시 ID 사용
+                addRegisteredDate(date, date.hashCode())
             }
         }
     }

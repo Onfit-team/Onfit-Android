@@ -42,4 +42,10 @@ class CalendarRewriteAdapter(private val items: MutableList<CalendarRewriteItem>
         items.add(item)
         notifyItemInserted(items.size - 1)
     }
+
+    fun addItems(newItems: List<CalendarRewriteItem>) {
+        val start = items.size
+        items.addAll(newItems)
+        notifyItemRangeInserted(start, newItems.size)
+    }
 }

@@ -195,9 +195,13 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                     if (response.isSuccessful && body?.isSuccess == true) {
                         Toast.makeText(requireContext(), "아웃핏 등록 성공!", Toast.LENGTH_SHORT).show()
 
+                        // ✅ 서버가 준 id 꺼내기 (Long/Int → String)
+                        val outfitIdText = body.result?.id?.toString().orEmpty()
+
                         val bundle = Bundle().apply {
                             putString("save_date", formattedDate)
                             putString("outfit_image_path", imagePath)
+                            putString("outfit_id", outfitIdText)
                         }
                         if (!isAdded) return@launch
                         findNavController().navigate(
