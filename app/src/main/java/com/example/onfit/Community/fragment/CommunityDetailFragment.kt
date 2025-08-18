@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -21,10 +23,11 @@ import com.example.onfit.Community.model.OutfitDetailResponse
 import com.example.onfit.Community.model.ToggleLikeResponse
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
-import com.example.onfit.databinding.FragmentCommunityDetailBinding
 import com.example.onfit.databinding.DialogDeleteOutfitBinding
+import com.example.onfit.databinding.FragmentCommunityDetailBinding
 import com.example.onfit.network.RetrofitInstance
 import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipDrawable
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -50,6 +53,11 @@ class CommunityDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.styleChips.chipSpacingHorizontal = dpF(2).toInt()
+        binding.styleChips.chipSpacingVertical = dpF(2).toInt()
+
+
+
         outfitId = args.outfitId
 
         binding.clothRecyclerview.layoutManager =
@@ -59,6 +67,7 @@ class CommunityDetailFragment : Fragment() {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
+        // 썸네일 프리뷰
         args.imageUrl?.let { thumb ->
             if (thumb.isNotBlank()) {
                 currentMainImageUrl = thumb
@@ -66,8 +75,11 @@ class CommunityDetailFragment : Fragment() {
             }
         }
 
-        binding.deleteIv.setOnClickListener { showDeleteDialog() }
+        // 태그 영역 초기화 & 감춤
+        binding.styleChips.removeAllViews()
+        binding.styleChips.visibility = View.GONE
 
+        binding.deleteIv.setOnClickListener { showDeleteDialog() }
         binding.likesIv.setOnClickListener { toggleLike() }
         binding.likesTv.setOnClickListener { toggleLike() }
 
@@ -124,8 +136,15 @@ class CommunityDetailFragment : Fragment() {
     }
 
     private fun loadDetail() {
+        binding.styleChips.chipSpacingHorizontal = 0
+        binding.styleChips.chipSpacingVertical = 0
+
         val raw = TokenProvider.getToken(requireContext())
         val token: String? = raw.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+
+        // 호출 시작 전에 재초기화
+        binding.styleChips.removeAllViews()
+        binding.styleChips.visibility = View.GONE
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -140,8 +159,10 @@ class CommunityDetailFragment : Fragment() {
                     return@launch
                 }
 
+                // 날짜
                 binding.dateTv.text = formatUtcToKst(d.date)
 
+                // 메인 이미지
                 if (d.mainImage.isNotBlank()) {
                     currentMainImageUrl = d.mainImage
                     Glide.with(this@CommunityDetailFragment)
@@ -149,15 +170,36 @@ class CommunityDetailFragment : Fragment() {
                         .into(binding.mainIv)
                 }
 
+                // 설명/기온
                 binding.descTv.text = d.memo ?: ""
                 binding.tempTv.text = d.weatherTempAvg?.let { "${it}°" } ?: "-"
 
-                // 태그 칩
+                // ============================
+                // 스타일 태그: 중복 제거 + 간격 축소 칩
+                // ============================
                 binding.styleChips.removeAllViews()
-                (d.tags.moodTags + d.tags.purposeTags).forEach { tag ->
-                    binding.styleChips.addView(createTagChip("#${tag.name}"))
+
+                val allTags = (d.tags.moodTags + d.tags.purposeTags)
+                // name 기준 중복 제거(대소문자 무시, 입력 순서 유지)
+                val seen = LinkedHashSet<String>()
+                val uniqueByName = allTags.filter { tag ->
+                    val key = tag.name?.trim()?.lowercase().orEmpty()
+                    key.isNotEmpty() && seen.add(key)
                 }
 
+                if (uniqueByName.isNotEmpty()) {
+                    uniqueByName.forEach { tag ->
+                        val name = tag.name?.trim().orEmpty()
+                        if (name.isNotEmpty()) {
+                            binding.styleChips.addView(createTagChip("#$name"))
+                        }
+                    }
+                    binding.styleChips.visibility = View.VISIBLE
+                } else {
+                    binding.styleChips.visibility = View.GONE
+                }
+
+                // 좋아요/삭제 UI
                 isLiked = d.likes.isLikedByCurrentUser
                 likeCount = d.likes.count
                 renderLike()
@@ -165,20 +207,12 @@ class CommunityDetailFragment : Fragment() {
 
                 // 착장 아이템 리스트
                 val itemUrls = d.items.mapNotNull { it.image }.filter { it.isNotBlank() }
-                android.util.Log.d(
-                    "CommunityDetail",
-                    "items.size=${d.items.size}, itemUrls.size=${itemUrls.size}, firstUrl=${itemUrls.firstOrNull()}"
-                )
-
                 if (itemUrls.isEmpty()) {
-                    // 데이터가 없으면 영역 감춤
                     binding.clothRecyclerview.visibility = View.GONE
                 } else {
-                    // 데이터가 있으면 보이게 하고 어댑터 연결
                     binding.clothRecyclerview.visibility = View.VISIBLE
                     binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
                 }
-                // ▲ 착장 아이템 리스트 끝
 
             } catch (_: Exception) {
                 Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
@@ -186,49 +220,60 @@ class CommunityDetailFragment : Fragment() {
         }
     }
 
-
-
-    // dp → px 변환 (Chip 패딩/코너: Float(px), 마진: Int(px))
+    // dp → px 변환 (칩 내부 패딩에 사용)
     private fun dpF(value: Int): Float = value * resources.displayMetrics.density
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
+    // Chip 디자인(간격 축소 반영): basic_gray, black, pretendardmedium, Choice 스타일 + 내부 패딩 최소화
     private fun createTagChip(text: String): Chip {
-        val chip = Chip(requireContext())
-        chip.text = text
-        chip.isCheckable = false
-        chip.isClickable = false
-        chip.isFocusable = false
+        val ctx = requireContext()
+        return Chip(ctx).apply {
+            // 텍스트 / 폰트
+            this.text = text
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            setTextColor(ContextCompat.getColor(ctx, R.color.black))
+            typeface = ResourcesCompat.getFont(ctx, R.font.pretendardmedium)
 
-        // "둥근 회색 필칩" 스타일
-        chip.chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#EEEEEE"))
-        chip.setTextColor(Color.parseColor("#666666"))
-        chip.rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
-        chip.chipStrokeWidth = 0f
+            // 머티리얼 감성 유지: 둥근 모서리 + 리플 off + 회색 배경
+            chipBackgroundColor = ContextCompat.getColorStateList(ctx, R.color.basic_gray)
+            rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+            shapeAppearanceModel = shapeAppearanceModel.toBuilder()
+                .setAllCornerSizes(dpF(16))
+                .build()
+            chipStrokeWidth = 0f
 
-        // 텍스트 크기: sp 단위로 지정
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+            // 표시용 칩 (상호작용X)
+            isCheckable = false
+            isClickable = false
+            isFocusable = false
 
-        // 패딩/모서리: Float(px) 필요 → dpF 사용
-        chip.chipStartPadding = dpF(10)
-        chip.chipEndPadding   = dpF(10)
-        chip.textStartPadding = dpF(2)
-        chip.textEndPadding   = dpF(2)
-        chip.shapeAppearanceModel = chip.shapeAppearanceModel.toBuilder()
-            .setAllCornerSizes(dpF(16))
-            .build()
+            chipStartPadding = dpF(4)
+            chipEndPadding   = dpF(4)
+            textStartPadding = 0f
+            textEndPadding   = 0f
+            iconStartPadding = 0f
+            iconEndPadding   = 0f
+            minHeight = 0
+            minimumHeight = 0
+            // 최소 폭도 제거
+            minWidth = 0
+            minimumWidth = 0
 
-        // 칩 간 간격: 마진은 Int(px)
-        val lp = ViewGroup.MarginLayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {
-            rightMargin = dp(8)
-            bottomMargin = dp(8)
+            layoutParams = ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                rightMargin = 0
+                bottomMargin = 0
+            }
         }
-        chip.layoutParams = lp
-
-        return chip
     }
+
+
+
+
+
+
 
     private fun toggleLike() {
         val raw = TokenProvider.getToken(requireContext())
@@ -238,6 +283,7 @@ class CommunityDetailFragment : Fragment() {
         }
         val token = "Bearer $raw"
 
+        // 낙관 갱신
         isLiked = !isLiked
         likeCount = if (isLiked) likeCount + 1 else (likeCount - 1).coerceAtLeast(0)
         renderLike()
