@@ -14,9 +14,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.R
 
 class OutfitAdapter(private val items: MutableList<OutfitItem2>,
-                    private val onClosetButtonClick: () -> Unit,
+                    private val onClosetButtonClick: (position: Int) -> Unit,
                     private val onCropButtonClick: (position: Int) -> Unit) :
     RecyclerView.Adapter<OutfitAdapter.OutfitViewHolder>() {
+
     inner class OutfitViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val image: ImageView = itemView.findViewById(R.id.item_outfit_image)
         val remove: ImageView = itemView.findViewById(R.id.item_outfit_remove)
@@ -32,6 +33,7 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
     override fun onBindViewHolder(holder: OutfitViewHolder, position: Int) {
         val item = items[position]
+
         if (item.imageUri != null) {
             holder.image.setImageURI(item.imageUri)
         } else if (item.imageResId != null) {
@@ -48,10 +50,14 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
         // 옷장 버튼 클릭 리스너
         holder.closetBtn.setOnClickListener {
-            if (item.isClosetButtonActive) {
-                item.isClosetButtonActive = false
-                notifyItemChanged(position)
-                onClosetButtonClick() // 콜백 호출해서 프래그먼트 전환 요청
+            val p = holder.bindingAdapterPosition
+            if (p != RecyclerView.NO_POSITION) {
+                val i = items[p]
+                if (i.isClosetButtonActive) {
+                    i.isClosetButtonActive = false
+                    notifyItemChanged(p)
+                    onClosetButtonClick(p)
+                }
             }
         }
 
