@@ -179,19 +179,21 @@ class OutfitRegisterFragment : Fragment() {
                 // Safe Args
                 val directions = OutfitRegisterFragmentDirections
                     .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
-
+                    
                 findNavController().navigate(directions)
             },
             onCropButtonClick = { position ->
-                // OutfitCropFragment로 전환
-                val item = outfitList[position]
-                val imagePath = item.imageUri?.path ?: ""
-
+                val imagePath = imagePath
                 val bundle = Bundle().apply {
                     putString("outfit_image_path", imagePath)
                 }
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
             })
+
+        if (!imagePath.isNullOrEmpty()) {
+            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
+            uploadImageToServer(File(imagePath))
+        }
 
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())

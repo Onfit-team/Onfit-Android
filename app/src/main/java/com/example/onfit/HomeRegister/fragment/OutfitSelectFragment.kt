@@ -22,6 +22,7 @@ class OutfitSelectFragment : Fragment() {
     private val args: OutfitSelectFragmentArgs by navArgs()
 
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,6 +38,7 @@ class OutfitSelectFragment : Fragment() {
         val iv = binding.outfitSelectOutfitIv
         val src = args.imageSource
         if (src.isNullOrBlank()) return
+
         when {
             src.startsWith("http") -> {
                 Glide.with(iv).load(src).into(iv)
