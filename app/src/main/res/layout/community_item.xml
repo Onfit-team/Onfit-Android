@@ -6,7 +6,6 @@
     android:layout_height="wrap_content"
     android:layout_margin="6dp">
 
-    <!-- 메인 이미지(정사각) -->
     <ImageView
         android:id="@+id/outfit_iv"
         android:layout_width="0dp"
@@ -17,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintDimensionRatio="1:1" />
+        app:layout_constraintDimensionRatio="2:3"/>
 
     <!-- 우하단 정보 칩: 닉네임(왼) + 하트 + 숫자(오) -->
     <LinearLayout

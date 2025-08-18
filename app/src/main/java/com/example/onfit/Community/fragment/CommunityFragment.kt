@@ -490,12 +490,25 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         }
     }
 
+    private fun dpToPx(dp: Int): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+
+
     private fun showPostOutfitDialog() {
         val dialogBinding = com.example.onfit.databinding.OutfitPostDialogBinding.inflate(layoutInflater)
         val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext()).create().apply {
             setView(dialogBinding.root)
             window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
+
+        dialogBinding.postDialogOutfitImage.layoutParams = dialogBinding.postDialogOutfitImage.layoutParams.apply {
+            height = dpToPx(240)
+        }
+        dialogBinding.postDialogOutfitImage.requestLayout()
 
         dialogBinding.postDialogOutfitTv.text = "${binding.dateTv.text} Outfit을 게시하시겠습니까?"
 
@@ -531,10 +544,16 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         dialogBinding.postDialogYesBtn.setOnClickListener {
             publishTodayOutfit(
                 onSuccess = { id ->
-                    dialog.dismiss()
                     val action = CommunityFragmentDirections.actionCommunityFragmentToCommunityDetailFragment()
                     if (id != null) action.outfitId = id
+
+                    // 우선순위: publish 응답의 메인이미지 > check 응답 캐시
+                    val fallbackThumb = lastCheckResult?.mainImage
+                    // 위 publishTodayOutfit() 내부에서 lastCheckResult 갱신이 없다면 check 캐시를 사용
+                    action.imageUrl = fallbackThumb
+
                     findNavController().navigate(action)
+                    dialog.dismiss()
                 },
                 onFinally = { }
             )
@@ -574,6 +593,10 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                 if (body?.isSuccess == true) {
                     android.widget.Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
                     setShareButtonEnabled(false)
+
+                    // (참고) body.result?.mainImage 가 내려오면 여기서 lastCheckResult 대체 캐시로 보관해도 됨
+                    // lastCheckResult = lastCheckResult?.copy(mainImage = body.result?.mainImage) // 모델 타입상 직접 대입은 생략
+
                     onSuccess?.invoke(body.result?.id)   // Int?
                 } else {
                     val code = body?.code ?: "FAIL"
@@ -591,7 +614,6 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             }
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
