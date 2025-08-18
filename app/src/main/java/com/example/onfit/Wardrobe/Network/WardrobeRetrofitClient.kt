@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
  */
 object WardrobeRetrofitClient {
 
-    private const val BASE_URL = "http://15.164.35.198:3001/"
+    private const val BASE_URL = "http://3.36.113.173/"
 
     /**
      * HTTP 로깅 인터셉터

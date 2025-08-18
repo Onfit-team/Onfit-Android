@@ -26,7 +26,7 @@ class LatestStyleAdapter(private val itemList: List<OutfitItem>) :
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val item = itemList[position]
-        holder.binding.dateTv.text = item.date
+        holder.binding.dateChip.text = item.date
 
 
         val imageUrl = if (item.image.startsWith("http")) {

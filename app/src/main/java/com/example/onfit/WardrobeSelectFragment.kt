@@ -51,4 +51,6 @@ class WardrobeSelectFragment : WardrobeFragment() {
 
         return view
     }
+
+    fun getSelectedImages(): List<Int> = adapter.getSelectedImages()
 }

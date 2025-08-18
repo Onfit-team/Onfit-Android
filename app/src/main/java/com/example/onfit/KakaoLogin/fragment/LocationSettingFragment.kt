@@ -50,7 +50,6 @@ class LocationSettingFragment : Fragment() {
             selectedLocation = it
             binding.btnSave.isEnabled = true
         }
-
         binding.rvLocationList.layoutManager = LinearLayoutManager(requireContext())
         binding.rvLocationList.adapter = adapter
 
@@ -58,7 +57,7 @@ class LocationSettingFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean = false
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (!newText.isNullOrBlank() && newText.length >= 2) {
-                    lifecycleScope.launch {
+                    viewLifecycleOwner.lifecycleScope.launch {
                         val res = api.searchLocation(newText)
                         if (res.isSuccessful) {
                             adapter.submitList(res.body()?.result ?: emptyList())
@@ -70,48 +69,55 @@ class LocationSettingFragment : Fragment() {
             }
         })
 
+        // 저장 버튼
         binding.btnSave.setOnClickListener {
             val fullAddress = selectedLocation?.fullAddress ?: return@setOnClickListener
             val token = TokenProvider.getToken(requireContext())
-            val nickname = NicknameProvider.nickname
+            if (token.isBlank()) {
+                showErrorDialog("로그인이 필요합니다.")
+                return@setOnClickListener
+            }
 
-            lifecycleScope.launch {
+            val fromHome = args.fromHome   // 홈에서 왔는지 여부
+
+            viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    val selectResponse = api.selectLocation(
+                    // 1) 서버에 선택한 위치 반영 (공통)
+                    val selectRes = api.selectLocation(
                         token = "Bearer $token",
                         body = SelectLocationRequest(query = fullAddress)
                     )
-                    if (!selectResponse.isSuccessful) {
-                        val errorBody = selectResponse.errorBody()?.string()
+                    if (!selectRes.isSuccessful) {
+                        val errorBody = selectRes.errorBody()?.string()
                         val error = Gson().fromJson(errorBody, ErrorResponse::class.java)
-                        showErrorDialog("위치 저장 실패\n${error?.error?.reason}")
+                        showErrorDialog("위치 저장 실패\n${error?.error?.reason ?: ""}")
                         return@launch
                     }
 
-                    val signUpResponse = api.signUp(
+                    if (fromHome) {
+                        // 홈에서 온 경우: 로컬만 갱신하고 뒤로가기
+                        TokenProvider.setLocation(requireContext(), fullAddress)
+                        findNavController().popBackStack()
+                        return@launch
+                    }
+
+                    // 2) 온보딩(회원가입) 플로우: 회원가입 완료 처리
+                    val nickname = NicknameProvider.nickname
+                    val signUpRes = api.signUp(
                         token = "Bearer $token",
                         body = SignUpRequest(nickname = nickname, location = fullAddress)
                     )
-
-                    val fromHome = args.fromHome
-
-
-                    if (signUpResponse.isSuccessful) {
-                        // 위치 정보를 로컬에 저장
-                        TokenProvider.setLocation(requireContext(), fullAddress)
-                        Log.d("TokenProvider", "위치 저장됨: $fullAddress")
-
-                        if (fromHome) {
-                            // 홈에서 들어왔으면 뒤로가기
-                            findNavController().popBackStack()
-                        } else {
-                            // 회원가입 플로우라면 홈으로 이동
-                            findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment)
-                        }
-                    } else {
+                    if (!signUpRes.isSuccessful) {
                         showErrorDialog("회원가입 실패\n잠시 후 다시 시도해주세요.")
+                        return@launch
                     }
 
+                    // 로컬 저장 + 홈 이동
+                    TokenProvider.setLocation(requireContext(), fullAddress)                 // 위치 저장
+                    if (!nickname.isNullOrBlank()) {
+                        TokenProvider.saveNickname(requireContext(), nickname)               // 닉네임 저장(UI 캐시)
+                    }
+                    findNavController().navigate(R.id.action_locationSettingFragment_to_homeFragment) // 홈 이동
 
                 } catch (e: HttpException) {
                     showErrorDialog("HTTP 오류 발생\n${e.message}")
@@ -120,7 +126,6 @@ class LocationSettingFragment : Fragment() {
                 }
             }
         }
-
 
         binding.btnBack.setOnClickListener {
             findNavController().popBackStack()

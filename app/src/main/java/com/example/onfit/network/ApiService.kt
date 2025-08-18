@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/onfit/network/ApiService.kt
 package com.example.onfit.network
 
 import com.example.onfit.Community.model.CommunityOutfitsResponse

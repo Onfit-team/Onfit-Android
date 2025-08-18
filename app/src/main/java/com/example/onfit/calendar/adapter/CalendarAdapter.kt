@@ -12,45 +12,14 @@ import java.util.*
 
 class CalendarAdapter(
     private val months: List<MonthData>,
-    private var registeredDates: Set<String>, // var로 변경하여 업데이트 가능하게!
+    private var registeredDates: Set<String>, // ⭐ var로 변경하여 업데이트 가능하게
     private val onDateClick: (String, Boolean) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.MonthViewHolder>() {
 
-    // 등록된 날짜를 동적으로 업데이트하는 메서드
+    // ⭐ 등록된 날짜 데이터를 업데이트하는 함수 추가
     fun updateRegisteredDates(newRegisteredDates: Set<String>) {
         registeredDates = newRegisteredDates
-        notifyDataSetChanged()
-    }
-
-    // 특정 날짜만 추가하고 해당 월만 업데이트 (성능 최적화)
-    fun addRegisteredDate(dateString: String) {
-        registeredDates = registeredDates + dateString
-        val monthPosition = findMonthPosition(dateString)
-        if (monthPosition != -1) {
-            notifyItemChanged(monthPosition)
-        }
-    }
-
-    // 특정 날짜 제거
-    fun removeRegisteredDate(dateString: String) {
-        registeredDates = registeredDates - dateString
-        val monthPosition = findMonthPosition(dateString)
-        if (monthPosition != -1) {
-            notifyItemChanged(monthPosition)
-        }
-    }
-
-    // 날짜 문자열로부터 해당 월의 position 찾기
-    private fun findMonthPosition(dateString: String): Int {
-        try {
-            val parts = dateString.split("-")
-            if (parts.size != 3) return -1
-            val year = parts[0].toInt()
-            val month = parts[1].toInt()
-            return months.indexOfFirst { it.year == year && it.month == month }
-        } catch (e: Exception) {
-            return -1
-        }
+        notifyDataSetChanged() // 전체 캘린더 새로고침
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MonthViewHolder {
@@ -69,24 +38,17 @@ class CalendarAdapter(
         private val monthYearText: TextView = itemView.findViewById(R.id.monthYearText)
         private val daysRecyclerView: RecyclerView = itemView.findViewById(R.id.daysRecyclerView)
 
-        // DaysAdapter 인스턴스 저장해서 재사용
-        private var daysAdapter: DaysAdapter? = null
-
         fun bind(monthData: MonthData) {
             monthYearText.text = "${monthData.year}.${monthData.month}"
 
             // 날짜 데이터 생성
             val days = generateDaysForMonth(monthData.year, monthData.month)
 
-            // 기존 어댑터가 있으면 데이터만 업데이트, 없으면 새로 생성
-            if (daysAdapter == null) {
-                daysAdapter = DaysAdapter(days, registeredDates, onDateClick)
-                daysRecyclerView.apply {
-                    layoutManager = GridLayoutManager(itemView.context, 7)
-                    adapter = daysAdapter
-                }
-            } else {
-                daysAdapter?.updateDays(days, registeredDates)
+            // ⭐ 날짜 어댑터 설정 - 최신 등록 날짜 데이터 사용
+            val daysAdapter = DaysAdapter(days, registeredDates, onDateClick)
+            daysRecyclerView.apply {
+                layoutManager = GridLayoutManager(itemView.context, 7)
+                adapter = daysAdapter
             }
         }
 
@@ -108,7 +70,7 @@ class CalendarAdapter(
             // 해당 월의 마지막 날
             val lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-            // 날짜 추가
+            // ⭐ 날짜 추가 - 최신 등록 날짜 데이터로 hasData 판단
             for (day in 1..lastDay) {
                 val dateString = String.format("%04d-%02d-%02d", year, month, day)
                 val hasData = registeredDates.contains(dateString)
@@ -120,7 +82,6 @@ class CalendarAdapter(
     }
 }
 
-// DayData는 그대로
 data class DayData(
     val day: Int,
     val dateString: String,

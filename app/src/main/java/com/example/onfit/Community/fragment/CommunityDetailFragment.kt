@@ -1,7 +1,10 @@
 // app/src/main/java/com/example/onfit/Community/fragment/CommunityDetailFragment.kt
 package com.example.onfit.Community.fragment
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,7 +29,6 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
 
 class CommunityDetailFragment : Fragment() {
 
@@ -142,20 +144,18 @@ class CommunityDetailFragment : Fragment() {
 
                 if (d.mainImage.isNotBlank()) {
                     currentMainImageUrl = d.mainImage
-                    Glide.with(this@CommunityDetailFragment).load(d.mainImage).into(binding.mainIv)
+                    Glide.with(this@CommunityDetailFragment)
+                        .load(d.mainImage)
+                        .into(binding.mainIv)
                 }
 
                 binding.descTv.text = d.memo ?: ""
                 binding.tempTv.text = d.weatherTempAvg?.let { "${it}°" } ?: "-"
 
+                // 태그 칩
                 binding.styleChips.removeAllViews()
                 (d.tags.moodTags + d.tags.purposeTags).forEach { tag ->
-                    binding.styleChips.addView(
-                        com.google.android.material.chip.Chip(requireContext()).apply {
-                            text = "#${tag.name}"
-                            isCheckable = false
-                        }
-                    )
+                    binding.styleChips.addView(createTagChip("#${tag.name}"))
                 }
 
                 isLiked = d.likes.isLikedByCurrentUser
@@ -163,13 +163,71 @@ class CommunityDetailFragment : Fragment() {
                 renderLike()
                 binding.deleteIv.visibility = if (d.isMyPost) View.VISIBLE else View.GONE
 
+                // 착장 아이템 리스트
                 val itemUrls = d.items.mapNotNull { it.image }.filter { it.isNotBlank() }
-                binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
+                android.util.Log.d(
+                    "CommunityDetail",
+                    "items.size=${d.items.size}, itemUrls.size=${itemUrls.size}, firstUrl=${itemUrls.firstOrNull()}"
+                )
+
+                if (itemUrls.isEmpty()) {
+                    // 데이터가 없으면 영역 감춤
+                    binding.clothRecyclerview.visibility = View.GONE
+                } else {
+                    // 데이터가 있으면 보이게 하고 어댑터 연결
+                    binding.clothRecyclerview.visibility = View.VISIBLE
+                    binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
+                }
+                // ▲ 착장 아이템 리스트 끝
 
             } catch (_: Exception) {
                 Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+
+
+    // dp → px 변환 (Chip 패딩/코너: Float(px), 마진: Int(px))
+    private fun dpF(value: Int): Float = value * resources.displayMetrics.density
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+    private fun createTagChip(text: String): Chip {
+        val chip = Chip(requireContext())
+        chip.text = text
+        chip.isCheckable = false
+        chip.isClickable = false
+        chip.isFocusable = false
+
+        // "둥근 회색 필칩" 스타일
+        chip.chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#EEEEEE"))
+        chip.setTextColor(Color.parseColor("#666666"))
+        chip.rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+        chip.chipStrokeWidth = 0f
+
+        // 텍스트 크기: sp 단위로 지정
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+
+        // 패딩/모서리: Float(px) 필요 → dpF 사용
+        chip.chipStartPadding = dpF(10)
+        chip.chipEndPadding   = dpF(10)
+        chip.textStartPadding = dpF(2)
+        chip.textEndPadding   = dpF(2)
+        chip.shapeAppearanceModel = chip.shapeAppearanceModel.toBuilder()
+            .setAllCornerSizes(dpF(16))
+            .build()
+
+        // 칩 간 간격: 마진은 Int(px)
+        val lp = ViewGroup.MarginLayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            rightMargin = dp(8)
+            bottomMargin = dp(8)
+        }
+        chip.layoutParams = lp
+
+        return chip
     }
 
     private fun toggleLike() {

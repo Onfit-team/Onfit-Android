@@ -5,7 +5,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.WebChromeClient
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
@@ -14,8 +16,6 @@ import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLoginBinding
 import org.json.JSONObject
-import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
 
 class LoginFragment : Fragment() {
 
@@ -33,58 +33,57 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 쿠키 초기화 (로그인 캐시 제거)
-        CookieManager.getInstance().removeAllCookies(null)
-        CookieManager.getInstance().flush()
+        // 이미 토큰이 있다면(재방문) 로그인 과정 건너뛰고 홈으로
+        val existingToken = TokenProvider.getToken(requireContext())
+        if (existingToken.isNotBlank()) {
+            Log.d("LoginWebView", "기존 토큰 발견 → 로그인 화면 스킵")
+            findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+            return
+        }
 
         // WebView 설정
-        binding.webView.settings.javaScriptEnabled = true
-        binding.webView.settings.domStorageEnabled = true
+        binding.webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        }
         binding.webView.webChromeClient = WebChromeClient()
-        CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(binding.webView, true)
+        CookieManager.getInstance().apply {
+            setAcceptCookie(true)
+            setAcceptThirdPartyCookies(binding.webView, true)
+        }
 
-        // WebViewClient 설정
+        // 콜백 처리: 로그인 성공 → 토큰 저장 → 약관 화면으로 이동
         binding.webView.webViewClient = object : WebViewClient() {
-
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                Log.d("LoginWebView", "onPageFinished URL: $url")
-
-                // 로그인 완료 후 리디렉트 URL 도달 시 JSON 파싱
                 if (url != null && url.contains("/user/auth/kakao/callback")) {
-                    view?.evaluateJavascript(
-                        "(function() { return document.body.innerText; })();"
-                    ) { html ->
-                        Log.d("LoginWebView", "최종 응답: $html")
-
+                    view?.evaluateJavascript("(function() { return document.body.innerText; })();") { html ->
                         try {
-                            val cleanJson = html
-                                .trim('"')
-                                .replace("\\n", "")
-                                .replace("\\", "")
-
-                            val json = JSONObject(cleanJson)
-                            val isSuccess = json.getBoolean("isSuccess")
-
-                            if (isSuccess) {
-                                val result = json.getJSONObject("result")
-                                val token = result.getString("token")
-
-                                // 토큰 저장
-                                TokenProvider.saveToken(requireContext(), token)
-                                Log.d("LoginWebView", "토큰 저장됨: $token")
-
-                                // 약관 동의 화면으로 이동
-                                findNavController().navigate(R.id.action_loginFragment_to_termsFragment)
-
-                            } else {
-                                val message = json.optString("message", "로그인 실패")
-                                showErrorDialog("로그인 실패: $message")
+                            val clean = html.trim('"').replace("\\n", "").replace("\\", "")
+                            val root = JSONObject(clean)
+                            if (!root.getBoolean("isSuccess")) {
+                                val msg = root.optString("message", "로그인 실패")
+                                showErrorDialog("로그인 실패: $msg")
+                                return@evaluateJavascript
                             }
 
+                            val result = root.getJSONObject("result")
+                            val token = result.getString("token")
+                            val nickname = result.optString("nickname", "").trim() // 있으면 저장
+
+                            // 토큰/닉네임 로컬 저장
+                            TokenProvider.saveToken(requireContext(), token)
+                            if (nickname.isNotEmpty()) {
+                                TokenProvider.saveNickname(requireContext(), nickname)
+                            }
+                            Log.d("LoginWebView", "토큰/닉네임 저장 완료")
+
+                            // 신규 가입 플로우로 강제 진입: 약관 화면
+                            findNavController().navigate(R.id.action_loginFragment_to_termsFragment)
+
                         } catch (e: Exception) {
-                            Log.e("LoginWebView", "JSON 파싱 오류", e)
+                            Log.e("LoginWebView", "콜백 파싱 오류", e)
                             showErrorDialog("로그인 처리 중 오류가 발생했습니다.")
                         }
                     }
@@ -92,7 +91,7 @@ class LoginFragment : Fragment() {
             }
         }
 
-        // 로그인 페이지 로딩
+        // 로그인 페이지 로딩 (개발용 HTTP; manifest의 networkSecurityConfig로 허용되어 있어야 함)
         binding.webView.loadUrl("http://15.164.35.198:3000/user/auth/kakao")
     }
 

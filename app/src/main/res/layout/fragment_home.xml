@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/home_sv"
@@ -30,8 +30,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/sun"
-                app:tint="@color/gray"
-                android:alpha="0.5"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="32dp" />
@@ -43,7 +41,7 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/logo"
                 android:layout_marginLeft="20dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="30dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -52,7 +50,7 @@
                 android:id="@+id/combined_info_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="8월 1일 경기 성동구의 날씨"
+                tools:text="8월 1일 경기 성동구의 날씨"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -65,7 +63,7 @@
                 android:id="@+id/weather_inform_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="최고 20 C 강수 확률 0%"
+                tools:text="최고 20°C · 최저 15°C · 강수량 0mm"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:layout_marginTop="5dp"
@@ -89,7 +87,7 @@
                 android:id="@+id/temp_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="18°C"
+                tools:text="18°C"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textSize="50sp"
@@ -159,7 +157,7 @@
                             android:id="@+id/weather_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="오늘 18°C, 딱 맞는 스타일이에요!"
+                            tools:text="오늘 18°C, 딱 맞는 스타일이에요!"
                             android:textSize="16sp"
                             android:layout_marginStart="15dp"
                             android:layout_marginTop="7dp"
@@ -180,7 +178,7 @@
                         android:id="@+id/sub_tv"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="오늘은 일교차가 커요, 겉 꼭 챙기세요!"
+                        tools:text="오늘은 일교차가 커요, 겉 꼭 챙기세요!"
                         android:textSize="13sp"
                         android:textColor="#777777"
                         android:layout_marginStart="15dp" />

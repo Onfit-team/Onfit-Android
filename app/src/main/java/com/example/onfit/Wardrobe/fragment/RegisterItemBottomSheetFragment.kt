@@ -1,18 +1,10 @@
 package com.example.onfit
 
-<<<<<<< HEAD
-import android.Manifest
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-<<<<<<< HEAD
-import android.provider.MediaStore
-=======
 import android.util.Log
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,10 +13,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-<<<<<<< HEAD
-import androidx.navigation.fragment.findNavController
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-=======
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.HomeRegister.model.RetrofitClient
@@ -32,7 +20,6 @@ import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.Wardrobe.Network.RegisterItemRequestDto
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -43,14 +30,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
     private var currentPhotoPath: String? = null
     private var photoUri: Uri? = null
 
-<<<<<<< HEAD
-    // 갤러리에서 이미지 선택
-    private val galleryLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            navigateToAddItemFragmentWithImage(it)
-=======
     // 갤러리에서 이미지 선택 (HomeFragment와 동일한 방식)
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -59,7 +38,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
             result.data?.data?.let { uri ->
                 navigateToAddItemFragmentWithImage(uri)
             }
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         }
     }
 
@@ -98,31 +76,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-<<<<<<< HEAD
-        // 갤러리 옵션 클릭 리스너
-        val galleryOption = view.findViewById<LinearLayout>(R.id.gallery_option)
-        galleryOption?.setOnClickListener {
-            android.util.Log.d("RegisterItemBottomSheet", "Gallery option clicked")
-            openGallery()
-        } ?: android.util.Log.e("RegisterItemBottomSheet", "gallery_option not found!")
-
-        // 카메라 옵션 클릭 리스너
-        val cameraOption = view.findViewById<LinearLayout>(R.id.camera_option)
-        cameraOption?.setOnClickListener {
-            android.util.Log.d("RegisterItemBottomSheet", "Camera option clicked")
-            checkCameraPermissionAndOpen()
-        } ?: android.util.Log.e("RegisterItemBottomSheet", "camera_option not found!")
-    }
-
-    /**
-     * 갤러리 열기
-     */
-    private fun openGallery() {
-        try {
-            galleryLauncher.launch("image/*")
-        } catch (e: Exception) {
-            android.util.Log.e("RegisterItemBottomSheet", "Failed to open gallery", e)
-=======
         // 갤러리 옵션 클릭
         val galleryOption = view.findViewById<LinearLayout>(R.id.gallery_option)
         galleryOption?.setOnClickListener {
@@ -144,7 +97,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
             val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
             galleryLauncher.launch(intent)
         } catch (e: Exception) {
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
             Toast.makeText(context, "갤러리를 열 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -156,20 +108,12 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
-<<<<<<< HEAD
-                Manifest.permission.CAMERA
-=======
                 android.Manifest.permission.CAMERA
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
             ) == PackageManager.PERMISSION_GRANTED -> {
                 openCamera()
             }
             else -> {
-<<<<<<< HEAD
-                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-=======
                 cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
             }
         }
     }
@@ -190,10 +134,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
                 cameraLauncher.launch(uri)
             }
         } catch (e: Exception) {
-<<<<<<< HEAD
-            android.util.Log.e("RegisterItemBottomSheet", "Failed to open camera", e)
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
             Toast.makeText(context, "카메라를 열 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -219,75 +159,10 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
      * 이미지와 함께 AddItemFragment로 이동
      */
     private fun navigateToAddItemFragmentWithImage(imageUri: Uri) {
-<<<<<<< HEAD
-        android.util.Log.d("RegisterItemBottomSheet", "navigateToAddItemFragmentWithImage called with URI: $imageUri")
-
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         try {
             // BottomSheet 먼저 닫기
             dismiss()
 
-<<<<<<< HEAD
-            // 부모 Fragment의 NavController를 통한 네비게이션
-            parentFragment?.let { parent ->
-                try {
-                    val bundle = Bundle().apply {
-                        putBoolean("edit_mode", false)
-                        putString("image_uri", imageUri.toString()) // 이미지 URI 전달
-                    }
-                    parent.findNavController().navigate(R.id.addItemFragment, bundle)
-                    android.util.Log.d("RegisterItemBottomSheet", "Parent fragment navigation successful")
-                    return
-                } catch (e: Exception) {
-                    android.util.Log.w("RegisterItemBottomSheet", "Parent fragment navigation failed: ${e.message}")
-                }
-            }
-
-            // 대안 1: Activity의 NavHostFragment 사용
-            try {
-                val activity = requireActivity()
-                val navHostFragment = activity.supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
-                val navController = navHostFragment?.findNavController()
-
-                if (navController != null) {
-                    val bundle = Bundle().apply {
-                        putBoolean("edit_mode", false)
-                        putString("image_uri", imageUri.toString()) // 이미지 URI 전달
-                    }
-                    navController.navigate(R.id.addItemFragment, bundle)
-                    android.util.Log.d("RegisterItemBottomSheet", "Activity NavHostFragment navigation successful")
-                    return
-                }
-            } catch (e: Exception) {
-                android.util.Log.w("RegisterItemBottomSheet", "Activity navigation failed: ${e.message}")
-            }
-
-            // 대안 2: 직접 Fragment 교체
-            try {
-                val addItemFragment = com.example.onfit.Wardrobe.fragment.AddItemFragment()
-                val bundle = Bundle().apply {
-                    putBoolean("edit_mode", false)
-                    putString("image_uri", imageUri.toString()) // 이미지 URI 전달
-                }
-                addItemFragment.arguments = bundle
-
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.nav_host_fragment, addItemFragment)
-                    .addToBackStack("AddItemFragment")
-                    .commit()
-
-                android.util.Log.d("RegisterItemBottomSheet", "Direct fragment replacement successful")
-            } catch (e: Exception) {
-                android.util.Log.e("RegisterItemBottomSheet", "All navigation methods failed", e)
-            }
-
-        } catch (e: Exception) {
-            android.util.Log.e("RegisterItemBottomSheet", "Navigation completely failed", e)
-        }
-    }
-
-=======
             // 🔥 AddItemFragment로 이동하면서 결과 리스너 설정
             setupAddItemResultListener()
 
@@ -374,7 +249,6 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
         notifyRegistrationSuccess(purchaseDate ?: getCurrentDate())
     }
 
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
     companion object {
         const val TAG = "RegisterItemBottomSheet"
 
@@ -382,13 +256,10 @@ class RegisterItemBottomSheet : BottomSheetDialogFragment() {
             return RegisterItemBottomSheet()
         }
     }
-<<<<<<< HEAD
-=======
 
     override fun onDestroyView() {
         super.onDestroyView()
         // Fragment Result Listener 정리
         parentFragmentManager.clearFragmentResultListener("add_item_complete")
     }
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 }

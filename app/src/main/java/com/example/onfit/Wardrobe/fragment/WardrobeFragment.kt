@@ -24,6 +24,7 @@ import com.example.onfit.Wardrobe.Network.CategoryDto
 import com.example.onfit.Wardrobe.Network.SubcategoryDto
 import kotlinx.coroutines.launch
 import java.util.*
+import android.view.Gravity
 
 open class WardrobeFragment : Fragment() {
 
@@ -40,6 +41,13 @@ open class WardrobeFragment : Fragment() {
     private var selectedTopCategoryButton: Button? = null
 
     private var isFilterApplied = false
+
+    // 🔥 NEW: 현재 선택된 카테고리 상태 저장
+    private var currentSelectedCategory: Int? = null
+    private var currentSelectedSubcategory: Int? = null
+
+    // 🔥 NEW: 중복 호출 방지용
+    private var lastSubcategoriesSize: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,15 +84,39 @@ open class WardrobeFragment : Fragment() {
     }
 
     private fun handleUiState(state: WardrobeUiState) {
-        if (state.isLoading) showLoading(true) else showLoading(false)
+        Log.d("WardrobeFragment", "🔄 handleUiState 호출됨")
+
+        if (state.isLoading) {
+            Log.d("WardrobeFragment", "⏳ 로딩 상태")
+            showLoading(true)
+        } else {
+            showLoading(false)
+        }
 
         if (state.hasData) {
+            Log.d("WardrobeFragment", "📊 데이터 있음 - 아이템 개수: ${state.wardrobeItems.size}")
             adapter.updateWithApiData(state.wardrobeItems)
             updateCategoryButtonsWithCount(state.categories)
-            updateSubCategories(state.subcategories)
+
+            // 🔥 중복 호출 방지 - 크기로 비교
+            if (state.subcategories.size != lastSubcategoriesSize) {
+                Log.d("WardrobeFragment", "🔄 세부카테고리 업데이트 필요: ${state.subcategories.size} != $lastSubcategoriesSize")
+
+                state.subcategories.forEach { subcategory ->
+                    Log.d("WardrobeFragment", "📋 세부카테고리: ${subcategory.name} (ID: ${subcategory.subcategory})")
+                }
+
+                updateSubCategories(state.subcategories)
+                lastSubcategoriesSize = state.subcategories.size
+            } else {
+                Log.d("WardrobeFragment", "⏭️ 세부카테고리 업데이트 스킵 (동일한 크기)")
+            }
+        } else {
+            Log.d("WardrobeFragment", "❌ 데이터 없음")
         }
 
         if (state.hasError) {
+            Log.e("WardrobeFragment", "💥 에러 발생: ${state.errorMessage}")
             showError(state.errorMessage ?: "알 수 없는 오류가 발생했습니다")
             viewModel.clearErrorMessage()
         }
@@ -99,13 +131,32 @@ open class WardrobeFragment : Fragment() {
     }
 
     private fun setupFragmentResultListeners() {
+        // 🔥 MODIFIED: 아이템 등록 후 현재 선택된 카테고리 유지
         parentFragmentManager.setFragmentResultListener("item_registered", this) { _, bundle ->
             val isSuccess = bundle.getBoolean("success", false)
             val registeredDate = bundle.getString("registered_date")
             if (isSuccess) {
-                viewModel.refreshWardrobeItems()
+                // 🔥 현재 선택된 카테고리 유지하면서 새로고침
+                refreshCurrentCategory()
                 notifyCalendarFragmentOfNewItem(registeredDate)
                 Toast.makeText(context, "아이템이 등록되었습니다", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // 🔥 NEW: 아이템 수정 결과 처리 - 강제 새로고침 추가
+        parentFragmentManager.setFragmentResultListener("wardrobe_item_updated", this) { _, bundle ->
+            val isSuccess = bundle.getBoolean("success", false)
+            val forceRefresh = bundle.getBoolean("force_refresh", false)
+            if (isSuccess) {
+                if (forceRefresh) {
+                    // 🔥 카테고리 정보도 다시 로드 (상위 카테고리 변경 반영)
+                    viewModel.loadAllWardrobeItems()
+                    // 전체 카테고리로 리셋
+                    resetToAllCategory()
+                } else {
+                    refreshCurrentCategory()
+                }
+                Toast.makeText(context, "아이템이 수정되었습니다", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -119,9 +170,49 @@ open class WardrobeFragment : Fragment() {
                 val filteredItems = currentItems.filter { it.id in filteredIds }
                 val finalItems = applyLocalFiltering(bundle, filteredItems)
                 adapter.updateWithApiData(finalItems)
-                // 빈 리스트도 정상적으로 반영(검색 결과 없음)
             }
         }
+    }
+
+    // 🔥 NEW: 현재 카테고리 새로고침 함수
+    private fun refreshCurrentCategory() {
+        Log.d("WardrobeFragment", "현재 카테고리 새로고침: category=$currentSelectedCategory, subcategory=$currentSelectedSubcategory")
+
+        when {
+            currentSelectedCategory == null -> {
+                // 전체 카테고리인 경우
+                Log.d("WardrobeFragment", "전체 카테고리로 새로고침")
+                viewModel.loadAllWardrobeItems()
+            }
+            currentSelectedSubcategory != null -> {
+                // 세부 카테고리가 선택된 경우
+                Log.d("WardrobeFragment", "세부 카테고리로 새로고침: ${currentSelectedSubcategory}")
+                viewModel.loadWardrobeItemsByCategory(
+                    category = currentSelectedCategory,
+                    subcategory = currentSelectedSubcategory
+                )
+            }
+            else -> {
+                // 메인 카테고리만 선택된 경우
+                Log.d("WardrobeFragment", "메인 카테고리로 새로고침: ${currentSelectedCategory}")
+                viewModel.loadWardrobeItemsByCategory(category = currentSelectedCategory)
+            }
+        }
+    }
+
+    // 🔥 NEW: 전체 카테고리로 리셋하는 함수
+    private fun resetToAllCategory() {
+        // 전체 버튼 선택 상태로 변경
+        selectedTopCategoryButton?.isSelected = false
+        val allButton = view?.findViewById<Button>(R.id.btnTopCategory1)
+        allButton?.isSelected = true
+        selectedTopCategoryButton = allButton
+
+        // 상태 초기화
+        currentSelectedCategory = null
+        currentSelectedSubcategory = null
+
+        Log.d("WardrobeFragment", "전체 카테고리로 리셋됨")
     }
 
     private fun setSearchIconColor(applied: Boolean) {
@@ -230,15 +321,25 @@ open class WardrobeFragment : Fragment() {
                 button.isSelected = true
                 selectedTopCategoryButton = button
                 setSearchIconColor(false)
+
+                // 🔥 NEW: 현재 선택 상태 저장
+                currentSelectedCategory = categoryId
+                currentSelectedSubcategory = null // 세부 카테고리 초기화
+
                 if (categoryName == "전체") {
+                    Log.d("WardrobeFragment", "전체 카테고리 선택")
                     viewModel.loadAllWardrobeItems()
                 } else {
+                    Log.d("WardrobeFragment", "카테고리 선택: $categoryName (ID: $categoryId)")
                     viewModel.loadWardrobeItemsByCategory(category = categoryId)
                 }
             }
             if (categoryName == "전체") {
                 button.isSelected = true
                 selectedTopCategoryButton = button
+                // 🔥 초기 상태 설정
+                currentSelectedCategory = null
+                currentSelectedSubcategory = null
             }
         }
     }
@@ -267,31 +368,179 @@ open class WardrobeFragment : Fragment() {
         }
     }
 
+    // 🔥 FIXED: 세부 카테고리 업데이트 로직 수정 - 디버깅 로그 강화
     private fun updateSubCategories(subcategories: List<SubcategoryDto>) {
-        if (subcategories.isNotEmpty()) {
-            updateSubFiltersWithApiData(subcategories)
+        Log.d("WardrobeFragment", "=== updateSubCategories 시작 ===")
+        Log.d("WardrobeFragment", "받은 세부카테고리 개수: ${subcategories.size}")
+        Log.d("WardrobeFragment", "현재 선택 상태 - category: $currentSelectedCategory, subcategory: $currentSelectedSubcategory")
+        Log.d("WardrobeFragment", "받은 세부카테고리 목록: ${subcategories.map { "${it.name}(${it.subcategory})" }}")
+
+        when {
+            // 1. 서버에서 세부 카테고리 목록을 보내준 경우
+            subcategories.isNotEmpty() -> {
+                Log.d("WardrobeFragment", "✅ 서버에서 세부카테고리 제공 - 목록 표시")
+                updateSubFiltersWithApiData(subcategories)
+            }
+
+            // 2. 상위 카테고리가 선택되었지만 서버에서 세부카테고리를 안 보내준 경우
+            currentSelectedCategory != null && currentSelectedSubcategory == null -> {
+                Log.d("WardrobeFragment", "🔥 상위 카테고리 선택됨 - 클라이언트에서 세부카테고리 생성")
+                createSubcategoriesFromClient(currentSelectedCategory!!)
+            }
+
+            // 3. 하위 카테고리까지 선택된 경우 또는 기타
+            else -> {
+                Log.d("WardrobeFragment", "⭐ 기본 전체 버튼 표시")
+                createDefaultAllButton()
+            }
+        }
+        Log.d("WardrobeFragment", "=== updateSubCategories 끝 ===")
+    }
+
+    // 🔥 FIXED: 디버깅 로그 추가
+    private fun createSubcategoriesFromClient(categoryId: Int) {
+        Log.d("WardrobeFragment", "🏭 createSubcategoriesFromClient 시작: categoryId=$categoryId")
+
+        if (!isAdded || context == null) {
+            Log.w("WardrobeFragment", "❌ Fragment가 attach되지 않았거나 context가 null")
+            return
+        }
+
+        // 카테고리별 세부카테고리 정의 - 기존 SubcategoryDto 사용
+        val subcategoryMap = mapOf(
+            1 to listOf(
+                SubcategoryDto(1, "반팔티셔츠"),
+                SubcategoryDto(2, "긴팔티셔츠"),
+                SubcategoryDto(3, "민소매"),
+                SubcategoryDto(4, "셔츠/블라우스"),
+                SubcategoryDto(5, "맨투맨"),
+                SubcategoryDto(6, "후드티"),
+                SubcategoryDto(7, "니트/스웨터"),
+                SubcategoryDto(8, "기타")
+            ),
+            2 to listOf(
+                SubcategoryDto(9, "반바지"),
+                SubcategoryDto(10, "긴바지"),
+                SubcategoryDto(11, "청바지"),
+                SubcategoryDto(12, "트레이닝 팬츠"),
+                SubcategoryDto(13, "레깅스"),
+                SubcategoryDto(14, "스커트"),
+                SubcategoryDto(15, "기타")
+            ),
+            3 to listOf(
+                SubcategoryDto(16, "미니원피스"),
+                SubcategoryDto(17, "롱 원피스"),
+                SubcategoryDto(18, "끈 원피스"),
+                SubcategoryDto(19, "니트 원피스"),
+                SubcategoryDto(20, "기타")
+            ),
+            4 to listOf(
+                SubcategoryDto(21, "바람막이"),
+                SubcategoryDto(22, "가디건"),
+                SubcategoryDto(23, "자켓"),
+                SubcategoryDto(24, "코트"),
+                SubcategoryDto(25, "패딩"),
+                SubcategoryDto(26, "후드집업"),
+                SubcategoryDto(27, "무스탕/퍼"),
+                SubcategoryDto(28, "기타")
+            ),
+            5 to listOf(
+                SubcategoryDto(29, "운동화"),
+                SubcategoryDto(30, "부츠"),
+                SubcategoryDto(31, "샌들"),
+                SubcategoryDto(32, "슬리퍼"),
+                SubcategoryDto(33, "구두"),
+                SubcategoryDto(34, "로퍼"),
+                SubcategoryDto(35, "기타")
+            ),
+            6 to listOf(
+                SubcategoryDto(36, "모자"),
+                SubcategoryDto(37, "머플러"),
+                SubcategoryDto(38, "장갑"),
+                SubcategoryDto(39, "양말"),
+                SubcategoryDto(40, "안경/선글라스"),
+                SubcategoryDto(41, "가방"),
+                SubcategoryDto(42, "시계/팔찌/목걸이"),
+                SubcategoryDto(43, "기타")
+            )
+        )
+
+        val clientSubcategories = subcategoryMap[categoryId] ?: emptyList()
+        Log.d("WardrobeFragment", "🎯 클라이언트 생성 세부카테고리: ${clientSubcategories.map { it.name }}")
+
+        if (clientSubcategories.isNotEmpty()) {
+            Log.d("WardrobeFragment", "✅ updateSubFiltersWithApiData 호출")
+            updateSubFiltersWithApiData(clientSubcategories)
         } else {
-            subFilterLayout.removeAllViews()
-            val allButton = createFilterButton("전체", 0, 1)
-            subFilterLayout.addView(allButton)
-            updateButtonSelection(0)
+            Log.d("WardrobeFragment", "❌ 세부카테고리 없음 - 기본 버튼 생성")
+            createDefaultAllButton()
         }
     }
 
-    private fun updateSubFiltersWithApiData(subcategories: List<SubcategoryDto>) {
+    // 🔥 NEW: 기본 '전체' 버튼만 생성하는 함수
+    private fun createDefaultAllButton() {
         if (!isAdded || context == null) return
+
         subFilterLayout.removeAllViews()
         selectedIndex = 0
+
+        val allButton = createFilterButton("전체", 0, 1)
+        allButton.setOnClickListener {
+            if (isAdded && context != null) {
+                updateButtonSelection(0)
+                moveUnderline(0)
+                // 현재 선택된 메인 카테고리로 로드 (세부카테고리 null)
+                currentSelectedSubcategory = null
+                val currentCategory = getCurrentSelectedCategory()
+                if (currentCategory == null) {
+                    viewModel.loadAllWardrobeItems()
+                } else {
+                    viewModel.loadWardrobeItemsByCategory(category = currentCategory, subcategory = null)
+                }
+            }
+        }
+        subFilterLayout.addView(allButton)
+        updateButtonSelection(0)
+
+        // 🔥 더미 버전의 밑줄 위치 계산 방식 적용
+        subFilterLayout.post {
+            if (isAdded && view != null) {
+                moveUnderline(0)
+            }
+        }
+    }
+
+    // 🔥 FIXED: API 데이터로 세부 필터 업데이트
+    private fun updateSubFiltersWithApiData(subcategories: List<SubcategoryDto>) {
+        if (!isAdded || context == null) return
+
+        Log.d("WardrobeFragment", "updateSubFiltersWithApiData 시작, 세부카테고리: ${subcategories.map { it.name }}")
+
+        subFilterLayout.removeAllViews()
+        selectedIndex = 0
+
+        // '전체' 버튼 추가
         val allButton = createFilterButton("전체", 0, subcategories.size + 1)
         allButton.setOnClickListener {
             if (isAdded && context != null) {
                 updateButtonSelection(0)
                 moveUnderline(0)
                 val currentCategory = getCurrentSelectedCategory()
-                viewModel.loadWardrobeItemsByCategory(category = currentCategory, subcategory = null)
+
+                // 🔥 현재 선택 상태 저장
+                currentSelectedSubcategory = null
+
+                if (currentCategory == null) {
+                    viewModel.loadAllWardrobeItems()
+                } else {
+                    viewModel.loadWardrobeItemsByCategory(category = currentCategory, subcategory = null)
+                }
+                Log.d("WardrobeFragment", "전체 세부카테고리 선택: category=$currentCategory")
             }
         }
         subFilterLayout.addView(allButton)
+
+        // 세부 카테고리 버튼들 추가
         subcategories.forEachIndexed { index, subcategoryDto ->
             val displayName = subcategoryDto.name
             val button = createFilterButton(displayName, index + 1, subcategories.size + 1)
@@ -300,15 +549,23 @@ open class WardrobeFragment : Fragment() {
                     updateButtonSelection(index + 1)
                     moveUnderline(index + 1)
                     val currentCategory = getCurrentSelectedCategory()
+
+                    // 🔥 현재 선택 상태 저장
+                    currentSelectedSubcategory = subcategoryDto.subcategory
+
                     viewModel.loadWardrobeItemsByCategory(
                         category = currentCategory,
                         subcategory = subcategoryDto.subcategory
                     )
+                    Log.d("WardrobeFragment", "세부카테고리 선택: $displayName (ID: ${subcategoryDto.subcategory})")
                 }
             }
             subFilterLayout.addView(button)
         }
+
         updateButtonSelection(0)
+
+        // 🔥 더미 버전의 밑줄 위치 계산 방식 적용
         subFilterLayout.post {
             if (isAdded && view != null) {
                 moveUnderline(0)
@@ -375,7 +632,6 @@ open class WardrobeFragment : Fragment() {
 
     private fun showLoading(isLoading: Boolean) {
         // 로딩 인디케이터 표시/숨기기
-        // 필요시 ProgressBar 추가
     }
 
     private fun showEmptyState(isEmpty: Boolean) {
@@ -399,10 +655,12 @@ open class WardrobeFragment : Fragment() {
         )
     }
 
+    // 🔥 더미 버전에서 가져온 정확한 dp->px 변환
     private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
     }
 
+    // 🔥 더미 버전에서 가져온 정확한 버튼 생성 로직
     private fun createFilterButton(text: String, index: Int, totalCount: Int): Button {
         val button = Button(requireContext()).apply {
             this.text = text
@@ -414,63 +672,86 @@ open class WardrobeFragment : Fragment() {
             minWidth = 0
             minHeight = 0
             setSingleLine(true)
-            gravity = android.view.Gravity.CENTER
+            gravity = Gravity.CENTER // 🔥 더미 버전에서 가져온 Gravity 설정
         }
+
+        // 🔥 더미 버전에서 가져온 정확한 레이아웃 파라미터 설정
         val buttonParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             dpToPx(31)
         ).apply {
             when (index) {
-                0 -> leftMargin = dpToPx(0)
+                0 -> leftMargin = dpToPx(0) // 첫 번째 버튼을 왼쪽으로 더 붙임
                 totalCount - 1 -> {
-                    leftMargin = dpToPx(0)
-                    rightMargin = dpToPx(0)
+                    leftMargin = dpToPx(0) // 마지막 버튼 간격
+                    rightMargin = dpToPx(0) // 마지막 버튼
                 }
-                else -> leftMargin = dpToPx(-5)
+                else -> leftMargin = dpToPx(-5) // 중간 버튼들 간격
             }
         }
+
         button.setPadding(dpToPx(0), 0, dpToPx(0), 0)
         button.layoutParams = buttonParams
+
         return button
     }
 
+    // 🔥 더미 버전에서 가져온 정확한 버튼 선택 업데이트 로직
     private fun updateButtonSelection(newSelectedIndex: Int) {
         if (!isAdded || context == null) return
+
         try {
+            // 이전 선택된 버튼을 회색으로 변경
             if (selectedIndex < subFilterLayout.childCount) {
                 val previousButton = subFilterLayout.getChildAt(selectedIndex) as? Button
                 previousButton?.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
             }
+
+            // 새로 선택된 버튼을 검정색으로 변경
             if (newSelectedIndex < subFilterLayout.childCount) {
                 val newButton = subFilterLayout.getChildAt(newSelectedIndex) as? Button
                 newButton?.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
             }
+
             selectedIndex = newSelectedIndex
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
+    // 🔥 더미 버전에서 가져온 정확한 밑줄 위치 계산 로직
     private fun moveUnderline(selectedIndex: Int) {
         if (!isAdded || view == null || context == null) return
+
         val activeUnderline = view?.findViewById<View>(R.id.activeUnderline) ?: return
         val selectedButton = subFilterLayout.getChildAt(selectedIndex) as? Button ?: return
+
+        // 뷰가 완전히 렌더링된 후에 실행
         selectedButton.post {
             if (!isAdded || view == null || context == null) return@post
+
             try {
+                // 🔥 더미 버전의 정확한 밑줄 위치 계산 로직
                 val paint = selectedButton.paint
                 val textWidth = paint.measureText(selectedButton.text.toString())
                 val underlineWidth = textWidth.toInt() + dpToPx(8)
+
+                // 선택된 버튼의 중앙 위치 계산
                 val buttonWidth = selectedButton.width
                 val buttonLeft = selectedButton.left
                 val targetLeft = buttonLeft + (buttonWidth - underlineWidth) / 2 - dpToPx(8)
+
+                // 밑줄 크기와 위치 조정
                 val layoutParams = activeUnderline.layoutParams as? RelativeLayout.LayoutParams
                 layoutParams?.let {
                     it.width = underlineWidth
                     it.leftMargin = targetLeft
                     activeUnderline.layoutParams = it
                 }
+
+                Log.d("WardrobeFragment", "밑줄 위치 조정: text='${selectedButton.text}', buttonLeft=$buttonLeft, textWidth=$textWidth, targetLeft=$targetLeft")
             } catch (e: Exception) {
+                Log.e("WardrobeFragment", "밑줄 위치 조정 실패", e)
                 e.printStackTrace()
             }
         }

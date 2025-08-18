@@ -1,24 +1,13 @@
 package com.example.onfit.Wardrobe.fragment
 
-<<<<<<< HEAD
-import android.os.Bundle
-=======
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
-<<<<<<< HEAD
-import androidx.navigation.fragment.findNavController
-import com.example.onfit.R
-
-class AddItemFragment : Fragment() {
-
-=======
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
@@ -50,6 +39,46 @@ class AddItemFragment : Fragment() {
     // 선택된 태그들을 저장할 리스트
     private val selectedTags = mutableListOf<String>()
 
+    // 🔥 NEW: 태그 텍스트를 ID로 매핑하는 맵 추가
+    private val tagTextToIdMap = mapOf(
+        // 분위기 태그
+        "#캐주얼" to 1,
+        "#스트릿" to 2,
+        "#미니멀" to 3,
+        "#클래식" to 4,
+        "#빈티지" to 5,
+        "#러블리" to 6,
+        "#페미닌" to 7,
+        "#보이시" to 8,
+        "#모던" to 9,
+
+        // 용도 태그
+        "#데일리" to 10,
+        "#출근룩" to 11,
+        "#데이트룩" to 12,
+        "#나들이룩" to 13,
+        "#여행룩" to 14,
+        "#운동복" to 15,
+        "#하객룩" to 16,
+        "#파티룩" to 17
+    )
+
+    // 🔥 NEW: 편집 모드용 기존 데이터 저장
+    private var existingItemData: ExistingItemData? = null
+
+    // 🔥 NEW: 기존 아이템 데이터 클래스
+    data class ExistingItemData(
+        val category: Int,
+        val subcategory: Int,
+        val season: Int,
+        val color: Int,
+        val brand: String?,
+        val size: String?,
+        val price: Int?,
+        val purchaseSite: String?,
+        val tagIds: List<Int>?
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -60,7 +89,6 @@ class AddItemFragment : Fragment() {
         Log.d("AddItemFragment", "Repository 토큰 정보: ${repository.getTokenInfo()}")
     }
 
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,13 +100,10 @@ class AddItemFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-<<<<<<< HEAD
-=======
         initViews(view)
         setupArguments()
         setupImageDisplay()
 
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         // 뒤로가기 버튼
         val backButton = view.findViewById<ImageButton>(R.id.ic_back)
         backButton?.setOnClickListener {
@@ -88,19 +113,13 @@ class AddItemFragment : Fragment() {
         // 드롭다운 설정
         setupDropdowns(view)
 
-<<<<<<< HEAD
-        // 더미 버튼 클릭 기능 설정
-        setupTagButtons(view)
-
-        // 저장 버튼
-        val saveButton = view.findViewById<Button>(R.id.btn_save)
-        saveButton?.setOnClickListener {
-            // 저장 로직 구현
-            Toast.makeText(requireContext(), "저장되었습니다", Toast.LENGTH_SHORT).show()
-            findNavController().navigateUp()
-=======
         // 태그 버튼 설정
         setupTagButtons(view)
+
+        // 🔥 편집 모드일 때 기존 데이터 로드
+        if (isEditMode) {
+            loadExistingItemData()
+        }
 
         // 🔥 Repository를 사용한 저장 로직
         val saveButton = view.findViewById<Button>(R.id.btn_save)
@@ -128,6 +147,23 @@ class AddItemFragment : Fragment() {
             // 편집 모드 확인
             isEditMode = bundle.getBoolean("edit_mode", false)
             itemId = bundle.getInt("item_id", -1)
+
+            // 🔥 NEW: 편집 모드일 때 기존 데이터 수집
+            if (isEditMode) {
+                existingItemData = ExistingItemData(
+                    category = bundle.getInt("item_category", 1),
+                    subcategory = bundle.getInt("item_subcategory", 1),
+                    season = bundle.getInt("item_season", 1),
+                    color = bundle.getInt("item_color", 1),
+                    brand = bundle.getString("item_brand"),
+                    size = bundle.getString("item_size"),
+                    price = bundle.getInt("item_price", 0).takeIf { it > 0 },
+                    purchaseSite = bundle.getString("item_purchase_site"),
+                    tagIds = bundle.getIntegerArrayList("item_tag_ids")
+                )
+
+                Log.d("AddItemFragment", "편집 모드 기존 데이터: $existingItemData")
+            }
 
             Log.d("AddItemFragment", "편집 모드: $isEditMode, 아이템 ID: $itemId")
         }
@@ -189,6 +225,28 @@ class AddItemFragment : Fragment() {
                 ivClothes.setImageResource(defaultImageResId)
                 btnChangeToDefault.visibility = View.GONE
             }
+        }
+    }
+
+    /**
+     * 🔥 NEW: 편집 모드일 때 기존 아이템 데이터 로드
+     */
+    private fun loadExistingItemData() {
+        existingItemData?.let { data ->
+            // 🔥 기존 태그 복원 (태그 ID 사용)
+            data.tagIds?.let { tagIds ->
+                restoreSelectedTags(tagIds)
+            }
+
+            // EditText 필드들 복원
+            view?.let { v ->
+                data.brand?.let { v.findViewById<EditText>(R.id.et_brand)?.setText(it) }
+                data.size?.let { v.findViewById<EditText>(R.id.et_size)?.setText(it) }
+                data.price?.let { v.findViewById<EditText>(R.id.et_price)?.setText(it.toString()) }
+                data.purchaseSite?.let { v.findViewById<EditText>(R.id.et_site)?.setText(it) }
+            }
+
+            Log.d("AddItemFragment", "기존 데이터 복원 완료: 태그 개수=${data.tagIds?.size ?: 0}")
         }
     }
 
@@ -307,7 +365,7 @@ class AddItemFragment : Fragment() {
             repository.updateWardrobeItem(itemId, finalRequest)
                 .onSuccess {
                     withContext(Dispatchers.Main) {
-                        notifyRegistrationComplete(true, formData.purchaseDate)
+                        notifyRegistrationComplete(true, formData.purchaseDate, isUpdate = true)
                         Toast.makeText(requireContext(), "아이템이 수정되었습니다", Toast.LENGTH_SHORT).show()
                         findNavController().navigateUp()
                     }
@@ -318,16 +376,16 @@ class AddItemFragment : Fragment() {
 
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                notifyRegistrationComplete(false, null)
+                notifyRegistrationComplete(false, null, isUpdate = true)
                 handleError(e, "아이템 수정에 실패했습니다")
             }
         }
     }
 
     /**
-     * 🔥 등록 결과를 부모 Fragment들에게 전달
+     * 🔥 MODIFIED: 등록 결과를 부모 Fragment들에게 전달 (업데이트 여부 추가)
      */
-    private fun notifyRegistrationComplete(isSuccess: Boolean, purchaseDate: String?) {
+    private fun notifyRegistrationComplete(isSuccess: Boolean, purchaseDate: String?, isUpdate: Boolean = false) {
         val bundle = Bundle().apply {
             putBoolean("success", isSuccess)
             putString("registered_date", purchaseDate ?: getCurrentDate())
@@ -343,6 +401,7 @@ class AddItemFragment : Fragment() {
             putBoolean("success", isSuccess)
             putString("action", if (isEditMode) "updated" else "added")
             putString("registered_date", purchaseDate ?: getCurrentDate())
+            putBoolean("force_refresh", isUpdate) // 🔥 NEW: 수정 시 강제 새로고침
         }
 
         val resultKey = if (isEditMode) "wardrobe_item_updated" else "item_registered"
@@ -353,7 +412,7 @@ class AddItemFragment : Fragment() {
             parentFragmentManager.setFragmentResult("outfit_registered", bundle)
         }
 
-        Log.d("AddItemFragment", "등록 결과 전달: success=$isSuccess, date=$purchaseDate, editMode=$isEditMode")
+        Log.d("AddItemFragment", "등록 결과 전달: success=$isSuccess, date=$purchaseDate, editMode=$isEditMode, isUpdate=$isUpdate")
     }
 
     /**
@@ -395,7 +454,7 @@ class AddItemFragment : Fragment() {
     }
 
     /**
-     * 폼 데이터 수집
+     * 🔥 MODIFIED: 폼 데이터 수집 - 태그 처리 수정
      */
     private fun collectFormDataSync(): RegisterItemRequestDto? {
         return try {
@@ -425,7 +484,15 @@ class AddItemFragment : Fragment() {
 
             val category = categoryMapping[categorySpinner.selectedItemPosition] ?: 1
             val subcategory = mapSubcategoryIndex(categorySpinner.selectedItemPosition, detailCategorySpinner.selectedItemPosition)
-            val season = seasonSpinner.selectedItemPosition + 1
+
+            // 🔥 MODIFIED: 계절 매핑 변경 (봄ㆍ가을/여름/겨울)
+            val season = when (seasonSpinner.selectedItemPosition) {
+                0 -> 1 // 봄ㆍ가을
+                1 -> 2 // 여름
+                2 -> 4 // 겨울
+                else -> 1
+            }
+
             val color = colorSpinner.selectedItemPosition + 1
 
             val brand = brandEdit.text.toString()
@@ -435,10 +502,14 @@ class AddItemFragment : Fragment() {
             val purchaseSite = siteEdit.text.toString()
             val purchaseDate = getCurrentDate()
 
-            // 선택된 태그 ID들 (현재는 더미)
-            val tagIds = listOf<Int>()
+            // 🔥 선택된 태그들을 ID로 변환
+            val tagIds = selectedTags.mapNotNull { tagText ->
+                tagTextToIdMap[tagText]
+            }
 
             Log.d("AddItemFragment", "수집된 데이터: category=$category, subcategory=$subcategory, season=$season, color=$color")
+            Log.d("AddItemFragment", "선택된 태그: $selectedTags")
+            Log.d("AddItemFragment", "변환된 태그 ID들: $tagIds")
 
             RegisterItemRequestDto(
                 category = category,
@@ -471,63 +542,75 @@ class AddItemFragment : Fragment() {
             4 -> subcategoryIndex + 29 // 신발: 29-35
             5 -> subcategoryIndex + 36 // 액세서리: 36-43
             else -> 1
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         }
     }
 
     override fun onResume() {
         super.onResume()
-<<<<<<< HEAD
-        // 바텀네비게이션 숨기기
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
     }
 
     override fun onPause() {
         super.onPause()
-<<<<<<< HEAD
-        // 바텀네비게이션 다시 보이기
-        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
-    }
-
-    private fun setupDropdowns(view: View) {
-        // 카테고리 스피너 설정
-        setupSpinnerWithContainer(
-            view,
-            R.id.spinner_category,
-            arrayOf("상의", "하의", "아우터", "원피스", "신발", "악세서리")
-        )
-
-        // 세부 카테고리 스피너 설정
-        setupSpinnerWithContainer(
-            view,
-            R.id.spinner_detail_category,
-            arrayOf("반팔티", "긴팔티", "셔츠", "블라우스", "니트", "후드티")
-        )
-
-        // 계절 스피너 설정
-        setupSpinnerWithContainer(
-            view,
-            R.id.spinner_season,
-            arrayOf("봄", "여름", "가을", "겨울", "사계절")
-        )
-
-        // 색상 스피너 설정
-        setupSpinnerWithContainer(
-            view,
-            R.id.spinner_color,
-            arrayOf("블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플")
-        )
-=======
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
     // 기존 UI 설정 메서드들은 그대로 유지
     private fun setupDropdowns(view: View) {
         setupCategorySpinner(view)
-        setupSpinnerWithContainer(view, R.id.spinner_season, arrayOf("봄", "여름", "가을", "겨울", "사계절"))
+        // 🔥 MODIFIED: 계절 스피너 수정 (봄ㆍ가을/여름/겨울)
+        setupSpinnerWithContainer(view, R.id.spinner_season, arrayOf("봄ㆍ가을", "여름", "겨울"))
         setupSpinnerWithContainer(view, R.id.spinner_color, arrayOf("블랙", "화이트", "그레이", "네이비", "브라운", "베이지", "레드", "핑크", "옐로우", "그린", "블루", "퍼플"))
+
+        // 🔥 NEW: 편집 모드일 때 스피너 초기값 설정
+        if (isEditMode) {
+            setSpinnerInitialValues(view)
+        }
+    }
+
+    // 🔥 NEW: 편집 모드일 때 스피너 초기값 설정
+    private fun setSpinnerInitialValues(view: View) {
+        existingItemData?.let { data ->
+            // 카테고리 스피너 설정
+            val categoryIndex = when (data.category) {
+                1 -> 0 // 상의
+                2 -> 1 // 하의
+                3 -> 2 // 원피스
+                4 -> 3 // 아우터
+                5 -> 4 // 신발
+                6 -> 5 // 액세서리
+                else -> 0
+            }
+            view.findViewById<Spinner>(R.id.spinner_category)?.setSelection(categoryIndex)
+
+            // 세부 카테고리 스피너 설정 (카테고리 선택 후 설정해야 함)
+            view.post {
+                val subcategoryIndex = when (data.category) {
+                    1 -> (data.subcategory - 1).coerceAtLeast(0) // 상의: 1-8
+                    2 -> (data.subcategory - 9).coerceAtLeast(0) // 하의: 9-15
+                    3 -> (data.subcategory - 16).coerceAtLeast(0) // 원피스: 16-20
+                    4 -> (data.subcategory - 21).coerceAtLeast(0) // 아우터: 21-28
+                    5 -> (data.subcategory - 29).coerceAtLeast(0) // 신발: 29-35
+                    6 -> (data.subcategory - 36).coerceAtLeast(0) // 액세서리: 36-43
+                    else -> 0
+                }
+                view.findViewById<Spinner>(R.id.spinner_detail_category)?.setSelection(subcategoryIndex)
+            }
+
+            // 계절 스피너 설정 (봄ㆍ가을=1, 여름=2, 겨울=4)
+            val seasonIndex = when (data.season) {
+                1 -> 0 // 봄ㆍ가을
+                2 -> 1 // 여름
+                4 -> 2 // 겨울
+                else -> 0
+            }
+            view.findViewById<Spinner>(R.id.spinner_season)?.setSelection(seasonIndex)
+
+            // 색상 스피너 설정
+            view.findViewById<Spinner>(R.id.spinner_color)?.setSelection((data.color - 1).coerceAtLeast(0))
+
+            Log.d("AddItemFragment", "스피너 초기값 설정: category=$categoryIndex, season=$seasonIndex, color=${data.color - 1}")
+        }
     }
 
     private fun setupCategorySpinner(view: View) {
@@ -553,6 +636,26 @@ class AddItemFragment : Fragment() {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                 detailCategorySpinner.adapter = adapter
                 setupSpinnerWithContainer(requireView(), R.id.spinner_detail_category, subcategories)
+
+                // 🔥 편집 모드일 때 세부 카테고리 선택 유지
+                if (isEditMode) {
+                    existingItemData?.let { data ->
+                        if (data.category == position + 1) { // 현재 선택된 카테고리와 일치하는 경우
+                            val subcategoryIndex = when (data.category) {
+                                1 -> (data.subcategory - 1).coerceAtLeast(0) // 상의: 1-8
+                                2 -> (data.subcategory - 9).coerceAtLeast(0) // 하의: 9-15
+                                3 -> (data.subcategory - 16).coerceAtLeast(0) // 원피스: 16-20
+                                4 -> (data.subcategory - 21).coerceAtLeast(0) // 아우터: 21-28
+                                5 -> (data.subcategory - 29).coerceAtLeast(0) // 신발: 29-35
+                                6 -> (data.subcategory - 36).coerceAtLeast(0) // 액세서리: 36-43
+                                else -> 0
+                            }
+                            detailCategorySpinner.post {
+                                detailCategorySpinner.setSelection(subcategoryIndex)
+                            }
+                        }
+                    }
+                }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -562,57 +665,25 @@ class AddItemFragment : Fragment() {
         initialAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         detailCategorySpinner.adapter = initialAdapter
         setupSpinnerWithContainer(view, R.id.spinner_detail_category, initialSubcategories)
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
     }
 
     private fun setupSpinnerWithContainer(view: View, spinnerId: Int, data: Array<String>) {
         val spinner = view.findViewById<Spinner>(spinnerId)
-<<<<<<< HEAD
-
-        // 기본 어댑터 사용
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, data)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner?.adapter = adapter
 
-<<<<<<< HEAD
-        // 스피너가 포함된 LinearLayout 찾기 (전체 컨테이너)
-        val spinnerContainer = spinner?.parent as? LinearLayout
-
-        // 드롭다운 위치 조정
-        spinner?.setOnTouchListener { _, _ ->
-            spinner.post {
-                adjustDropdownPosition(spinner, spinnerContainer)
-            }
-            false
-        }
-
-        // 전체 컨테이너 클릭 시 스피너 열기
-        spinnerContainer?.setOnClickListener {
-            spinner.performClick()
-        }
-
-        // 컨테이너 내의 ImageView(화살표) 클릭 시도 스피너 열기
-=======
         val spinnerContainer = spinner?.parent as? LinearLayout
         spinner?.setOnTouchListener { _, _ ->
             spinner.post { adjustDropdownPosition(spinner, spinnerContainer) }
             false
         }
         spinnerContainer?.setOnClickListener { spinner.performClick() }
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         spinnerContainer?.let { container ->
             for (i in 0 until container.childCount) {
                 val child = container.getChildAt(i)
                 if (child is ImageView) {
-<<<<<<< HEAD
-                    child.setOnClickListener {
-                        spinner.performClick()
-                    }
-=======
                     child.setOnClickListener { spinner.performClick() }
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
                 }
             }
         }
@@ -620,52 +691,11 @@ class AddItemFragment : Fragment() {
 
     private fun adjustDropdownPosition(spinner: Spinner, spinnerContainer: LinearLayout?) {
         if (spinnerContainer == null) return
-<<<<<<< HEAD
-
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         try {
             val popupField = Spinner::class.java.getDeclaredField("mPopup")
             popupField.isAccessible = true
             val popupWindow = popupField.get(spinner) ?: return
 
-<<<<<<< HEAD
-            // 스피너와 컨테이너의 실제 위치 계산
-            val spinnerLocation = IntArray(2)
-            val containerLocation = IntArray(2)
-
-            spinner.getLocationOnScreen(spinnerLocation)
-            spinnerContainer.getLocationOnScreen(containerLocation)
-
-            // 스피너가 컨테이너 왼쪽 경계로부터 얼마나 떨어져 있는지 계산
-            val offsetToContainerLeft = spinnerLocation[0] - containerLocation[0]
-
-            android.util.Log.d(
-                "Spinner",
-                "Spinner pos: ${spinnerLocation[0]}, Container pos: ${containerLocation[0]}"
-            )
-            android.util.Log.d("Spinner", "Calculated offset: ${-offsetToContainerLeft}")
-
-            // 컨테이너 너비로 드롭다운 너비 설정
-            val containerWidth = spinnerContainer.width
-            val setWidthMethod = popupWindow.javaClass.getMethod("setWidth", Int::class.java)
-            setWidthMethod.invoke(popupWindow, containerWidth)
-
-            // 높이 제한
-            val maxHeight = (250 * resources.displayMetrics.density).toInt()
-            val setHeightMethod = popupWindow.javaClass.getMethod("setHeight", Int::class.java)
-            setHeightMethod.invoke(popupWindow, maxHeight)
-
-            // 컨테이너 왼쪽 경계에 맞춰 offset 설정
-            val setHorizontalOffsetMethod =
-                popupWindow.javaClass.getMethod("setHorizontalOffset", Int::class.java)
-            setHorizontalOffsetMethod.invoke(popupWindow, -offsetToContainerLeft)
-
-            android.util.Log.d("Spinner", "Dropdown adjusted successfully")
-
-        } catch (e: Exception) {
-            android.util.Log.e("Spinner", "Failed to adjust dropdown: ${e.message}")
-=======
             val spinnerLocation = IntArray(2)
             val containerLocation = IntArray(2)
             spinner.getLocationOnScreen(spinnerLocation)
@@ -685,57 +715,77 @@ class AddItemFragment : Fragment() {
             setHorizontalOffsetMethod.invoke(popupWindow, -offsetToContainerLeft)
         } catch (e: Exception) {
             Log.e("Spinner", "Failed to adjust dropdown: ${e.message}")
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         }
     }
 
     private fun setupTagButtons(view: View) {
-<<<<<<< HEAD
-        // 분위기 태그 버튼들 (Layout1, Layout2)
         setupFlexboxLayout(view, R.id.topCategoryLayout1)
         setupFlexboxLayout(view, R.id.topCategoryLayout2)
-
-        // 용도 태그 버튼들 (Layout3, Layout4)
-=======
-        setupFlexboxLayout(view, R.id.topCategoryLayout1)
-        setupFlexboxLayout(view, R.id.topCategoryLayout2)
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         setupFlexboxLayout(view, R.id.topCategoryLayout3)
         setupFlexboxLayout(view, R.id.topCategoryLayout4)
+
+        Log.d("AddItemFragment", "태그 버튼 설정 완료")
     }
 
+    /**
+     * 🔥 MODIFIED: 태그 선택 로직 강화
+     */
     private fun setupFlexboxLayout(view: View, layoutId: Int) {
         val flexboxLayout = view.findViewById<com.google.android.flexbox.FlexboxLayout>(layoutId)
-<<<<<<< HEAD
-
-        // FlexboxLayout 내의 모든 버튼에 클릭 리스너 추가
-=======
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
         for (i in 0 until flexboxLayout.childCount) {
             val child = flexboxLayout.getChildAt(i)
             if (child is Button) {
                 child.setOnClickListener { button ->
-<<<<<<< HEAD
-                    // 버튼 선택 상태 토글
-                    button.isSelected = !button.isSelected
-
-                    // 로그로 확인
-                    android.util.Log.d(
-                        "TagButton",
-                        "${(button as Button).text} selected: ${button.isSelected}"
-                    )
-=======
                     button.isSelected = !button.isSelected
                     val tagText = (button as Button).text.toString()
+
                     if (button.isSelected) {
                         selectedTags.add(tagText)
+                        Log.d("TagButton", "태그 추가: $tagText")
                     } else {
                         selectedTags.remove(tagText)
+                        Log.d("TagButton", "태그 제거: $tagText")
                     }
-                    Log.d("TagButton", "$tagText selected: ${button.isSelected}")
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
+
+                    Log.d("TagButton", "현재 선택된 태그들: $selectedTags")
+
+                    // 🔥 선택된 태그의 ID도 로그로 확인
+                    val tagId = tagTextToIdMap[tagText]
+                    Log.d("TagButton", "$tagText 의 ID: $tagId")
                 }
             }
         }
+    }
+
+    /**
+     * 🔥 편집 모드에서 기존 태그 선택 상태 복원
+     */
+    private fun restoreSelectedTags(existingTagIds: List<Int>) {
+        // 기존 태그 ID들을 텍스트로 변환
+        val idToTagTextMap = tagTextToIdMap.entries.associate { (text, id) -> id to text }
+
+        val existingTagTexts = existingTagIds.mapNotNull { id ->
+            idToTagTextMap[id]
+        }
+
+        // 선택 상태 복원
+        selectedTags.clear()
+        selectedTags.addAll(existingTagTexts)
+
+        // UI 상태 복원
+        listOf(R.id.topCategoryLayout1, R.id.topCategoryLayout2, R.id.topCategoryLayout3, R.id.topCategoryLayout4).forEach { layoutId ->
+            val flexboxLayout = view?.findViewById<com.google.android.flexbox.FlexboxLayout>(layoutId)
+            flexboxLayout?.let { layout ->
+                for (i in 0 until layout.childCount) {
+                    val child = layout.getChildAt(i)
+                    if (child is Button) {
+                        val tagText = child.text.toString()
+                        child.isSelected = existingTagTexts.contains(tagText)
+                    }
+                }
+            }
+        }
+
+        Log.d("AddItemFragment", "편집 모드 - 기존 태그 복원: $existingTagTexts")
     }
 }

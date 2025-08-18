@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentLoginStartBinding
+import com.example.onfit.KakaoLogin.util.TokenProvider
 
 class LoginStartFragment : Fragment() {
 
@@ -23,11 +24,22 @@ class LoginStartFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+        val nav = findNavController()
+        val hasToken = TokenProvider.getToken(requireContext()).isNotBlank()
 
-        // 카카오 로그인 버튼 클릭 → LoginFragment로 이동
+        if (hasToken) {
+            // 저장된 로그인 정보가 있으면 바로 홈으로
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                nav.navigate(R.id.action_loginStartFragment_to_homeFragment)
+            }
+            return
+        }
+
+        // 토큰이 없으면 로그인 시작
         binding.KakaoLoginBtn.setOnClickListener {
-            findNavController().navigate(R.id.action_loginStartFragment_to_loginFragment)
+            if (nav.currentDestination?.id == R.id.loginStartFragment) {
+                nav.navigate(R.id.action_loginStartFragment_to_loginFragment)
+            }
         }
     }
 

@@ -7,7 +7,7 @@ data class CommunityOutfitsResponse(
     val result: Result?
 ) {
     data class Result(
-        val outfits: List<Outfit>
+        val outfits: List<Outfit>?
     )
 
     data class Outfit(
