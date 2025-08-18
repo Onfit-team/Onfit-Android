@@ -4,14 +4,6 @@ package com.example.onfit.Wardrobe.Network
  * ===== 옷장 데이터 모델들 =====
  */
 
-data class WardrobeResponseDto(
-    val totalCount: Int,
-    val categories: List<CategoryDto>,
-    val subcategories: List<SubcategoryDto>,
-    val items: List<WardrobeItemDto>,
-    val appliedFilter: AppliedFilterDto?
-
-
 /**
  * 옷장 아이템 정보
  */
@@ -85,26 +77,6 @@ data class WardrobeTag(
     val type: String? // 만약 type이 서버에서 안 내려오면 ?로
 )
 
-    val category: Int? = null,
-    val categoryName: String? = null,
-    val subcategory: Int? = null,
-    val subcategoryName: String? = null
-)
-
-/**
- * 아이템 태그 정보
- */
-data class WardrobeItemTags(
-    val moodTags: List<WardrobeTag>?,
-    val purposeTags: List<WardrobeTag>?
-)
-
-data class WardrobeTag(
-    val id: Int,
-    val name: String?,
-    val type: String? // 만약 type이 서버에서 안 내려오면 ?로
-)
-
 /**
  * ===== 요청 데이터 모델들 =====
  */
@@ -125,31 +97,6 @@ data class RegisterItemRequestDto(
     val purchaseSite: String,
     val tagIds: List<Int>
 )
-
-/**
- * 아이템 수정 요청 데이터
- */
-data class UpdateItemRequestDto(
-    val category: Int? = null,
-    val subcategory: Int? = null,
-    val season: Int? = null,
-    val color: Int? = null,
-    val brand: String? = null,
-    val size: String? = null,
-    val purchaseDate: String? = null,
-    val image: String? = null,
-    val price: Int? = null,
-    val purchaseSite: String? = null,
-    val tagIds: List<Int>? = null
-
-data class ItemRegistrationResult(
-    val id: Int,
-    val message: String? = null
-)
-
-/**
- * 검색 필터 요청 데이터
- */
 
 /**
  * 아이템 수정 요청 데이터

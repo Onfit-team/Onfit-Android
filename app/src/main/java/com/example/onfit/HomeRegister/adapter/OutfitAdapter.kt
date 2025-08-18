@@ -37,7 +37,7 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         if (item.imageUri != null) {
             holder.image.setImageURI(item.imageUri)
         } else if (item.imageResId != null) {
-            holder.image.setImageResource(item.imageResId)
+            holder.image.setImageResource(item.imageResId!!)
         }
 
         // 옷장에 있어요 클릭 시 옷장 프래그먼트로 이동, 버튼 회색으로 비활성화
