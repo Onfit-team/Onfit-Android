@@ -82,6 +82,31 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 옷장 아이템 이미지로 이미지 변경
+        findNavController().currentBackStackEntry
+            ?.savedStateHandle
+            ?.getLiveData<Bundle>("wardrobe_result")
+            ?.observe(viewLifecycleOwner) { result ->
+                val position   = result.getInt("position", -1)
+                val imageResId = result.getInt("imageResId", 0)
+                val imageUri   = result.getString("imageUriString")
+
+                if (position in outfitList.indices) {
+                    when {
+                        imageResId != 0 -> {
+                            outfitList[position].imageResId = imageResId
+                            outfitList[position].imageUri = null
+                        }
+                        !imageUri.isNullOrBlank() -> {
+                            outfitList[position].imageUri = Uri.parse(imageUri)
+                            outfitList[position].imageResId = null
+                        }
+                        else -> return@observe
+                    }
+                    adapter.notifyItemChanged(position)
+                }
+            }
+
         // 더미데이터 추가
         if (outfitList.isEmpty()) {
             outfitList.addAll(
@@ -121,9 +146,21 @@ class OutfitRegisterFragment : Fragment() {
 
         adapter = OutfitAdapter(
             outfitList,
-            onClosetButtonClick = {
-                // OutfitSelectFragment로 전환
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
+            onClosetButtonClick = { pos ->
+                val item = outfitList.getOrNull(pos)
+                val source: String? = when {
+                    item?.imageUri != null   -> item.imageUri.toString() // content:// 또는 file://
+                    item?.imageResId != null -> "res://${item.imageResId}" // 리소스일 경우
+                    else -> null
+                }?: run {
+                    Toast.makeText(requireContext(), "이미지 소스가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@OutfitAdapter
+                }
+                // Safe Args
+                val directions = OutfitRegisterFragmentDirections
+                    .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
+
+                findNavController().navigate(directions)
             },
             onCropButtonClick = { position ->
                 // OutfitCropFragment로 전환
