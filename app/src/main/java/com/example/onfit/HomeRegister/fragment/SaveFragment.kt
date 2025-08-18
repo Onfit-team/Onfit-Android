@@ -21,6 +21,7 @@ class SaveFragment : Fragment() {
     private lateinit var receivedDate: String
     private lateinit var outfitImage: Bitmap
     private var imagePath: String? = null
+    private var outfitIdText: String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +32,7 @@ class SaveFragment : Fragment() {
             receivedDate = it.getString("save_date") ?: "날짜 없음"
             // RegisterFragment로부터 이미지 경로 받기
             imagePath  = it.getString("outfit_image_path")
+            outfitIdText = it.getString("outfit_id") // 아웃핏 id 추출
         }
     }
 

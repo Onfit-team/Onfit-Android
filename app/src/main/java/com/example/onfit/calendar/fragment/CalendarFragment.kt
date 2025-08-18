@@ -21,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -62,6 +63,12 @@ class CalendarFragment : Fragment() {
     private lateinit var calendarAdapter: CalendarAdapter
     private lateinit var tvMostUsedStyle: TextView
 
+    // 카메라 이미지 저장
+    private lateinit var takePictureLauncher: ActivityResultLauncher<Uri>
+    private var cameraImageUri: Uri? = null
+    private var cameraImageFile: File? = null
+
+    // 갤러리 이미지 저장
     private lateinit var pickImageLauncher: ActivityResultLauncher<Intent>
     private var selectedImageUri: Uri? = null
 
@@ -94,6 +101,24 @@ class CalendarFragment : Fragment() {
                     Log.d("CalendarFragment", "파일 크기: ${cacheFile.length()}")
                     uploadImageToServer(cacheFile)
                 }
+            }
+        }
+
+        // 카메라 Launcher
+        takePictureLauncher = registerForActivityResult(
+            ActivityResultContracts.TakePicture()
+        ) { success ->
+            if (success) {
+                val file = cameraImageFile
+                if (file != null && file.exists()) {
+                    // 갤러리와 동일하게 업로드 재사용
+                    uploadImageToServer(file)
+                } else {
+                    Toast.makeText(requireContext(), "촬영 파일을 찾을 수 없어요.", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // 취소 시 임시파일 정리
+                cameraImageFile?.takeIf { it.exists() }?.delete()
             }
         }
     }
@@ -532,7 +557,7 @@ class CalendarFragment : Fragment() {
         Log.d("CalendarDebug", "========================")
     }
 
-    // API에 갤러리에서 고른 사진 업로드하고 Url 받아오기
+    // API에 갤러리, 카메라에서 고른 사진 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
         Log.d("Calendar", "Step 1: 함수 진입")
         Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
@@ -613,8 +638,10 @@ class CalendarFragment : Fragment() {
                             return@withContext
                         }
 
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@withContext
                         val nav = findNavController()
 
+                        // 액션으로 시도
                         runCatching {
                             nav.navigate(R.id.action_calendarFragment_to_registerFragment, bundle)
                         }.onFailure {
@@ -760,17 +787,19 @@ class CalendarFragment : Fragment() {
         }
     }
 
+    // bottom sheet
     private fun showBottomSheet() {
         val view = layoutInflater.inflate(R.layout.bottom_sheet_dialog, null)
         val dialog = BottomSheetDialog(requireContext())
         dialog.setContentView(view)
 
+        // 카메라 버튼
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
-            dialog.dismiss()
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            navigateToOutfitRegister(today)
-        }
-
+            ensureCameraPermission {
+                openCamera()
+                dialog.dismiss()
+            }
+        // 갤러리 버튼
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
             ensurePhotoPermission { rescanPicturesAndOpenGallery() }
             dialog.dismiss()
@@ -788,6 +817,44 @@ class CalendarFragment : Fragment() {
         return file
     }
 
+
+    // 카메라 권한
+    private fun ensureCameraPermission(onGranted: () -> Unit) {
+        val perm = android.Manifest.permission.CAMERA
+        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+            PackageManager.PERMISSION_GRANTED) {
+            onGranted()
+        } else {
+            // 재사용 가능하게 RequestPermission launcher 하나 더 써도 되고,
+            // 여기선 간단히 임시로 런처 생성
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                if (granted) onGranted() else
+                    Toast.makeText(requireContext(),"카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
+            }.launch(perm)
+        }
+    }
+
+    // 카메라 열기
+    private fun openCamera() {
+        try {
+            val (file, uri) = createCameraOutput(requireContext()) // ← 지역 val
+            cameraImageFile = file
+            cameraImageUri = uri
+            takePictureLauncher.launch(uri) // 지역 val은 non-null
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "카메라 실행 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun createCameraOutput(ctx: Context): Pair<File, Uri> {
+        val baseDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: ctx.cacheDir
+        val outDir = File(baseDir, "camera").apply { mkdirs() }
+        val file = File(outDir, "camera_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+        return file to uri
+    }
+
+    // 갤러리 권한
     private fun ensurePhotoPermission(onGranted: () -> Unit) {
         val perm = if (Build.VERSION.SDK_INT >= 33)
             android.Manifest.permission.READ_MEDIA_IMAGES
@@ -802,6 +869,7 @@ class CalendarFragment : Fragment() {
         }
     }
 
+    // 권한 허용 시 갤러리 열기
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
@@ -811,6 +879,8 @@ class CalendarFragment : Fragment() {
             }
         }
 
+
+    // Pictures 폴더 스캔
     private fun rescanPicturesAndOpenGallery() {
         val picturesPath = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES
@@ -825,6 +895,7 @@ class CalendarFragment : Fragment() {
         }
     }
 
+    // 갤러리 열기
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         pickImageLauncher.launch(intent)

@@ -48,7 +48,7 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
         }
         holder.closetBtn.setImageResource(btnImageRes)
 
-        // 옷장 버튼 클릭 리스너
+        // 옷장 버튼 클릭 리스너(position 전달)
         holder.closetBtn.setOnClickListener {
             val p = holder.bindingAdapterPosition
             if (p != RecyclerView.NO_POSITION) {
@@ -56,17 +56,16 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
                 if (i.isClosetButtonActive) {
                     i.isClosetButtonActive = false
                     notifyItemChanged(p)
-                    onClosetButtonClick(p)
+                    onClosetButtonClick(p)  // 콜백 호출해서 프래그먼트 전환 요청
+
                 }
             }
         }
 
         // 크롭 버튼 클릭 리스너
         holder.cropBtn.setOnClickListener {
-            val pos = holder.bindingAdapterPosition
-            if (pos != RecyclerView.NO_POSITION) {
-                onCropButtonClick(pos)
-            }
+            val p = holder.bindingAdapterPosition
+            if (p != RecyclerView.NO_POSITION) onCropButtonClick(p)
         }
 
         // x 버튼 누를 시 아이템 삭제 팝업
@@ -79,11 +78,10 @@ class OutfitAdapter(private val items: MutableList<OutfitItem2>,
 
             // 이미지 설정
             val dialogImage = dialogView.findViewById<ImageView>(R.id.delete_dialog_outfit_image)
-            if (item.imageUri != null) {
-                dialogImage.setImageURI(item.imageUri)
-            } else if (item.imageResId != null) {
-                dialogImage.setImageResource(item.imageResId)
-            }
+            dialogImage.setImageDrawable(null)
+
+            item.imageUri?.let { dialogImage.setImageURI(it) }
+                ?: item.imageResId?.let(dialogImage::setImageResource)
 
             // 예 버튼 클릭 → 아이템 삭제
             dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn).setOnClickListener {
