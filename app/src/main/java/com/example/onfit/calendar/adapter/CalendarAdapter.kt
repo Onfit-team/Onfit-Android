@@ -12,9 +12,15 @@ import java.util.*
 
 class CalendarAdapter(
     private val months: List<MonthData>,
-    private val registeredDates: Set<String>,
+    private var registeredDates: Set<String>, // ⭐ var로 변경하여 업데이트 가능하게
     private val onDateClick: (String, Boolean) -> Unit
 ) : RecyclerView.Adapter<CalendarAdapter.MonthViewHolder>() {
+
+    // ⭐ 등록된 날짜 데이터를 업데이트하는 함수 추가
+    fun updateRegisteredDates(newRegisteredDates: Set<String>) {
+        registeredDates = newRegisteredDates
+        notifyDataSetChanged() // 전체 캘린더 새로고침
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MonthViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -38,7 +44,7 @@ class CalendarAdapter(
             // 날짜 데이터 생성
             val days = generateDaysForMonth(monthData.year, monthData.month)
 
-            // 날짜 어댑터 설정
+            // ⭐ 날짜 어댑터 설정 - 최신 등록 날짜 데이터 사용
             val daysAdapter = DaysAdapter(days, registeredDates, onDateClick)
             daysRecyclerView.apply {
                 layoutManager = GridLayoutManager(itemView.context, 7)
@@ -64,7 +70,7 @@ class CalendarAdapter(
             // 해당 월의 마지막 날
             val lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-            // 날짜 추가
+            // ⭐ 날짜 추가 - 최신 등록 날짜 데이터로 hasData 판단
             for (day in 1..lastDay) {
                 val dateString = String.format("%04d-%02d-%02d", year, month, day)
                 val hasData = registeredDates.contains(dateString)
