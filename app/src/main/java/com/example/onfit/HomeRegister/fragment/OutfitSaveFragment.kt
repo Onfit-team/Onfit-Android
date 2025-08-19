@@ -9,11 +9,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.viewpager2.widget.ViewPager2
 import com.example.onfit.HomeRegister.adapter.SaveImagePagerAdapter
 import com.example.onfit.HomeRegister.model.DisplayImage
 import com.example.onfit.ItemRegister.ItemRegisterRequest
@@ -24,9 +27,23 @@ import com.example.onfit.TopInfoDialogFragment
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+// 이미지 드래프트 추가
+private data class ItemDraft(
+    var categoryId: Int = 1,      // 1-based (spinner idx + 1 과 동일)
+    var subcategoryId: Int = 1,   // 1-based
+    var seasonId: Int = 1,        // 1-based
+    var colorId: Int = 1,         // 1-based
+    var brand: String = "",
+    var price: Int = 0,
+    var size: String = "",
+    var site: String = "",
+    var tagIds: MutableSet<Int> = mutableSetOf() // 최대 3개
+)
 
 class OutfitSaveFragment : Fragment() {
     private var _binding: FragmentOutfitSaveBinding? = null
@@ -34,8 +51,10 @@ class OutfitSaveFragment : Fragment() {
     private val TAG = "ItemRegister"
 
     private val currentImages = mutableListOf<DisplayImage>()
-
     private lateinit var pagerAdapter: SaveImagePagerAdapter
+
+    private val drafts = mutableListOf<ItemDraft>()
+    private var bindingInProgress = false // 페이지 전환 시 리스너 오발동 방지
 
     private val categoryMap = mapOf(
         "상의" to listOf("반팔티", "긴팔티", "민소매", "셔츠/블라우스", "맨투맨", "후드티", "니트/스웨터", "기타"),
@@ -60,86 +79,152 @@ class OutfitSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // RecyclerView에서 사진 받아옴
+        // ViewPager 이미지 준비
         val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
         currentImages.clear()
         args.imageUris?.forEach { s -> currentImages.add(DisplayImage(uri = Uri.parse(s))) }
         args.imageResIds?.forEach { id -> currentImages.add(DisplayImage(resId = id)) }
 
-        // 날짜는 번들에서
-        val saveDate = requireArguments().getString("save_date") ?: "날짜 없음"
-        binding.outfitSaveTitle1Tv.text = saveDate
+        // 드래프트 개수 동기화
+        drafts.clear()
+        repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
+        // 사진 왼쪽, 오른쪽 버튼 눌러서 전환
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
+            saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
             val prev = (binding.outfitSaveOutfitVp.currentItem - 1).coerceAtLeast(0)
             binding.outfitSaveOutfitVp.setCurrentItem(prev, true)
         }
         binding.outfitSaveRightBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
-            val next = (binding.outfitSaveOutfitVp.currentItem + 1)
-                .coerceAtMost(pagerAdapter.itemCount - 1)
+            saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+            val next =
+                (binding.outfitSaveOutfitVp.currentItem + 1).coerceAtMost(pagerAdapter.itemCount - 1)
             binding.outfitSaveOutfitVp.setCurrentItem(next, true)
         }
 
+        binding.outfitSaveOutfitVp.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                bindFormFromDraft(position)
+            }
+        })
+
+        // 스피너 어댑터 세팅
         val spinner1 = binding.outfitSaveSpinner1
         val spinner2 = binding.outfitSaveSpinner2
-        val parentCategories = categoryMap.keys.toList()
-
         val spinner3 = binding.outfitSaveSpinner3
         val spinner4 = binding.outfitSaveSpinner4
+        val parentCategories = categoryMap.keys.toList()
 
-        // 상위 카테고리 어댑터
-        val parentAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, parentCategories)
-        parentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val parentAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            parentCategories
+        ).also {
+            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
         spinner1.adapter = parentAdapter
 
-        // 하위 카테고리 어댑터
-        val subCategoryList = mutableListOf<String>()
-        val subAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, subCategoryList)
-        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val subAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            mutableListOf<String>()
+        ).also {
+            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
         spinner2.adapter = subAdapter
 
+        val seasonAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, seasonList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        spinner3.adapter = seasonAdapter
+
+        val colorAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, colorList).also {
+                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+        spinner4.adapter = colorAdapter
+
+        // 스피너 리스너
         spinner1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) {
                 val selectedParent = parentCategories[position]
                 val subList = categoryMap[selectedParent] ?: emptyList()
-                subAdapter.clear()
-                subAdapter.addAll(subList)
-                subAdapter.notifyDataSetChanged()
-                spinner2.setSelection(0)
+                (spinner2.adapter as ArrayAdapter<String>).apply {
+                    clear(); addAll(subList); notifyDataSetChanged()
+                }
+                if (!bindingInProgress) {
+                    spinner2.setSelection(0)
+                    saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // 계절, 색상 스피너 설정
-        val seasonAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, seasonList)
-        seasonAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner3.adapter = seasonAdapter
+        // 스피너 변경 시 현재 페이지 드래프트 저장
+        val onSpinnerChanged = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) {
+                if (!bindingInProgress) saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+            }
 
-        val colorAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, colorList)
-        colorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinner4.adapter = colorAdapter
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
+        spinner2.onItemSelectedListener = onSpinnerChanged
+        spinner3.onItemSelectedListener = onSpinnerChanged
+        spinner4.onItemSelectedListener = onSpinnerChanged
 
-        // 구매 정보 다이얼로그 연결
+        // 초기 드래프트 바인딩
+        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
+
+        // 5) 텍스트/칩 리스너 (초기 바인딩 후 등록)
+        fun TextInputEditText.watch() = addTextChangedListener {
+            if (!bindingInProgress) saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+        }
+        // 텍스트 변경 시 현재 페이지 드래프트 저장
+        binding.outfitSaveEt1.watchDraft()
+        binding.outfitSaveEt2.watchDraft()
+        binding.outfitSaveEt3.watchDraft()
+        binding.outfitSaveEt4.watchDraft()
+
+        // 칩(태그) 변경 시 현재 페이지 드래프트 저장
+        val chipGroups = arrayOf(binding.outfitSaveVibeChips, binding.outfitSaveUseChips)
+        chipGroups.forEach { group ->
+            for (i in 0 until group.childCount) {
+                val chip = group.getChildAt(i) as? Chip ?: continue
+                chip.setOnCheckedChangeListener { _, _ ->
+                    if (!bindingInProgress) saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+                }
+            }
+        }
+
+        // 6) 구매 정보 다이얼로그
         val commonClickListener = View.OnClickListener {
             val dialog = TopInfoDialogFragment()
             dialog.setOnTopInfoSavedListener(object : TopInfoDialogFragment.OnTopInfoSavedListener {
-                override fun onTopInfoSaved(brand: String, price: String, size: String, site: String) {
+                override fun onTopInfoSaved(
+                    brand: String,
+                    price: String,
+                    size: String,
+                    site: String
+                ) {
                     binding.outfitSaveEt1.setText(brand)
                     binding.outfitSaveEt2.setText(price)
                     binding.outfitSaveEt3.setText(size)
                     binding.outfitSaveEt4.setText(site)
+                    saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
                 }
             })
             dialog.show(parentFragmentManager, "TopInfoDialog")
         }
-
         listOf(
             binding.outfitSaveEt1,
             binding.outfitSaveEt2,
@@ -148,6 +233,10 @@ class OutfitSaveFragment : Fragment() {
         ).forEach {
             it.setOnClickListener(commonClickListener)
         }
+
+        // 날짜는 번들에서
+        val saveDate = requireArguments().getString("save_date") ?: "날짜 없음"
+        binding.outfitSaveTitle1Tv.text = saveDate
 
         // 갤러리 버튼
         binding.outfitSaveChangeBtn.setOnClickListener {
@@ -164,14 +253,13 @@ class OutfitSaveFragment : Fragment() {
         binding.outfitSaveSaveBtn.setOnClickListener {
             postCurrentWardrobeItemAndGoHome()
         }
-
         setupChipMaxLimit(3)
     }
 
     private fun AdapterView<*>.idx1(): Int =
         (selectedItemPosition + 1).coerceAtLeast(1)
 
-    // 태그
+    // 태그 수집
     private fun collectSelectedTagIds(vararg groups: ChipGroup): List<Int> {
         val result = mutableListOf<Int>()
         groups.forEach { group ->
@@ -238,46 +326,31 @@ class OutfitSaveFragment : Fragment() {
     }
 
     private fun postCurrentWardrobeItemAndGoHome() {
-        val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+        // 0) 현재 페이지 값 보존
+        saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
 
-        // imageUris 중 http URL만 추출 (로컬 content:// 는 제외)
-        val urls: List<String> = args.imageUris.filter { it.startsWith("http") }
-        if (urls.isEmpty()) {
+        // 1) ViewPager 현재 목록 기준: http URL만 전송 대상 (content://, resId는 제외)
+        val submissions: List<Pair<String, ItemDraft>> =
+            currentImages.mapIndexedNotNull { idx, di ->
+                val url = di.uri?.toString()
+                if (url != null && url.startsWith("http")) {
+                    url to (drafts.getOrNull(idx) ?: ItemDraft())
+                } else {
+                    null
+                }
+            }
+
+        if (submissions.isEmpty()) {
             Toast.makeText(requireContext(), "등록할 이미지 URL이 없어요. 먼저 업로드를 완료해주세요.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 날짜 값 받기
+        // 2) 날짜
         val passedSaveDate = requireArguments().getString("save_date")
         val purchaseDate = normalizePurchaseDate(passedSaveDate)
-        Log.d("ItemRegister", "normalized purchaseDate=$purchaseDate (from '$passedSaveDate')")
+        Log.d(TAG, "normalized purchaseDate=$purchaseDate (from '$passedSaveDate')")
 
-        // 스피너 값 받기
-        val categoryId = binding.outfitSaveSpinner1.idx1()
-        val subcategoryId = binding.outfitSaveSpinner2.idx1()
-        val seasonId      = binding.outfitSaveSpinner3.idx1()
-        val colorId       = binding.outfitSaveSpinner4.idx1()
-
-        // 브랜드, 가격, 사이즈, 사이트 정보
-        val brand = binding.outfitSaveEt1.text?.toString()?.trim().orEmpty()
-        val price = binding.outfitSaveEt2.text?.toString()
-            ?.filter { it.isDigit() }?.toIntOrNull() ?: 0
-        val size  = binding.outfitSaveEt3.text?.toString()?.trim().orEmpty()
-        val site  = binding.outfitSaveEt4.text?.toString()?.trim().orEmpty()
-
-        // 태그 아이디
-        val tagIds = collectSelectedTagIds(
-            binding.outfitSaveVibeChips,
-            binding.outfitSaveUseChips
-        )
-
-        // 전송 전에 입력값/ID/URL 간단 로깅
-        Log.d(TAG, "IDs cat=$categoryId sub=$subcategoryId season=$seasonId color=$colorId")
-        Log.d(TAG, "Inputs brand='$brand' size='$size' price=$price site='$site'")
-        Log.d(TAG, "tagIds=$tagIds")
-        Log.d(TAG, "urls=${urls.size}, first=${urls.firstOrNull()}")
-
-        // 토큰/서비스
+        // 3) API 준비
         val token = "Bearer " + TokenProvider.getToken(requireContext())
         val api = ItemRegisterRetrofit.api
 
@@ -287,28 +360,27 @@ class OutfitSaveFragment : Fragment() {
             var success = 0
             var lastError: String? = null
 
-            for (url in urls) {
+            submissions.forEachIndexed { i, (url, d) ->
                 val req = ItemRegisterRequest(
-                    category = categoryId,
-                    subcategory = subcategoryId,
-                    season = seasonId,
-                    color = colorId,
-                    brand = brand,
-                    size = size,
+                    category = d.categoryId,
+                    subcategory = d.subcategoryId,
+                    season = d.seasonId,
+                    color = d.colorId,
+                    brand = d.brand,
+                    size = d.size,
                     purchaseDate = purchaseDate,
-                    image = url,          // S3 URL
-                    price = price,
-                    purchaseSite = site,
-                    tagIds = tagIds
+                    image = url,              // 각 이미지 고유 URL
+                    price = d.price,
+                    purchaseSite = d.site,
+                    tagIds = d.tagIds.toList()
                 )
-                // 실제 전송 JSON 확인
-                Log.d(TAG, "REQ=" + Gson().toJson(req))
+                Log.d(TAG, "[${i + 1}/${submissions.size}] REQ=" + Gson().toJson(req))
+
                 try {
                     val resp = api.createRegisterItem(token, req)
                     if (resp.isSuccessful && (resp.body()?.ok == true)) {
                         success++
                     } else {
-                        // 실패 이유 로그 강화
                         val bodyMsg = resp.body()?.message
                         val errRaw = resp.errorBody()?.string()
                         Log.e(TAG, "Fail bodyMsg=$bodyMsg, http=${resp.code()}, raw=$errRaw")
@@ -321,7 +393,8 @@ class OutfitSaveFragment : Fragment() {
             }
 
             withContext(kotlinx.coroutines.Dispatchers.Main) {
-                val fail = urls.size - success
+                val total = submissions.size
+                val fail = total - success
                 val msg = when {
                     success == 0 -> "등록 실패: ${lastError ?: "알 수 없는 오류"}"
                     fail == 0    -> "아이템 ${success}개 등록 완료!"
@@ -329,16 +402,13 @@ class OutfitSaveFragment : Fragment() {
                 }
                 Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
-                // 성공한 게 1개 이상일 때만 이동
                 if (success > 0) {
                     val nav = findNavController()
                     val opts = NavOptions.Builder()
                         .setLaunchSingleTop(true)
                         .setRestoreState(true)
-                        // 그래프의 "시작 목적지"까지 pop (그래프 자체를 날리지 않음!)
-                        .setPopUpTo(nav.graph.startDestinationId, /*inclusive=*/false)
+                        .setPopUpTo(nav.graph.startDestinationId, false)
                         .build()
-
                     nav.navigate(R.id.wardrobeFragment, null, opts)
                 } else {
                     binding.outfitSaveSaveBtn.isEnabled = true
@@ -400,9 +470,87 @@ class OutfitSaveFragment : Fragment() {
         return today.toString()
     }
 
+    // 현재 페이지 <-> 폼 동기화 유틸
+    private fun bindFormFromDraft(index: Int) {
+        if (index !in drafts.indices) return
+        bindingInProgress = true
+        val d = drafts[index]
+
+        // 상위/하위 카테고리 스피너
+        val parentCategories = categoryMap.keys.toList()
+        val catIdx = (d.categoryId - 1).coerceIn(0, parentCategories.lastIndex)
+        binding.outfitSaveSpinner1.setSelection(catIdx)
+
+        // 하위 목록 갱신 후 선택 적용
+        val selectedParent = parentCategories[catIdx]
+        val subList = categoryMap[selectedParent] ?: emptyList()
+        (binding.outfitSaveSpinner2.adapter as ArrayAdapter<String>).apply {
+            clear(); addAll(subList); notifyDataSetChanged()
+        }
+        val subIdx = (d.subcategoryId - 1).coerceIn(0, subList.lastIndex)
+        binding.outfitSaveSpinner2.setSelection(subIdx)
+
+        // 나머지 스피너
+        binding.outfitSaveSpinner3.setSelection((d.seasonId - 1).coerceAtLeast(0))
+        binding.outfitSaveSpinner4.setSelection((d.colorId - 1).coerceAtLeast(0))
+
+        // 텍스트
+        binding.outfitSaveEt1.setText(d.brand)
+        binding.outfitSaveEt2.setText(if (d.price == 0) "" else d.price.toString())
+        binding.outfitSaveEt3.setText(d.size)
+        binding.outfitSaveEt4.setText(d.site)
+
+        // 칩(태그) 체크 복원
+        applyTagIdsToUI(d.tagIds)
+
+        bindingInProgress = false
+    }
+
+    // Fragment 클래스 안(멤버)으로 정의
+    private fun EditText.watchDraft() {
+        this.addTextChangedListener {
+            if (!bindingInProgress) {
+                saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+            }
+        }
+    }
+
+    private fun saveFormToDraft(index: Int) {
+        if (bindingInProgress || index !in drafts.indices) return
+        val d = drafts[index]
+        d.categoryId = binding.outfitSaveSpinner1.idx1()
+        d.subcategoryId = binding.outfitSaveSpinner2.idx1()
+        d.seasonId = binding.outfitSaveSpinner3.idx1()
+        d.colorId = binding.outfitSaveSpinner4.idx1()
+        d.brand = binding.outfitSaveEt1.text?.toString()?.trim().orEmpty()
+        d.price = binding.outfitSaveEt2.text?.toString()?.filter { it.isDigit() }?.toIntOrNull() ?: 0
+        d.size  = binding.outfitSaveEt3.text?.toString()?.trim().orEmpty()
+        d.site  = binding.outfitSaveEt4.text?.toString()?.trim().orEmpty()
+        d.tagIds = collectSelectedTagIds(
+            binding.outfitSaveVibeChips,
+            binding.outfitSaveUseChips
+        ).toMutableSet()
+    }
+
+    private fun applyTagIdsToUI(ids: Set<Int>) {
+        val groups = arrayOf(binding.outfitSaveVibeChips, binding.outfitSaveUseChips)
+        groups.forEach { g ->
+            for (i in 0 until g.childCount) {
+                val chip = g.getChildAt(i) as? com.google.android.material.chip.Chip ?: continue
+                val v = when (val t = chip.tag) {
+                    is Int -> t
+                    is String -> t.toIntOrNull()
+                    else -> null
+                }
+                bindingInProgress = true
+                chip.isChecked = (v != null && ids.contains(v))
+                bindingInProgress = false
+            }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
 }
