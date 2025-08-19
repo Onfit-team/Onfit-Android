@@ -89,20 +89,21 @@ class CalendarFragment : Fragment() {
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
 
         // 갤러리 Launcher
-        pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == AppCompatActivity.RESULT_OK) {
-                selectedImageUri = result.data?.data
+        pickImageLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == AppCompatActivity.RESULT_OK) {
+                    selectedImageUri = result.data?.data
 
-                // 선택 이미지 URI -> 캐시 파일로 변환 후 업로드
-                selectedImageUri?.let { uri ->
-                    Log.d("CalendarFragment", "선택된 이미지 URI: $uri")
-                    val cacheFile = uriToCacheFile(requireContext(), uri)
-                    Log.d("CalendarFragment", "파일 존재 여부: ${cacheFile.exists()}")
-                    Log.d("CalendarFragment", "파일 크기: ${cacheFile.length()}")
-                    uploadImageToServer(cacheFile)
+                    // 선택 이미지 URI -> 캐시 파일로 변환 후 업로드
+                    selectedImageUri?.let { uri ->
+                        Log.d("CalendarFragment", "선택된 이미지 URI: $uri")
+                        val cacheFile = uriToCacheFile(requireContext(), uri)
+                        Log.d("CalendarFragment", "파일 존재 여부: ${cacheFile.exists()}")
+                        Log.d("CalendarFragment", "파일 크기: ${cacheFile.length()}")
+                        uploadImageToServer(cacheFile)
+                    }
                 }
             }
-        }
 
         // 카메라 Launcher
         takePictureLauncher = registerForActivityResult(
@@ -156,7 +157,10 @@ class CalendarFragment : Fragment() {
         rvCalendar.post {
             try {
                 val currentMonthIndex = 24
-                (rvCalendar.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentMonthIndex, 0)
+                (rvCalendar.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
+                    currentMonthIndex,
+                    0
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -239,11 +243,13 @@ class CalendarFragment : Fragment() {
                     onResult(date, memo)
                 } else if (response.code() == 404) {
                     Log.e("CalendarFragment", "코디 상세 정보 조회 실패: 해당 Outfit이 없습니다.")
-                    Toast.makeText(requireContext(), "해당 Outfit 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "해당 Outfit 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT)
+                        .show()
                     onResult(null, null)
                 } else {
                     Log.e("CalendarFragment", "코디 상세 정보 조회 실패: code=${response.code()}")
-                    Toast.makeText(requireContext(), "코디 데이터를 불러올 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "코디 데이터를 불러올 수 없습니다.", Toast.LENGTH_SHORT)
+                        .show()
                     onResult(null, null)
                 }
             } catch (e: Exception) {
@@ -266,7 +272,8 @@ class CalendarFragment : Fragment() {
                     if (!fetchedDate.isNullOrBlank() && !memo.isNullOrBlank()) {
                         navigateToOutfitDetail(fetchedDate, outfitId, memo)
                     } else {
-                        Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
             } else {
@@ -298,7 +305,11 @@ class CalendarFragment : Fragment() {
                     navController.navigate(R.id.calendarSaveFragment, bundle)
                 }.onFailure {
                     Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
-                    Toast.makeText(context, "$dateString 코디 (ID: $outfitId)\n메모: $memo", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        "$dateString 코디 (ID: $outfitId)\n메모: $memo",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
 
@@ -345,14 +356,16 @@ class CalendarFragment : Fragment() {
      * ⭐ 새로 등록된 코디가 있는지 확인하는 함수
      */
     private fun checkForNewRegistrations() {
-        val prefs = requireContext().getSharedPreferences("outfit_registration", Context.MODE_PRIVATE)
+        val prefs =
+            requireContext().getSharedPreferences("outfit_registration", Context.MODE_PRIVATE)
         val newlyRegisteredDate = prefs.getString("newly_registered_date", null)
         val newlyRegisteredId = prefs.getInt("newly_registered_outfit_id", -1)
         val timestamp = prefs.getLong("registration_timestamp", 0)
 
         // 5분 이내에 등록된 것만 처리 (중복 처리 방지)
         if (!newlyRegisteredDate.isNullOrBlank() &&
-            System.currentTimeMillis() - timestamp < 5 * 60 * 1000) {
+            System.currentTimeMillis() - timestamp < 5 * 60 * 1000
+        ) {
 
             Log.d("CalendarFragment", "새로 등록된 코디 감지: $newlyRegisteredDate (ID: $newlyRegisteredId)")
 
@@ -472,7 +485,8 @@ class CalendarFragment : Fragment() {
                         }
                     } else {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "해당 날짜에 등록된 코디 이미지가 없습니다.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "해당 날짜에 등록된 코디 이미지가 없습니다.", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
                 } else {
@@ -560,7 +574,10 @@ class CalendarFragment : Fragment() {
     // API에 갤러리, 카메라에서 고른 사진 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
         Log.d("Calendar", "Step 1: 함수 진입")
-        Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
+        Log.d(
+            "UploadDebug",
+            "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}"
+        )
 
         // 1. 토큰 체크
         val token = TokenProvider.getToken(requireContext())
@@ -575,7 +592,10 @@ class CalendarFragment : Fragment() {
         val ext = file.extension.lowercase()
         val bmpTest = BitmapFactory.decodeFile(file.absolutePath) != null
 
-        Log.d("UploadCheck", "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest")
+        Log.d(
+            "UploadCheck",
+            "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest"
+        )
 
         require(exists && length > 0 && bmpTest) { "이미지 파일이 손상되었거나 크기가 0입니다." }
 
@@ -593,7 +613,8 @@ class CalendarFragment : Fragment() {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                 require(bitmap != null) { "PNG 디코딩 실패" }
 
-                val jpgFile = File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
+                val jpgFile =
+                    File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
                 FileOutputStream(jpgFile).use { out ->
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
                 }
@@ -624,7 +645,11 @@ class CalendarFragment : Fragment() {
                         val imageUrl = bodyObj.payload?.imageUrl
 
                         if (imageUrl.isNullOrBlank()) {
-                            Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireContext(),
+                                "이미지 URL을 받지 못했어요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@withContext
                         }
 
@@ -634,11 +659,17 @@ class CalendarFragment : Fragment() {
                             putString("uploadedImageUrl", imageUrl)
                         }
 
-                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
+                                Lifecycle.State.STARTED
+                            )
+                        ) {
                             return@withContext
                         }
 
-                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@withContext
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
+                                Lifecycle.State.STARTED
+                            )
+                        ) return@withContext
                         val nav = findNavController()
 
                         // 액션으로 시도
@@ -651,8 +682,15 @@ class CalendarFragment : Fragment() {
                         }
                     } else {
                         val errorMsg = response.errorBody()?.string()
-                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
-                        Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
+                        Log.e(
+                            "HomeFragment",
+                            "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj"
+                        )
+                        Toast.makeText(
+                            requireContext(),
+                            bodyObj?.message ?: "업로드 실패",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
@@ -721,14 +759,17 @@ class CalendarFragment : Fragment() {
             state.isTagLoading -> {
                 tvMostUsedStyle.text = "데이터를 불러오는 중..."
             }
+
             state.mostUsedTag != null -> {
                 val tag = state.mostUsedTag
                 tvMostUsedStyle.text = "#${tag.tag} 스타일이 가장 많았어요! (${tag.count}개)"
             }
+
             state.tagErrorMessage != null -> {
                 tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
                 viewModel.clearTagError()
             }
+
             else -> {
                 tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
             }
@@ -757,7 +798,10 @@ class CalendarFragment : Fragment() {
         rvCalendar.post {
             rvCalendar.postDelayed({
                 try {
-                    (rvCalendar.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(currentMonthIndex, 0)
+                    (rvCalendar.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(
+                        currentMonthIndex,
+                        0
+                    )
                 } catch (e: Exception) {
                     rvCalendar.scrollToPosition(currentMonthIndex)
                 }
@@ -766,7 +810,8 @@ class CalendarFragment : Fragment() {
     }
 
     private fun navigateToOutfitRegister(dateString: String) {
-        val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
+        val action =
+            CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
         findNavController().navigate(action)
     }
 
@@ -778,12 +823,17 @@ class CalendarFragment : Fragment() {
             if (targetDestination != null) {
                 navController.navigate(R.id.styleOutfitsFragment)
             } else {
-                Toast.makeText(requireContext(), "StyleOutfitsFragment를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "StyleOutfitsFragment를 찾을 수 없습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "Navigation 오류: ${e.message}", Toast.LENGTH_LONG)
+                .show()
         }
     }
 
@@ -799,121 +849,125 @@ class CalendarFragment : Fragment() {
                 openCamera()
                 dialog.dismiss()
             }
-        // 갤러리 버튼
-        view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-            ensurePhotoPermission { rescanPicturesAndOpenGallery() }
-            dialog.dismiss()
-        }
-        dialog.show()
-    }
-
-    private fun uriToCacheFile(context: Context, uri: Uri): File {
-        val inputStream = context.contentResolver.openInputStream(uri)
-        val file = File(context.cacheDir, "selected_outfit.png")
-        val outputStream = FileOutputStream(file)
-        inputStream?.use { input ->
-            outputStream.use { output -> input.copyTo(output) }
-        }
-        return file
-    }
-
-
-    // 카메라 권한
-    private fun ensureCameraPermission(onGranted: () -> Unit) {
-        val perm = android.Manifest.permission.CAMERA
-        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
-            PackageManager.PERMISSION_GRANTED) {
-            onGranted()
-        } else {
-            // 재사용 가능하게 RequestPermission launcher 하나 더 써도 되고,
-            // 여기선 간단히 임시로 런처 생성
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-                if (granted) onGranted() else
-                    Toast.makeText(requireContext(),"카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
-            }.launch(perm)
+            // 갤러리 버튼
+            view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
+                ensurePhotoPermission { rescanPicturesAndOpenGallery() }
+                dialog.dismiss()
+            }
+            dialog.show()
         }
     }
 
-    // 카메라 열기
-    private fun openCamera() {
-        try {
-            val (file, uri) = createCameraOutput(requireContext()) // ← 지역 val
-            cameraImageFile = file
-            cameraImageUri = uri
-            takePictureLauncher.launch(uri) // 지역 val은 non-null
-        } catch (e: Exception) {
-            Toast.makeText(requireContext(), "카메라 실행 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+        private fun uriToCacheFile(context: Context, uri: Uri): File {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val file = File(context.cacheDir, "selected_outfit.png")
+            val outputStream = FileOutputStream(file)
+            inputStream?.use { input ->
+                outputStream.use { output -> input.copyTo(output) }
+            }
+            return file
         }
-    }
 
-    private fun createCameraOutput(ctx: Context): Pair<File, Uri> {
-        val baseDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: ctx.cacheDir
-        val outDir = File(baseDir, "camera").apply { mkdirs() }
-        val file = File(outDir, "camera_${System.currentTimeMillis()}.jpg")
-        val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
-        return file to uri
-    }
 
-    // 갤러리 권한
-    private fun ensurePhotoPermission(onGranted: () -> Unit) {
-        val perm = if (Build.VERSION.SDK_INT >= 33)
-            android.Manifest.permission.READ_MEDIA_IMAGES
-        else
-            android.Manifest.permission.READ_EXTERNAL_STORAGE
-
-        if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
-            PackageManager.PERMISSION_GRANTED) {
-            onGranted()
-        } else {
-            requestPermissionLauncher.launch(perm)
-        }
-    }
-
-    // 권한 허용 시 갤러리 열기
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) {
-                rescanPicturesAndOpenGallery()
+        // 카메라 권한
+        private fun ensureCameraPermission(onGranted: () -> Unit) {
+            val perm = android.Manifest.permission.CAMERA
+            if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                onGranted()
             } else {
-                Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
+                // 재사용 가능하게 RequestPermission launcher 하나 더 써도 되고,
+                // 여기선 간단히 임시로 런처 생성
+                registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                    if (granted) onGranted() else
+                        Toast.makeText(requireContext(), "카메라 권한이 필요해요", Toast.LENGTH_SHORT).show()
+                }.launch(perm)
             }
         }
 
+        // 카메라 열기
+        private fun openCamera() {
+            try {
+                val (file, uri) = createCameraOutput(requireContext()) // ← 지역 val
+                cameraImageFile = file
+                cameraImageUri = uri
+                takePictureLauncher.launch(uri) // 지역 val은 non-null
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "카메라 실행 실패: ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
 
-    // Pictures 폴더 스캔
-    private fun rescanPicturesAndOpenGallery() {
-        val picturesPath = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_PICTURES
-        ).absolutePath
+        private fun createCameraOutput(ctx: Context): Pair<File, Uri> {
+            val baseDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: ctx.cacheDir
+            val outDir = File(baseDir, "camera").apply { mkdirs() }
+            val file = File(outDir, "camera_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.fileprovider", file)
+            return file to uri
+        }
 
-        MediaScannerConnection.scanFile(
-            requireContext(),
-            arrayOf(picturesPath),
-            null
-        ) { _, _ ->
-            requireActivity().runOnUiThread { openGallery() }
+        // 갤러리 권한
+        private fun ensurePhotoPermission(onGranted: () -> Unit) {
+            val perm = if (Build.VERSION.SDK_INT >= 33)
+                android.Manifest.permission.READ_MEDIA_IMAGES
+            else
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+
+            if (ContextCompat.checkSelfPermission(requireContext(), perm) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                onGranted()
+            } else {
+                requestPermissionLauncher.launch(perm)
+            }
+        }
+
+        // 권한 허용 시 갤러리 열기
+        private val requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                if (granted) {
+                    rescanPicturesAndOpenGallery()
+                } else {
+                    Toast.makeText(requireContext(), "사진 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+
+        // Pictures 폴더 스캔
+        private fun rescanPicturesAndOpenGallery() {
+            val picturesPath = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES
+            ).absolutePath
+
+            MediaScannerConnection.scanFile(
+                requireContext(),
+                arrayOf(picturesPath),
+                null
+            ) { _, _ ->
+                requireActivity().runOnUiThread { openGallery() }
+            }
+        }
+
+        // 갤러리 열기
+        private fun openGallery() {
+            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+            pickImageLauncher.launch(intent)
+        }
+
+        /**
+         * 외부에서 태그 통계 새로고침
+         */
+        fun refreshMostUsedTag() {
+            loadMostUsedTag()
+        }
+
+        private fun loadOutfitDataInBackground(dateString: String) {
+            viewModel.onDateSelected(dateString)
         }
     }
 
-    // 갤러리 열기
-    private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
-        pickImageLauncher.launch(intent)
-    }
-
-    /**
-     * 외부에서 태그 통계 새로고침
-     */
-    fun refreshMostUsedTag() {
-        loadMostUsedTag()
-    }
-
-    private fun loadOutfitDataInBackground(dateString: String) {
-        viewModel.onDateSelected(dateString)
-    }
-}
-
-data class MonthData(
-    val year: Int,
-    val month: Int
-)
+    data class MonthData(
+        val year: Int,
+        val month: Int
+    )
