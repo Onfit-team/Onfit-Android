@@ -79,6 +79,8 @@ class CalendarFragment : Fragment() {
     // ⭐ 캘린더에서 선택한 날짜를 저장할 변수
     private var selectedDateForRegistration: String? = null
 
+    private var dateToImageUrlMap = mutableMapOf<String, String>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
@@ -142,56 +144,6 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ 기존 API를 활용해서 등록된 날짜를 찾는 방식
-     * SharedPreferences에 저장된 등록 기록을 활용
-     */
-    private fun loadRegisteredDatesWithExistingAPI() {
-        if (isLoadingDates) return
-        isLoadingDates = true
-
-        Log.d("CalendarFragment", "SharedPreferences에서 등록된 날짜 로드")
-
-        // SharedPreferences에서 등록된 코디 정보 조회
-        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
-        val registeredOutfitsJson = prefs.getString("registered_outfits", null)
-
-        if (!registeredOutfitsJson.isNullOrBlank()) {
-            try {
-                // JSON 파싱해서 등록된 날짜들 추출
-                // 예: "2025-08-18:1,2025-08-17:2" 형태
-                val outfitEntries = registeredOutfitsJson.split(",")
-
-                registeredDates.clear()
-                dateToOutfitIdMap.clear()
-
-                outfitEntries.forEach { entry ->
-                    val parts = entry.split(":")
-                    if (parts.size == 2) {
-                        val date = parts[0]
-                        val outfitId = parts[1].toIntOrNull() ?: 1
-
-                        registeredDates.add(date)
-                        dateToOutfitIdMap[date] = outfitId
-                    }
-                }
-
-                Log.d("CalendarFragment", "로드된 등록 날짜: $registeredDates")
-
-                if (::calendarAdapter.isInitialized) {
-                    calendarAdapter.updateRegisteredDates(registeredDates)
-                }
-
-            } catch (e: Exception) {
-                Log.e("CalendarFragment", "등록 기록 파싱 실패", e)
-            }
-        } else {
-            Log.d("CalendarFragment", "등록된 코디 없음 - 빈 캘린더 표시")
-        }
-
-        isLoadingDates = false
-    }
-
-    /**
      * ⭐ 특정 outfit_id로 코디 상세 정보 조회
      */
     private fun fetchOutfitDetails(outfitId: Int, onResult: (String?, String?) -> Unit) {
@@ -249,65 +201,209 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시
+     * ⭐ showOutfitWithImageUrl 함수 - CalendarService API 사용
      */
     private fun showOutfitWithImageUrl(dateString: String) {
         Log.d("OutfitDebug", "=== 코디 상세 찾기 ===")
         Log.d("OutfitDebug", "찾는 날짜: $dateString")
 
-        val allOutfits = homeViewModel.recentOutfits.value
-        Log.d("OutfitDebug", "HomeViewModel 데이터 개수: ${allOutfits?.size}")
+        // 1. 실제 이미지 URL 값 확인
+        val savedImageUrl = dateToImageUrlMap[dateString]
+        Log.d("OutfitDebug", "저장된 이미지 URL 실제 값: '$savedImageUrl'") // ⭐ 추가
 
-        allOutfits?.forEachIndexed { index, outfit ->
-            val outfitDate = outfit.date.substring(0, 10)
-            Log.d("OutfitDebug", "[$index] 날짜: $outfitDate, 이미지: ${outfit.image}")
+        if (!savedImageUrl.isNullOrBlank()) {
+            Log.d("OutfitDebug", "✅ 저장된 이미지 사용: $dateString -> $savedImageUrl")
+            navigateToOutfitDetailWithImage(dateString, savedImageUrl)
+            return
         }
 
+        // 2. HomeViewModel에서 찾기
+        val allOutfits = homeViewModel.recentOutfits.value
         val matchingOutfit = allOutfits?.find {
             it.date.substring(0, 10) == dateString
         }
 
         if (matchingOutfit != null) {
-            Log.d("OutfitDebug", "✅ 매칭 성공: $dateString -> ${matchingOutfit.image}")
+            Log.d("OutfitDebug", "✅ HomeViewModel 매칭 성공: $dateString -> ${matchingOutfit.image}")
             navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+            return
+        }
+
+        // 3. ⭐ CalendarService API로 이미지 가져오기 (7일 이전 데이터용)
+        val outfitId = dateToOutfitIdMap[dateString]
+        if (outfitId != null) {
+            Log.d("OutfitDebug", "CalendarService API로 이미지 조회: $dateString, outfitId: $outfitId")
+            loadImageFromCalendarService(dateString, outfitId)
         } else {
-            Log.d("OutfitDebug", "❌ 매칭 실패: $dateString")
-            Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            Log.d("OutfitDebug", "❌ outfit_id 없음: $dateString")
+            Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
+
+    /**
+     * ⭐ CalendarService API로 이미지 URL 가져오기
+     */
+    private fun loadImageFromCalendarService(dateString: String, outfitId: Int) {
+        val token = TokenProvider.getToken(requireContext())
+        if (token.isBlank()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val calendarService = RetrofitClient.instance.create(CalendarService::class.java)
+                val response = calendarService.getOutfitImage(
+                    outfitId = outfitId,
+                    authorization = "Bearer $token"
+                )
+
+                if (response.isSuccessful && response.body()?.result?.mainImage != null) {
+                    val imageUrl = response.body()!!.result!!.mainImage!!
+
+                    withContext(Dispatchers.Main) {
+                        Log.d("OutfitDebug", "✅ CalendarService에서 이미지 조회 성공: $dateString -> $imageUrl")
+
+                        // 다음번을 위해 저장
+                        dateToImageUrlMap[dateString] = imageUrl
+                        saveOutfitRegistration(dateString, outfitId, imageUrl)
+
+                        // 상세 화면으로 이동
+                        navigateToOutfitDetailWithImage(dateString, imageUrl)
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Log.d("OutfitDebug", "❌ CalendarService에서 이미지 없음: $dateString")
+                        Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("OutfitDebug", "CalendarService API 호출 실패", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "네트워크 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    /**
+     * ⭐ 기존 등록된 데이터에 이미지 URL 추가 (한 번만 실행)
+     */
+    private fun migrateExistingDataWithImageUrls() {
+        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
+        val migrationDone = prefs.getBoolean("image_url_migration_done", false)
+
+        if (migrationDone) {
+            Log.d("CalendarFragment", "이미지 URL 마이그레이션 이미 완료")
+            return
+        }
+
+        Log.d("CalendarFragment", "기존 데이터 이미지 URL 마이그레이션 시작")
+
+        // 이미지 URL이 없는 날짜들을 CalendarService API로 조회
+        val datesNeedingImageUrls = registeredDates.filter { !dateToImageUrlMap.containsKey(it) }
+
+        if (datesNeedingImageUrls.isEmpty()) {
+            prefs.edit().putBoolean("image_url_migration_done", true).apply()
+            return
+        }
+
+        val token = TokenProvider.getToken(requireContext())
+        if (token.isBlank()) return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            var successCount = 0
+
+            datesNeedingImageUrls.forEach { date ->
+                val outfitId = dateToOutfitIdMap[date]
+                if (outfitId != null) {
+                    try {
+                        val calendarService = RetrofitClient.instance.create(CalendarService::class.java)
+                        val response = calendarService.getOutfitImage(
+                            outfitId = outfitId,
+                            authorization = "Bearer $token"
+                        )
+
+                        if (response.isSuccessful && response.body()?.result?.mainImage != null) {
+                            val imageUrl = response.body()!!.result!!.mainImage!!
+
+                            withContext(Dispatchers.Main) {
+                                dateToImageUrlMap[date] = imageUrl
+                                saveOutfitRegistration(date, outfitId, imageUrl)
+                                successCount++
+
+                                Log.d("CalendarFragment", "마이그레이션 성공: $date -> $imageUrl")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("CalendarFragment", "마이그레이션 실패: $date", e)
+                    }
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                prefs.edit().putBoolean("image_url_migration_done", true).apply()
+                Log.d("CalendarFragment", "마이그레이션 완료: $successCount/${datesNeedingImageUrls.size}")
+
+                if (successCount > 0) {
+                    Toast.makeText(requireContext(), "기존 코디 이미지 로드 완료!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
 
     /**
      * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
      */
     private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
         try {
-            val bundle = Bundle().apply {
-                putString("selected_date", dateString)
-                putString("main_image_url", imageUrl)  // ⭐ 변경: image_url -> main_image_url
+            Log.d("OutfitDebug", "상세 화면 이동 - 날짜: '$dateString', 이미지: '$imageUrl'")
 
-                // ⭐ 개별 아이템 이미지들이 있다면 추가 (현재는 메인 이미지만)
-                // putStringArrayList("item_image_urls", arrayListOf(...))
-
-                // outfit_id는 전달하지 않음 (현재 -1로 설정됨)
+            if (imageUrl.isBlank() || imageUrl == "null") {
+                Log.e("OutfitDebug", "❌ 잘못된 이미지 URL: '$imageUrl'")
+                Toast.makeText(context, "이미지 URL이 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
+                return
             }
 
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putString("main_image_url", imageUrl)
+            }
+
+            Log.d("OutfitDebug", "Bundle 생성 완료: ${bundle.keySet()}")
+
             val navController = findNavController()
+            Log.d("OutfitDebug", "NavController 획득 완료")
+
+            // ⭐ Fragment가 활성 상태인지 확인
+            if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                Log.e("OutfitDebug", "❌ Fragment가 비활성 상태")
+                return
+            }
+
+            Log.d("OutfitDebug", "Navigation 시도 중...")
 
             runCatching {
                 navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
-            }.onFailure {
+                Log.d("OutfitDebug", "✅ action navigation 성공")
+            }.onFailure { actionError ->
+                Log.e("OutfitDebug", "Action navigation 실패: ${actionError.message}")
+
                 runCatching {
                     navController.navigate(R.id.calendarSaveFragment, bundle)
-                }.onFailure {
-                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
-                    // 이미지 URL 표시 (테스트용)
+                    Log.d("OutfitDebug", "✅ direct navigation 성공")
+                }.onFailure { directError ->
+                    Log.e("OutfitDebug", "Direct navigation도 실패: ${directError.message}")
+
+                    // ⭐ 최후의 수단: 임시 토스트로 확인
                     Toast.makeText(context, "$dateString 코디\n이미지: $imageUrl", Toast.LENGTH_LONG).show()
                 }
             }
 
         } catch (e: Exception) {
             Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
-            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -376,6 +472,7 @@ class CalendarFragment : Fragment() {
         val prefs = requireContext().getSharedPreferences("outfit_registration", Context.MODE_PRIVATE)
         val newlyRegisteredDate = prefs.getString("newly_registered_date", null)
         val newlyRegisteredId = prefs.getInt("newly_registered_outfit_id", -1)
+        val newlyRegisteredImageUrl = prefs.getString("newly_registered_image_url", null)
         val timestamp = prefs.getLong("registration_timestamp", 0)
 
         // 5분 이내에 등록된 것만 처리 (중복 처리 방지)
@@ -388,6 +485,7 @@ class CalendarFragment : Fragment() {
             prefs.edit()
                 .remove("newly_registered_date")
                 .remove("newly_registered_outfit_id")
+                .remove("newly_registered_image_url")
                 .remove("registration_timestamp")
                 .apply()
 
@@ -395,10 +493,99 @@ class CalendarFragment : Fragment() {
             addRegisteredDate(newlyRegisteredDate, newlyRegisteredId)
 
             // ⭐ 등록 기록을 SharedPreferences에 저장
-            saveOutfitRegistration(newlyRegisteredDate, newlyRegisteredId)
+            saveOutfitRegistration(newlyRegisteredDate, newlyRegisteredId, newlyRegisteredImageUrl)
 
             Toast.makeText(requireContext(), "코디가 등록되었습니다!", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /**
+     * ⭐ 코디 등록 기록을 SharedPreferences에 저장 (데이터 손실 방지)
+     */
+    private fun saveOutfitRegistration(date: String, outfitId: Int, imageUrl: String? = null) {
+        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
+        val existingData = prefs.getString("registered_outfits", "") ?: ""
+
+        Log.d("CalendarFragment", "saveOutfitRegistration 호출: $date, $outfitId, $imageUrl")
+        Log.d("CalendarFragment", "기존 데이터: $existingData")
+
+        // ⭐ 기존 데이터를 파싱해서 중복 체크
+        val existingEntries = if (existingData.isNotBlank()) {
+            existingData.split(",").toMutableList()
+        } else {
+            mutableListOf()
+        }
+
+        // 해당 날짜의 기존 엔트리 제거 (업데이트를 위해)
+        existingEntries.removeAll { it.startsWith("$date:") }
+
+        // 새로운 엔트리 추가
+        val newEntry = if (!imageUrl.isNullOrBlank()) {
+            "$date:$outfitId:$imageUrl"
+        } else {
+            "$date:$outfitId"
+        }
+        existingEntries.add(newEntry)
+
+        val updatedData = existingEntries.joinToString(",")
+
+        Log.d("CalendarFragment", "업데이트된 데이터: $updatedData")
+
+        prefs.edit().putString("registered_outfits", updatedData).apply()
+        Log.d("CalendarFragment", "등록 기록 저장 완료: $newEntry")
+    }
+
+    /**
+     * ⭐ loadRegisteredDatesWithExistingAPI 수정 (saveOutfitRegistration 호출 제거)
+     */
+    private fun loadRegisteredDatesWithExistingAPI() {
+        if (isLoadingDates) return
+        isLoadingDates = true
+
+        Log.d("CalendarFragment", "SharedPreferences에서 등록된 날짜 로드")
+
+        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
+        val registeredOutfitsJson = prefs.getString("registered_outfits", null)
+
+        Log.d("CalendarFragment", "저장된 데이터: $registeredOutfitsJson")
+
+        if (!registeredOutfitsJson.isNullOrBlank()) {
+            try {
+                val outfitEntries = registeredOutfitsJson.split(",")
+
+                registeredDates.clear()
+                dateToOutfitIdMap.clear()
+                dateToImageUrlMap.clear()
+
+                outfitEntries.forEach { entry ->
+                    val parts = entry.split(":")
+                    Log.d("CalendarFragment", "파싱 중: '$entry' -> parts: ${parts.toList()}") // ⭐ 수정
+
+                    if (parts.size >= 2) {
+                        val date = parts[0].trim() // ⭐ trim 추가
+                        val outfitId = parts[1].trim().toIntOrNull() ?: 1 // ⭐ trim 추가
+                        val imageUrl = if (parts.size >= 3) {
+                            val url = parts.drop(2).joinToString(":").trim() // ⭐ URL에 ':'가 포함될 수 있음
+                            if (url.isNotBlank()) url else null
+                        } else null
+
+                        registeredDates.add(date)
+                        dateToOutfitIdMap[date] = outfitId
+
+                        if (!imageUrl.isNullOrBlank()) {
+                            dateToImageUrlMap[date] = imageUrl
+                            Log.d("CalendarFragment", "이미지 URL 저장: '$date' -> '$imageUrl'") // ⭐ 수정
+                        } else {
+                            Log.d("CalendarFragment", "이미지 URL 없음: '$date'") // ⭐ 수정
+                        }
+                    }
+                }
+                // ... 나머지 코드
+            } catch (e: Exception) {
+                Log.e("CalendarFragment", "등록 기록 파싱 실패", e)
+            }
+        }
+        isLoadingDates = false
     }
 
     /**
@@ -428,14 +615,11 @@ class CalendarFragment : Fragment() {
                 if (!registeredDate.isNullOrBlank()) {
                     Log.d("CalendarFragment", "Navigation 결과로 등록된 날짜 수신: $registeredDate")
 
-                    // 임시 outfit_id 생성 (실제로는 등록 API 응답에서 받아야 함)
                     val tempOutfitId = System.currentTimeMillis().toInt() % 100000
-
                     addRegisteredDate(registeredDate, tempOutfitId)
-                    saveOutfitRegistration(registeredDate, tempOutfitId)
+                    saveOutfitRegistration(registeredDate, tempOutfitId, null) // ⭐ null 추가
 
                     Toast.makeText(requireContext(), "코디가 등록되었습니다!", Toast.LENGTH_SHORT).show()
-
                     findNavController().currentBackStackEntry?.savedStateHandle?.remove<String>("registered_date")
                 }
             }
@@ -450,7 +634,7 @@ class CalendarFragment : Fragment() {
 
                     // 새로 등록된 날짜를 캘린더에 추가
                     addRegisteredDate(newlyRegisteredDate, outfitId)
-                    saveOutfitRegistration(newlyRegisteredDate, outfitId)
+                    saveOutfitRegistration(newlyRegisteredDate, outfitId, null) // ⭐ null 추가
 
                     Toast.makeText(requireContext(), "코디가 캘린더에 추가되었습니다!", Toast.LENGTH_SHORT).show()
 
@@ -601,7 +785,23 @@ class CalendarFragment : Fragment() {
         Log.d("CalendarDebug", "등록된 날짜 개수: ${registeredDates.size}")
         Log.d("CalendarDebug", "등록된 날짜 목록: $registeredDates")
         Log.d("CalendarDebug", "날짜-ID 매핑: $dateToOutfitIdMap")
-        Log.d("CalendarDebug", "어댑터 초기화 여부: ${::calendarAdapter.isInitialized}")
+
+        // ⭐ 이미지 URL 상세 정보
+        Log.d("CalendarDebug", "이미지 URL 매핑 개수: ${dateToImageUrlMap.size}")
+        dateToImageUrlMap.forEach { (date, url) ->
+            Log.d("CalendarDebug", "이미지 매핑: '$date' -> '$url' (길이: ${url.length})")
+        }
+
+        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
+        val actualData = prefs.getString("registered_outfits", "없음")
+        Log.d("CalendarDebug", "실제 저장된 데이터: '$actualData'")
+
+        // ⭐ 특정 날짜 확인 (예: 2025-07-27)
+        val testDate = "2025-07-27"
+        val hasUrl = dateToImageUrlMap.containsKey(testDate)
+        val urlValue = dateToImageUrlMap[testDate]
+        Log.d("CalendarDebug", "테스트 날짜 '$testDate': hasUrl=$hasUrl, value='$urlValue'")
+
         Log.d("CalendarDebug", "========================")
     }
 
