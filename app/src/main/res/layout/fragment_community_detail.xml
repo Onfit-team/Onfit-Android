@@ -193,40 +193,11 @@
         <!-- 태그 -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/style_chips"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            app:chipSpacing="4dp"
-            android:gravity="center_horizontal">
-            <com.google.android.material.chip.Chip
-                android:text="#깔끔한"
-                android:textSize="12sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-
-            <com.google.android.material.chip.Chip
-                android:text="#편한"
-                android:textSize="12sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-
-            <com.google.android.material.chip.Chip
-                android:text="#시원한"
-                android:textSize="12sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:chipBackgroundColor="@color/basic_gray"
-                android:fontFamily="@font/pretendardmedium"
-                android:textColor="@color/black"
-                style="@style/Widget.MaterialComponents.Chip.Choice"/>
-        </com.google.android.material.chip.ChipGroup>
+            android:gravity="start"
+            app:chipSpacingHorizontal="2dp"
+            app:chipSpacingVertical="2dp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

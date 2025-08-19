@@ -26,7 +26,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
 import com.example.onfit.HomeRegister.model.RetrofitClient
-import com.example.onfit.HomeRegister.service.CropItem
 import com.example.onfit.OutfitRegister.RetrofitClient as UploadRetrofit
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.OutfitRegister.ApiService
@@ -53,11 +52,6 @@ class OutfitRegisterFragment : Fragment() {
 
     private lateinit var adapter: OutfitAdapter
     private val outfitList = mutableListOf<OutfitItem2>()
-
-    // 이미 detect를 돌린 원본 경로 모음(중복 호출 방지)
-    private val processedDetectPaths = mutableSetOf<String>()
-    // 이미 추가한 crop Uri를 기억
-    private val addedCropUriStrings = mutableSetOf<String>()
 
     // 갤러리에서 이미지 선택 결과를 받는 Launcher
     private val galleryLauncher = registerForActivityResult(
@@ -88,31 +82,6 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 옷장 아이템 이미지로 이미지 변경
-        findNavController().currentBackStackEntry
-            ?.savedStateHandle
-            ?.getLiveData<Bundle>("wardrobe_result")
-            ?.observe(viewLifecycleOwner) { result ->
-                val position   = result.getInt("position", -1)
-                val imageResId = result.getInt("imageResId", 0)
-                val imageUri   = result.getString("imageUriString")
-
-                if (position in outfitList.indices) {
-                    when {
-                        imageResId != 0 -> {
-                            outfitList[position].imageResId = imageResId
-                            outfitList[position].imageUri = null
-                        }
-                        !imageUri.isNullOrBlank() -> {
-                            outfitList[position].imageUri = Uri.parse(imageUri)
-                            outfitList[position].imageResId = null
-                        }
-                        else -> return@observe
-                    }
-                    adapter.notifyItemChanged(position)
-                }
-            }
-
         // 더미데이터 추가
         if (outfitList.isEmpty()) {
             outfitList.addAll(
@@ -132,68 +101,40 @@ class OutfitRegisterFragment : Fragment() {
             viewLifecycleOwner
         ) { _, bundle ->
             val uriStr = bundle.getString("cropped_image_uri") ?: return@setFragmentResultListener
+            val uri = Uri.parse(uriStr)
 
-            // 같은 결과가 다시 들어오면 스킵
-            if (addedCropUriStrings.add(uriStr)) {
-                val uri = Uri.parse(uriStr)
-                adapter.addItem(
-                    OutfitItem2(
-                        imageUri = uri,
-                        imageResId = null,
-                        isClosetButtonActive = true
-                    )
-                )
-            } else {
-                Log.d("OutfitRegister", "skip duplicated crop_result: $uriStr")
-            }
-            // 한 번 소비했으면 반드시 비우기(재전달 방지)
-            parentFragmentManager.clearFragmentResult("crop_result")
+            val newItem = OutfitItem2(
+                imageUri = uri,
+                imageResId = null,
+                isClosetButtonActive = true
+            )
+            adapter.addItem(newItem)
         }
 
 
         // SaveFragment에서 전달받은 이미지 경로 가져오기
         val imagePath = arguments?.getString("outfit_image_path")
         if (!imagePath.isNullOrEmpty()) {
-            if (processedDetectPaths.add(imagePath)) {
-                // set에 처음 들어갈 때만 true -> detect 1회만 수행
-                Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
-                uploadImageToServer(File(imagePath))
-                arguments?.putString("outfit_image_path", null)
-            } else {
-                Log.d("OutfitRegister", "detect already processed for $imagePath")
-            }
+            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
+            uploadImageToServer(File(imagePath))
         }
 
         adapter = OutfitAdapter(
             outfitList,
-            onClosetButtonClick = { pos ->
-                val item = outfitList.getOrNull(pos)
-                val source: String? = when {
-                    item?.imageUri != null   -> item.imageUri.toString() // content:// 또는 file://
-                    item?.imageResId != null -> "res://${item.imageResId}" // 리소스일 경우
-                    else -> null
-                }?: run {
-                    Toast.makeText(requireContext(), "이미지 소스가 없어요.", Toast.LENGTH_SHORT).show()
-                    return@OutfitAdapter
-                }
-                // Safe Args
-                val directions = OutfitRegisterFragmentDirections
-                    .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
-                    
-                findNavController().navigate(directions)
+            onClosetButtonClick = {
+                // OutfitSelectFragment로 전환
+                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSelectFragment)
             },
             onCropButtonClick = { position ->
-                val imagePath = imagePath
+                // OutfitCropFragment로 전환
+                val item = outfitList[position]
+                val imagePath = item.imageUri?.path ?: ""
+
                 val bundle = Bundle().apply {
                     putString("outfit_image_path", imagePath)
                 }
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
             })
-
-        if (!imagePath.isNullOrEmpty()) {
-            Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
-            uploadImageToServer(File(imagePath))
-        }
 
         binding.outfitRegisterRv.adapter = adapter
         binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
@@ -376,26 +317,7 @@ class OutfitRegisterFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // ✅ 1) 호출 시작 로그
-                val callId = System.currentTimeMillis().toString()
                 val response = RetrofitClient.instance.detectItems(header, part)
-
-                // ✅ 3) 응답 파싱 + 크롭 로그 (IO 스레드에서 미리)
-                val cropsIO = if (response.isSuccessful) {
-                    response.body()?.result?.crops.orEmpty()
-                } else emptyList()
-
-                if (response.isSuccessful) {
-                    Log.d(
-                        "Detect",
-                        "CALL $callId CROPS size=${cropsIO.size} raw=${
-                            cropsIO.joinToString(" | ") { it.bbox.joinToString(prefix = "[", postfix = "]") }
-                        }"
-                    )
-                } else {
-                    val err = response.errorBody()?.string()
-                    Log.e("Detect", "CALL $callId ERROR http=${response.code()} body=$err")
-                }
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
@@ -407,16 +329,13 @@ class OutfitRegisterFragment : Fragment() {
                             return@withContext
                         }
 
-                        // bbox를 정수로 정규화해서 키 만들고 중복 제거
-                        val uniqueCrops = dedupeCropsByIoU(crops /* or cropsIO if 사용중 */, iouThreshold = 0.88f, minSidePx = 24)
-                        Log.d("Detect", "DEDUPED size=${uniqueCrops.size} (from ${crops.size})")
+                        crops.forEach { crop ->
+                            val croppedBitmap = cropBitmap(originalBitmap, crop.bbox)
+                            val croppedUri = bitmapToUri(croppedBitmap)
 
-                        for (crop in uniqueCrops) {
-                            val bmp = safeCrop(originalBitmap, crop.bbox) ?: continue
-                            val uri = bitmapToUri(bmp)
                             adapter.addItem(
                                 OutfitItem2(
-                                    imageUri = uri,
+                                    imageUri = croppedUri,
                                     imageResId = null,
                                     isClosetButtonActive = true
                                 )
@@ -498,56 +417,6 @@ class OutfitRegisterFragment : Fragment() {
         }
         if (resized !== bm) bm.recycle()
         return outFile
-    }
-
-    // 크롭 시 중복 제거
-    private fun safeCrop(original: Bitmap, bbox: List<Float>): Bitmap? {
-        if (bbox.size < 4) return null
-        val x1 = bbox[0].toInt().coerceIn(0, original.width - 1)
-        val y1 = bbox[1].toInt().coerceIn(0, original.height - 1)
-        val x2 = bbox[2].toInt().coerceIn(x1 + 1, original.width)
-        val y2 = bbox[3].toInt().coerceIn(y1 + 1, original.height)
-        val w = (x2 - x1).coerceAtLeast(1)
-        val h = (y2 - y1).coerceAtLeast(1)
-        return try { Bitmap.createBitmap(original, x1, y1, w, h) } catch (_: Exception) { null }
-    }
-
-    // 두 박스의 IoU 계산 (bbox: [x1, y1, x2, y2])
-    private fun iou(a: List<Float>, b: List<Float>): Float {
-        if (a.size < 4 || b.size < 4) return 0f
-        val ax1 = a[0]; val ay1 = a[1]; val ax2 = a[2]; val ay2 = a[3]
-        val bx1 = b[0]; val by1 = b[1]; val bx2 = b[2]; val by2 = b[3]
-
-        val ix1 = maxOf(ax1, bx1)
-        val iy1 = maxOf(ay1, by1)
-        val ix2 = minOf(ax2, bx2)
-        val iy2 = minOf(ay2, by2)
-
-        val iw = (ix2 - ix1).coerceAtLeast(0f)
-        val ih = (iy2 - iy1).coerceAtLeast(0f)
-        val inter = iw * ih
-        val areaA = (ax2 - ax1).coerceAtLeast(0f) * (ay2 - ay1).coerceAtLeast(0f)
-        val areaB = (bx2 - bx1).coerceAtLeast(0f) * (by2 - by1).coerceAtLeast(0f)
-        val union = areaA + areaB - inter
-        return if (union <= 0f) 0f else inter / union
-    }
-
-    // NMS 느낌의 간단 중복 제거 (IoU 임계값 이상이면 중복으로 간주)
-    private fun dedupeCropsByIoU(
-        crops: List<CropItem>,
-        iouThreshold: Float = 0.88f,
-        minSidePx: Int = 24 // 너무 작은 박스 무시 (선택)
-    ): List<CropItem> {
-        val result = mutableListOf<CropItem>()
-        for (c in crops) {
-            val w = (c.bbox[2] - c.bbox[0]).coerceAtLeast(0f)
-            val h = (c.bbox[3] - c.bbox[1]).coerceAtLeast(0f)
-            if (w < minSidePx || h < minSidePx) continue // 작은 박스 스킵
-
-            val dup = result.any { iou(it.bbox, c.bbox) >= iouThreshold }
-            if (!dup) result += c
-        }
-        return result
     }
 
     override fun onDestroyView() {
