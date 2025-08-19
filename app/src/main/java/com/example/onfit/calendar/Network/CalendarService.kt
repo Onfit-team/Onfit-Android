@@ -22,12 +22,4 @@ interface CalendarService {
         @Header("Authorization") authorization: String
     ): Response<MostUsedTagResponse>
 
-<<<<<<< HEAD
-=======
-    // 🔥 새로 추가: 현재 날짜 조회
-    @GET("common/date")
-    suspend fun getCurrentDate(
-        @Header("Authorization") authorization: String
-    ): Response<CurrentDateResponse>
->>>>>>> 3677f88 (refactor: 코드 리팩토링)
 }

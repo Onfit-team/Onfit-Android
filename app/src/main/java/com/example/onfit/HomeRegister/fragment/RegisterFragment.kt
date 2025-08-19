@@ -2,6 +2,7 @@ package com.example.onfit.HomeRegister.fragment
 
 import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
@@ -64,10 +65,25 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
             binding.registerOutfitIv.setImageBitmap(bitmap)
         }
 
-        // 날짜 오늘 날짜로 기본 설정
-        val today = Calendar.getInstance().time
-        val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
-        binding.registerDateTv.text = dateFormat.format(today)
+        // ⭐ 날짜 설정: 전달받은 날짜가 있으면 그 날짜로, 없으면 오늘 날짜로
+        val selectedDate = arguments?.getString("selectedDate") // CalendarFragment에서 전달받은 날짜
+        val dateToDisplay = if (!selectedDate.isNullOrBlank()) {
+            // 캘린더에서 선택한 날짜 사용 (yyyy-MM-dd → yyyy.MM.dd 변환)
+            try {
+                val parts = selectedDate.split("-")
+                String.format("%04d.%02d.%02d", parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            } catch (e: Exception) {
+                // 변환 실패 시 오늘 날짜 사용
+                Log.e("RegisterFragment", "날짜 변환 실패: $selectedDate", e)
+                SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).format(Calendar.getInstance().time)
+            }
+        } else {
+            // 홈에서 왔거나 날짜 전달이 없으면 오늘 날짜 사용
+            SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).format(Calendar.getInstance().time)
+        }
+
+        Log.d("RegisterFragment", "표시할 날짜: $dateToDisplay (전달받은 날짜: $selectedDate)")
+        binding.registerDateTv.text = dateToDisplay
 
         // 위에서 메모 TopSheetDialog 내려옴
         binding.registerMemoEt.setOnClickListener {
@@ -115,7 +131,6 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                 binding.registerDateTv.text = String.format("%04d.%02d.%02d", y, m + 1, d)
             }, year, month, day).show()
         }
-
 
         // 저장 버튼 누르면 날짜, 이미지 Bundle로 전달, 코디 등록 API 연동
         binding.registerSaveBtn.setOnClickListener {
@@ -197,6 +212,31 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
 
                         // ✅ 서버가 준 id 꺼내기 (Long/Int → String)
                         val outfitIdText = body.result?.id?.toString().orEmpty()
+                        val registeredDate = formattedDateForAPI // "2025-08-06"
+
+                        Log.d("RegisterFragment", "등록 성공 - 날짜: $registeredDate, outfit_id: $outfitIdText")
+
+                        // ⭐ outfit_id와 날짜 매핑을 outfit_history에 저장
+                        val historyPrefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
+                        val existingData = historyPrefs.getString("registered_outfits", "") ?: ""
+
+                        val newEntry = "$registeredDate:$outfitIdText"
+                        val updatedData = if (existingData.isBlank()) {
+                            newEntry
+                        } else {
+                            "$existingData,$newEntry"
+                        }
+
+                        historyPrefs.edit().putString("registered_outfits", updatedData).apply()
+                        Log.d("RegisterFragment", "등록 기록 저장: $newEntry")
+
+                        // ⭐ 새로 등록된 정보를 CalendarFragment에 전달
+                        val registrationPrefs = requireContext().getSharedPreferences("outfit_registration", Context.MODE_PRIVATE)
+                        registrationPrefs.edit()
+                            .putString("newly_registered_date", registeredDate)
+                            .putInt("newly_registered_outfit_id", outfitIdText.toIntOrNull() ?: -1)
+                            .putLong("registration_timestamp", System.currentTimeMillis())
+                            .apply()
 
                         val bundle = Bundle().apply {
                             putString("save_date", formattedDate)
