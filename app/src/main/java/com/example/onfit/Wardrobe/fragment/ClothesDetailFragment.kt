@@ -24,7 +24,6 @@ import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
 import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
-import javax.sql.DataSource
 
 class ClothesDetailFragment : Fragment() {
 
@@ -62,20 +61,351 @@ class ClothesDetailFragment : Fragment() {
 
         setupButtons(view)
 
-        // imageResId가 실제 drawable 리소스인지 API 아이템 ID인지 판단
-        if (isApiItemId(imageResId)) {
-            // API 데이터인 경우 (imageResId가 실제로는 item_id)
+        // 🔥 FIXED: 더미 데이터도 실제 정보로 표시
+        if (isDummyItemId(imageResId)) {
+            // 더미 데이터인 경우 - 더미 정보 표시
+            setupDummyDataWithInfo(view)
+        } else if (isApiItemId(imageResId)) {
+            // API 데이터인 경우
             loadItemDetailFromApi(imageResId)
         } else {
-            // 더미 데이터인 경우 (기존 방식)
+            // 기존 drawable 리소스인 경우
             setupDummyData(view)
         }
+    }
+
+    // 🔥 NEW: 더미 아이템 ID 판별 함수
+    private fun isDummyItemId(value: Int): Boolean {
+        // 더미 아이템은 음수 ID (-1000 이하)
+        return value < 0
     }
 
     private fun isApiItemId(value: Int): Boolean {
         // drawable 리소스 ID는 보통 매우 큰 숫자 (2130xxx...)
         // API item ID는 보통 작은 숫자 (1, 2, 3...)
         return value > 0 && value < 100000
+    }
+
+    // 🔥 NEW: 더미 데이터를 실제 정보로 표시하는 함수
+    private fun setupDummyDataWithInfo(view: View) {
+        Log.d("ClothesDetailFragment", "🎭 더미 데이터 정보 표시: ID=$imageResId")
+
+        val dummyItemInfo = generateDummyItemInfo(imageResId)
+
+        // 이미지 표시
+        val clothesImageView = view.findViewById<ImageView>(R.id.clothes_image)
+        clothesImageView?.let { imageView ->
+            // 더미 이미지 로딩
+            loadDummyImageWithAssets(imageView, dummyItemInfo.imagePath)
+        }
+
+        // 카테고리 정보 표시
+        displayDummyCategoryInfo(dummyItemInfo)
+
+        // 구매 정보 표시
+        displayDummyPurchaseInfo(dummyItemInfo)
+
+        // 태그 표시
+        displayDummyTags(dummyItemInfo.tags)
+    }
+
+    // 🔥 NEW: 더미 아이템 정보 데이터 클래스
+    data class DummyItemInfo(
+        val id: Int,
+        val imagePath: String,
+        val category: Int,
+        val subcategory: Int,
+        val season: Int,
+        val color: Int,
+        val brand: String,
+        val size: String,
+        val price: Int,
+        val purchaseSite: String,
+        val tags: List<String>
+    )
+
+    // 🔥 FIXED: 중복 제거된 generateDummyItemInfo 함수
+    private fun generateDummyItemInfo(dummyId: Int): DummyItemInfo {
+        val index = Math.abs(dummyId + 1000) // -1000 -> 0, -1001 -> 1, ...
+
+        // Assets 폴더에서 이미지 파일명 추출
+        val imagePath = getDummyImagePath(index)
+        val fileName = imagePath.substringAfterLast("/")
+
+        // 파일명 기반 정보 생성
+        val (category, subcategory) = estimateCategoryFromFileNameForDetail(fileName, index)
+        val brand = extractBrandFromFileNameForDetail(fileName) ?: generateDummyBrand(index)
+        val color = estimateColorFromFileNameForDetail(fileName)
+        val season = 1 // WardrobeFragment와 동일하게 봄가을로 고정
+        val size = generateDummySize(category)
+        val price = generateDummyPrice(brand)
+        val purchaseSite = generateDummyPurchaseSite(index)
+        val tags = generateDummyTags(category, index)
+
+        return DummyItemInfo(
+            id = dummyId,
+            imagePath = imagePath,
+            category = category,
+            subcategory = subcategory,
+            season = season,
+            color = color,
+            brand = brand,
+            size = size,
+            price = price,
+            purchaseSite = purchaseSite,
+            tags = tags
+        )
+    }
+
+    // 🔥 FIXED: 더미 이미지 경로 가져오기 (코디 기록 제외)
+    private fun getDummyImagePath(index: Int): String {
+        try {
+            val am = requireContext().assets
+            val imageFiles = am.list("dummy_recommend")
+                ?.filter { name ->
+                    val l = name.lowercase()
+                    val isImageFile = l.endsWith(".png") || l.endsWith(".jpg") || l.endsWith(".jpeg") || l.endsWith(".jfif") || l.endsWith(".webp")
+
+                    // 🔥 코디 기록 파일 제외 (WardrobeFragment와 동일한 로직)
+                    val isOutfitRecord = isOutfitRecordFileForDetail(name)
+                    val isWardrobeItem = !isOutfitRecord
+
+                    isImageFile && isWardrobeItem
+                } ?: emptyList()
+
+            if (imageFiles.isNotEmpty()) {
+                val fileName = imageFiles[index % imageFiles.size]
+                return "file:///android_asset/dummy_recommend/$fileName"
+            }
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "더미 이미지 경로 가져오기 실패", e)
+        }
+
+        // 기본값
+        return "file:///android_asset/dummy_recommend/default.png"
+    }
+
+    // 🔥 NEW: ClothesDetailFragment용 코디 기록 파일 판별 함수
+    private fun isOutfitRecordFileForDetail(fileName: String): Boolean {
+        val name = fileName.lowercase()
+
+        // 날짜.온도(체감온도) 패턴: "6월8.14(26.4).jpg" 형태
+        val dateTemperaturePattern = Regex("\\d+월\\d+\\.\\d+\\(\\d+\\.\\d+\\)")
+
+        return name.contains(dateTemperaturePattern)
+    }
+
+    // 🔥 NEW: Assets 더미 이미지 로딩
+    private fun loadDummyImageWithAssets(imageView: ImageView, imagePath: String) {
+        try {
+            if (imagePath.startsWith("file:///android_asset/")) {
+                val assetPath = imagePath.removePrefix("file:///android_asset/")
+                val inputStream = requireContext().assets.open(assetPath)
+                val drawable = Drawable.createFromStream(inputStream, null)
+                imageView.setImageDrawable(drawable)
+                inputStream.close()
+                Log.d("ClothesDetailFragment", "✅ Assets 이미지 로딩 성공: $assetPath")
+            } else {
+                // 일반 더미 이미지 사용
+                loadDummyImage(imageView)
+            }
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "Assets 이미지 로딩 실패", e)
+            loadDummyImage(imageView)
+        }
+    }
+
+    // 🔥 NEW: 더미 카테고리 정보 표시
+    private fun displayDummyCategoryInfo(itemInfo: DummyItemInfo) {
+        val categoryName = getCategoryName(itemInfo.category)
+        val subcategoryName = getSubcategoryName(itemInfo.subcategory)
+        val seasonName = getSeasonName(itemInfo.season)
+        val colorName = getColorName(itemInfo.color)
+
+        updateTextView(R.id.tv_category, categoryName)
+        updateTextView(R.id.tv_subcategory, subcategoryName)
+        updateTextView(R.id.tv_season, seasonName)
+        updateTextView(R.id.tv_color, colorName)
+
+        Log.d("ClothesDetailFragment", "더미 카테고리 정보: $categoryName > $subcategoryName, $seasonName, $colorName")
+    }
+
+    // 🔥 NEW: 더미 구매 정보 표시
+    private fun displayDummyPurchaseInfo(itemInfo: DummyItemInfo) {
+        view?.findViewById<EditText>(R.id.et_brand)?.apply {
+            setText(itemInfo.brand)
+            isEnabled = false
+        }
+        view?.findViewById<EditText>(R.id.et_size)?.apply {
+            setText(itemInfo.size)
+            isEnabled = false
+        }
+        view?.findViewById<EditText>(R.id.et_price)?.apply {
+            setText(itemInfo.price.toString())
+            isEnabled = false
+        }
+        view?.findViewById<EditText>(R.id.et_site)?.apply {
+            setText(itemInfo.purchaseSite)
+            isEnabled = false
+        }
+    }
+
+    // 🔥 NEW: 더미 태그 표시
+    private fun displayDummyTags(tags: List<String>) {
+        val tagsContainer = view?.findViewById<LinearLayout>(R.id.tags_container)
+        tagsContainer?.removeAllViews()
+
+        if (tags.isEmpty()) {
+            addNoTagsMessage(tagsContainer)
+            return
+        }
+
+        Log.d("ClothesDetailFragment", "더미 태그 표시: ${tags.joinToString(", ")}")
+
+        tags.forEach { tagName ->
+            val tagView = createTagView(tagName, "더미")
+            tagsContainer?.addView(tagView)
+        }
+    }
+
+    // 🔥 더미 정보 생성 함수들
+    private fun generateDummyBrand(index: Int): String {
+        val brands = listOf("나이키", "아디다스", "유니클로", "자라", "H&M", "무지", "엠씨엠", "구찌", "프라다", "루이비통")
+        return brands[index % brands.size]
+    }
+
+    private fun generateDummySize(category: Int): String {
+        return when (category) {
+            1, 3, 4 -> { // 상의, 원피스, 아우터
+                val sizes = listOf("XS", "S", "M", "L", "XL")
+                sizes.random()
+            }
+            2 -> { // 하의
+                val sizes = listOf("26", "27", "28", "29", "30", "31", "32")
+                sizes.random()
+            }
+            5 -> { // 신발
+                val sizes = listOf("230", "235", "240", "245", "250", "255", "260", "265", "270", "275")
+                sizes.random()
+            }
+            else -> "FREE"
+        }
+    }
+
+    private fun generateDummyPrice(brand: String): Int {
+        return when (brand) {
+            "구찌", "프라다", "루이비통" -> (500000..2000000).random()
+            "나이키", "아디다스" -> (80000..200000).random()
+            "유니클로", "H&M" -> (10000..50000).random()
+            "자라" -> (30000..80000).random()
+            else -> (20000..100000).random()
+        }
+    }
+
+    private fun generateDummyPurchaseSite(index: Int): String {
+        val sites = listOf("네이버 쇼핑", "쿠팡", "G마켓", "11번가", "옥션", "위메프", "티몬", "무신사", "브랜디", "29CM")
+        return sites[index % sites.size]
+    }
+
+    private fun generateDummyTags(category: Int, index: Int): List<String> {
+        val moodTags = listOf("캐주얼", "스트릿", "미니멀", "클래식", "빈티지", "러블리", "페미닌", "보이시", "모던")
+        val purposeTags = listOf("데일리", "출근룩", "데이트룩", "나들이룩", "여행룩", "운동복", "하객룩", "파티룩")
+
+        val selectedMoodTag = moodTags[index % moodTags.size]
+        val selectedPurposeTag = purposeTags[(index + 3) % purposeTags.size]
+
+        return listOf(selectedMoodTag, selectedPurposeTag)
+    }
+
+    // 🔥 FIXED: ClothesDetailFragment 전용 파일명 분석 함수들 (이름 변경으로 중복 방지)
+    private fun estimateCategoryFromFileNameForDetail(fileName: String, index: Int): Pair<Int, Int> {
+        val name = fileName.lowercase()
+
+        return when {
+            // 상의 관련 키워드
+            name.contains("후드") || name.contains("hood") || name.contains("맨투맨") ||
+                    name.contains("티셔츠") || name.contains("셔츠") || name.contains("shirt") -> {
+                val subcategory = when {
+                    name.contains("후드") || name.contains("hood") -> 6 // 후드티
+                    name.contains("셔츠") || name.contains("shirt") -> 4 // 셔츠/블라우스
+                    name.contains("맨투맨") -> 5 // 맨투맨
+                    else -> 1 // 반팔티셔츠
+                }
+                Pair(1, subcategory) // 상의
+            }
+
+            // 하의 관련 키워드
+            name.contains("바지") || name.contains("pants") || name.contains("jean") ||
+                    name.contains("슬랙스") || name.contains("팬츠") -> {
+                val subcategory = when {
+                    name.contains("청바지") || name.contains("jean") -> 11 // 청바지
+                    name.contains("슬랙스") -> 10 // 긴바지
+                    else -> 10 // 긴바지
+                }
+                Pair(2, subcategory) // 하의
+            }
+
+            // 아우터 관련 키워드
+            name.contains("자켓") || name.contains("jacket") || name.contains("코트") ||
+                    name.contains("아우터") || name.contains("outer") -> {
+                Pair(4, 23) // 아우터 - 자켓
+            }
+
+            // 신발 관련 키워드
+            name.contains("신발") || name.contains("shoes") || name.contains("운동화") ||
+                    name.contains("sneakers") -> {
+                Pair(5, 29) // 신발 - 운동화
+            }
+
+            // 액세서리 관련 키워드
+            name.contains("안경") || name.contains("glasses") || name.contains("가방") ||
+                    name.contains("bag") || name.contains("모자") || name.contains("hat") -> {
+                val subcategory = when {
+                    name.contains("안경") || name.contains("glasses") -> 40 // 안경/선글라스
+                    name.contains("가방") || name.contains("bag") -> 41 // 가방
+                    name.contains("모자") || name.contains("hat") -> 36 // 모자
+                    else -> 43 // 기타
+                }
+                Pair(6, subcategory) // 액세서리
+            }
+
+            // 기본값: 인덱스 기반으로 순환 배치
+            else -> {
+                val categories = listOf(
+                    Pair(1, 1), // 상의 - 반팔티셔츠
+                    Pair(2, 10), // 하의 - 긴바지
+                    Pair(4, 23), // 아우터 - 자켓
+                    Pair(5, 29), // 신발 - 운동화
+                    Pair(6, 43)  // 액세서리 - 기타
+                )
+                categories[index % categories.size]
+            }
+        }
+    }
+
+    private fun extractBrandFromFileNameForDetail(fileName: String): String? {
+        val brands = listOf("nike", "adidas", "uniqlo", "zara", "h&m", "무지", "엠씨엠")
+        val name = fileName.lowercase()
+        return brands.find { brand -> name.contains(brand) }
+    }
+
+    private fun estimateColorFromFileNameForDetail(fileName: String): Int {
+        val name = fileName.lowercase()
+        return when {
+            name.contains("black") || name.contains("블랙") || name.contains("검정") -> 1 // 블랙
+            name.contains("white") || name.contains("화이트") || name.contains("흰색") -> 2 // 화이트
+            name.contains("gray") || name.contains("grey") || name.contains("그레이") -> 3 // 그레이
+            name.contains("navy") || name.contains("네이비") -> 4 // 네이비
+            name.contains("brown") || name.contains("브라운") || name.contains("갈색") -> 6 // 브라운
+            name.contains("beige") || name.contains("베이지") -> 5 // 베이지
+            name.contains("red") || name.contains("빨강") || name.contains("레드") -> 7 // 레드
+            name.contains("pink") || name.contains("핑크") -> 8 // 핑크
+            name.contains("yellow") || name.contains("노랑") || name.contains("옐로우") -> 10 // 옐로우
+            name.contains("green") || name.contains("초록") || name.contains("그린") -> 11 // 그린
+            name.contains("blue") || name.contains("파랑") || name.contains("블루") -> 12 // 블루
+            name.contains("purple") || name.contains("보라") || name.contains("퍼플") -> 13 // 퍼플
+            else -> 1 // 기본값: 블랙
+        }
     }
 
     private fun setupButtons(view: View) {
@@ -85,16 +415,24 @@ class ClothesDetailFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-        // 편집 버튼 클릭 리스너 - AddItemFragment로 이동
-        val editButton = view.findViewById<ImageButton>(R.id.ic_edit)
+        // 편집 버튼 클릭 리스너 - 더미 데이터는 편집 불가
+        val editButton = view.findViewById<ImageButton>(R.id.edit_black)
         editButton?.setOnClickListener {
-            navigateToAddItem()
+            if (isDummyItemId(imageResId)) {
+                Toast.makeText(context, "더미 아이템은 편집할 수 없습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                navigateToAddItem()
+            }
         }
 
-        // 삭제 버튼 클릭 리스너
+        // 삭제 버튼 클릭 리스너 - 더미 데이터는 삭제 불가
         val deleteButton = view.findViewById<ImageButton>(R.id.ic_delete)
         deleteButton?.setOnClickListener {
-            showDeleteConfirmDialog()
+            if (isDummyItemId(imageResId)) {
+                Toast.makeText(context, "더미 아이템은 삭제할 수 없습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                showDeleteConfirmDialog()
+            }
         }
     }
 
@@ -271,7 +609,7 @@ class ClothesDetailFragment : Fragment() {
         val imageIndex = if (imageResId > 0) {
             (imageResId - 1) % dummyImages.size
         } else {
-            0 // 기본값
+            Math.abs(imageResId) % dummyImages.size // 음수 ID 처리
         }
 
         val selectedImage = dummyImages[imageIndex]

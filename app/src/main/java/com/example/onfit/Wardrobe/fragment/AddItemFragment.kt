@@ -18,6 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
+import android.app.Activity
+import android.content.Intent
+import android.provider.MediaStore
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 
 class AddItemFragment : Fragment() {
 
@@ -39,7 +44,7 @@ class AddItemFragment : Fragment() {
     // 선택된 태그들을 저장할 리스트
     private val selectedTags = mutableListOf<String>()
 
-    // 🔥 NEW: 태그 텍스트를 ID로 매핑하는 맵 추가
+    // 태그 텍스트를 ID로 매핑하는 맵 추가
     private val tagTextToIdMap = mapOf(
         // 분위기 태그
         "#캐주얼" to 1,
@@ -63,10 +68,18 @@ class AddItemFragment : Fragment() {
         "#파티룩" to 17
     )
 
-    // 🔥 NEW: 편집 모드용 기존 데이터 저장
+    // 편집 모드용 기존 데이터 저장
     private var existingItemData: ExistingItemData? = null
 
-    // 🔥 NEW: 기존 아이템 데이터 클래스
+    // 원본 이미지 URI를 저장할 변수
+    private var originalImageUri: Uri? = null
+    private var isAiImageApplied: Boolean = false
+
+
+    // AI 처리된 이미지 URL 저장 변수 추가
+    private var aiProcessedImageUrl: String? = null
+
+    // 기존 아이템 데이터 클래스
     data class ExistingItemData(
         val category: Int,
         val subcategory: Int,
@@ -79,13 +92,39 @@ class AddItemFragment : Fragment() {
         val tagIds: List<Int>?
     )
 
+    private lateinit var changeImageLauncher: ActivityResultLauncher<Intent>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Repository 초기화 (토큰 설정은 Repository에서 처리)
+        // Repository 초기화
         repository = WardrobeRepository(requireContext())
 
-        // 🔥 디버그용 토큰 정보 확인
+        // 🔥 이미지 변경을 위한 갤러리 런처 초기화
+        changeImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            // 🔥 갤러리에서 돌아온 후 bottom navigation 다시 숨기기
+            activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.data?.let { newImageUri ->
+                    Log.d("AddItemFragment", "새 이미지 선택됨: $newImageUri")
+
+                    // 새 이미지로 교체
+                    selectedImageUri = newImageUri
+                    ivClothes.setImageURI(newImageUri)
+
+                    // 버튼 텍스트와 상태 변경
+                    btnChangeToDefault.text = "다른 이미지로 변경하기"
+                    aiImageFailed = false
+
+                    // 제목 변경
+                    tvTitle.text = "선택한 이미지로\n아이템을 등록해주세요!"
+
+                    Toast.makeText(requireContext(), "이미지가 변경되었습니다", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         Log.d("AddItemFragment", "Repository 토큰 정보: ${repository.getTokenInfo()}")
     }
 
@@ -127,12 +166,51 @@ class AddItemFragment : Fragment() {
             saveItemToWardrobeWithRepository()
         }
 
-        // 기본 이미지로 변경 버튼 처리
+        // 🔥 기존 이미지로 변경 버튼 클릭 리스너
         btnChangeToDefault.setOnClickListener {
-            ivClothes.setImageResource(defaultImageResId)
-            selectedImageUri = null
-            btnChangeToDefault.visibility = View.GONE
-            aiImageFailed = false
+            Log.d("AddItemFragment", "버튼 클릭: ${btnChangeToDefault.text}")
+
+            when {
+                // AI 실패 상태인 경우 -> 기본 이미지로 등록
+                aiImageFailed -> {
+                    Log.d("AddItemFragment", "AI 실패 상태 - 기본 이미지로 설정")
+
+                    ivClothes.setImageResource(defaultImageResId)
+                    selectedImageUri = null
+                    aiImageFailed = false
+
+                    btnChangeToDefault.visibility = View.GONE
+                    tvTitle.text = "기본 이미지로\n아이템을 등록해주세요!"
+                }
+
+                // AI 성공 상태인 경우 -> 원본 이미지로 복원
+                isAiImageApplied && originalImageUri != null -> {
+                    Log.d("AddItemFragment", "원본 이미지로 복원: $originalImageUri")
+
+                    // 원본 이미지로 바로 복원
+                    selectedImageUri = originalImageUri
+                    ivClothes.setImageURI(originalImageUri)
+
+                    // 상태 변경
+                    isAiImageApplied = false
+                    btnChangeToDefault.text = "AI 이미지로 변경"
+                    tvTitle.text = "선택한 이미지로\n아이템을 등록해주세요!"
+
+                    Toast.makeText(requireContext(), "원본 이미지로 변경되었습니다", Toast.LENGTH_SHORT).show()
+                }
+
+                // 원본 상태에서 다시 AI 이미지로 변경
+                !isAiImageApplied && originalImageUri != null -> {
+                    Log.d("AddItemFragment", "AI 이미지 재생성 요청")
+
+                    // AI 이미지 재생성 (저장된 AI 이미지가 있다면 바로 사용)
+                    btnChangeToDefault.text = "기존 이미지로 변경"
+                    tvTitle.text = "AI가 이미지를\n깔끔하게 만들었어요!"
+                    isAiImageApplied = true
+
+                    Toast.makeText(requireContext(), "AI 이미지로 변경되었습니다", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -172,6 +250,7 @@ class AddItemFragment : Fragment() {
     /**
      * 🔥 사용자가 선택한 원본 이미지 표시
      */
+    // 🔥 수정된 setupImageDisplay 함수 - 진입 시 즉시 AI 처리
     private fun setupImageDisplay() {
         arguments?.let { bundle ->
             when {
@@ -182,16 +261,24 @@ class AddItemFragment : Fragment() {
                     if (!itemImage.isNullOrEmpty()) {
                         loadImageIntoView(itemImage)
                     }
+                    btnChangeToDefault.visibility = View.VISIBLE
+                    btnChangeToDefault.text = "이미지 변경하기"
                 }
 
-                // 2. 새 아이템 추가 - 이미지 URI가 있는 경우
+                // 2. 새 아이템 추가 - 이미지 URI가 있는 경우 -> 🔥 즉시 AI 처리
                 bundle.containsKey("image_uri") -> {
                     val imageUriString = bundle.getString("image_uri")
                     if (!imageUriString.isNullOrEmpty()) {
-                        selectedImageUri = Uri.parse(imageUriString)
+                        // 🔥 원본 이미지 URI 저장
+                        originalImageUri = Uri.parse(imageUriString)
+                        selectedImageUri = originalImageUri
+
+                        // 🔥 원본 이미지 먼저 표시
                         ivClothes.setImageURI(selectedImageUri)
-                        tvTitle.text = "선택한 이미지로\n아이템을 등록해주세요!"
-                        btnChangeToDefault.visibility = View.GONE
+                        tvTitle.text = "AI가 이미지를 처리 중입니다..."
+
+                        // 🔥 즉시 AI 처리 시작
+                        processImageWithAI()
                     }
                 }
 
@@ -201,6 +288,187 @@ class AddItemFragment : Fragment() {
                     tvTitle.text = "새 아이템을 등록해주세요"
                     btnChangeToDefault.visibility = View.GONE
                 }
+            }
+        } ?: run {
+            // arguments가 null인 경우
+            ivClothes.setImageResource(defaultImageResId)
+            tvTitle.text = "새 아이템을 등록해주세요"
+            btnChangeToDefault.visibility = View.GONE
+        }
+
+        Log.d("AddItemFragment", "🔍 setupImageDisplay 완료")
+        Log.d("AddItemFragment", "🔍 원본 이미지 URI: $originalImageUri")
+    }
+
+    // 🔥 NEW: 이미지 진입 시 즉시 AI 처리하는 함수
+    private fun processImageWithAI() {
+        if (selectedImageUri == null) {
+            Log.e("AddItemFragment", "❌ selectedImageUri가 null입니다")
+            return
+        }
+
+        Log.d("AddItemFragment", "🤖 AI 이미지 처리 시작: $selectedImageUri")
+
+        lifecycleScope.launch {
+            try {
+                // 로딩 상태 표시
+                withContext(Dispatchers.Main) {
+                    tvTitle.text = "AI가 이미지를\n깔끔하게 만들고 있어요..."
+                    // 로딩 인디케이터 표시 (선택사항)
+                }
+
+                // 🔥 AI 이미지 처리 (Repository의 uploadImage 사용)
+                repository.uploadImage(selectedImageUri!!)
+                    .onSuccess { aiImageUrl ->
+                        Log.d("AddItemFragment", "✅ AI 이미지 생성 성공: $aiImageUrl")
+
+                        withContext(Dispatchers.Main) {
+                            // 🔥 AI 처리된 이미지로 교체
+                            Glide.with(requireContext())
+                                .load(aiImageUrl)
+                                .placeholder(R.drawable.clothes8)
+                                .error(R.drawable.clothes8)
+                                .into(ivClothes)
+
+                            // 🔥 상태 업데이트
+                            isAiImageApplied = true
+                            aiImageFailed = false
+
+                            // 🔥 UI 업데이트
+                            btnChangeToDefault.visibility = View.VISIBLE
+                            btnChangeToDefault.text = "기존 이미지로 변경"
+                            tvTitle.text = "AI가 이미지를\n깔끔하게 만들었어요!"
+
+                            // 🔥 AI 처리된 이미지 URL 저장 (저장 시 사용)
+                            aiProcessedImageUrl = aiImageUrl
+
+                            Toast.makeText(requireContext(), "AI가 이미지를 깔끔하게 만들었습니다!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .onFailure { throwable ->
+                        Log.e("AddItemFragment", "❌ AI 이미지 생성 실패: ${throwable.message}")
+
+                        withContext(Dispatchers.Main) {
+                            // 🔥 실패 시 원본 이미지 유지
+                            aiImageFailed = true
+                            isAiImageApplied = false
+
+                            btnChangeToDefault.visibility = View.VISIBLE
+                            btnChangeToDefault.text = "기본 이미지로 등록하기"
+                            tvTitle.text = "AI 이미지 생성에 실패했습니다\n원본 이미지로 등록하시겠습니까?"
+
+                            Toast.makeText(requireContext(), "AI 이미지 생성에 실패했습니다. 원본 이미지로 등록됩니다.", Toast.LENGTH_LONG).show()
+                        }
+                    }
+
+            } catch (e: Exception) {
+                Log.e("AddItemFragment", "💥 AI 처리 중 예외 발생", e)
+
+                withContext(Dispatchers.Main) {
+                    aiImageFailed = true
+                    isAiImageApplied = false
+
+                    btnChangeToDefault.visibility = View.VISIBLE
+                    btnChangeToDefault.text = "기본 이미지로 등록하기"
+                    tvTitle.text = "AI 이미지 생성에 실패했습니다\n원본 이미지로 등록하시겠습니까?"
+
+                    Toast.makeText(requireContext(), "AI 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // 🔥 완전한 loadImageFromUrl 함수 (기존 loadImageFromUrlWithOriginalPlaceholder 대체)
+    private fun loadImageFromUrl(imageUrl: String) {
+        if (!isAdded || context == null) {
+            Log.w("AddItemFragment", "Fragment가 attach되지 않음 - Glide 호출 건너뜀")
+            return
+        }
+
+        try {
+            if (originalImageUri != null) {
+                // 🔥 원본 이미지가 있는 경우 - 원본 이미지를 활용
+                Glide.with(requireContext())
+                    .load(imageUrl) // AI 처리된 이미지 로드
+                    .error(originalImageUri) // 에러 시 원본 이미지로 복원
+                    .into(ivClothes)
+
+                Log.d("AddItemFragment", "✅ AI 이미지 로드 (원본 이미지 백업): $imageUrl")
+            } else {
+                // 🔥 원본 이미지가 없는 경우 - 기본 이미지 사용
+                Glide.with(requireContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.clothes8)
+                    .error(R.drawable.clothes8)
+                    .into(ivClothes)
+
+                Log.d("AddItemFragment", "✅ AI 이미지 로드 (기본 이미지 백업): $imageUrl")
+            }
+
+        } catch (e: Exception) {
+            Log.e("AddItemFragment", "❌ AI 이미지 로드 실패", e)
+
+            // 🔥 실패 시 처리: 원본 이미지 우선, 없으면 기본 이미지
+            try {
+                if (originalImageUri != null) {
+                    ivClothes.setImageURI(originalImageUri)
+                    Log.d("AddItemFragment", "원본 이미지로 복원됨")
+                } else {
+                    ivClothes.setImageResource(R.drawable.clothes8)
+                    Log.d("AddItemFragment", "기본 이미지로 복원됨")
+                }
+            } catch (fallbackException: Exception) {
+                Log.e("AddItemFragment", "이미지 복원도 실패", fallbackException)
+                // 최후의 수단
+                ivClothes.setImageResource(R.drawable.clothes8)
+            }
+        }
+    }
+
+    // AI 처리를 건너뛰고 바로 등록
+    private suspend fun registerNewItemWithRepository(formData: RegisterItemRequestDto) {
+        try {
+            // 🔥 이미 AI 처리가 완료된 경우 해당 URL 사용
+            val imageUrl = when {
+                isAiImageApplied && !aiProcessedImageUrl.isNullOrEmpty() -> {
+                    Log.d("AddItemFragment", "✅ 이미 처리된 AI 이미지 사용: $aiProcessedImageUrl")
+                    aiProcessedImageUrl!!
+                }
+                aiImageFailed && selectedImageUri == null -> {
+                    Log.d("AddItemFragment", "✅ 기본 이미지로 등록")
+                    "default_image" // 기본 이미지 URL
+                }
+                originalImageUri != null -> {
+                    Log.d("AddItemFragment", "✅ 원본 이미지로 등록")
+                    // 원본 이미지 다시 업로드 (AI 처리 없이)
+                    repository.uploadImage(originalImageUri!!).getOrThrow()
+                }
+                else -> {
+                    throw Exception("등록할 이미지가 없습니다")
+                }
+            }
+
+            // 아이템 등록
+            val finalRequest = formData.copy(image = imageUrl)
+            repository.registerItem(finalRequest)
+                .onSuccess { result ->
+                    Log.d("AddItemFragment", "✅ 아이템 등록 성공: ${result.itemId}")
+
+                    withContext(Dispatchers.Main) {
+                        notifyRegistrationComplete(true, formData.purchaseDate)
+                        Toast.makeText(requireContext(), "새 아이템이 추가되었습니다", Toast.LENGTH_SHORT).show()
+                        findNavController().navigateUp()
+                    }
+                }
+                .onFailure { throwable ->
+                    Log.e("AddItemFragment", "❌ 아이템 등록 실패: ${throwable.message}")
+                    throw Exception(throwable.message ?: "아이템 등록 실패", throwable)
+                }
+
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                notifyRegistrationComplete(false, null)
+                handleError(e, "아이템 등록에 실패했습니다")
             }
         }
     }
@@ -261,8 +529,8 @@ class AddItemFragment : Fragment() {
             return
         }
 
-        // 이미지 검증
-        if (selectedImageUri == null && !isEditMode) {
+        // 🔥 수정: AI 실패 상태이거나 이미지가 없는 경우 처리
+        if (selectedImageUri == null && !isEditMode && !aiImageFailed) {
             Toast.makeText(requireContext(), "이미지를 선택해주세요", Toast.LENGTH_SHORT).show()
             return
         }
@@ -276,7 +544,13 @@ class AddItemFragment : Fragment() {
                     updateItemWithRepository(formData)
                 } else {
                     // 🔥 새 등록 모드
-                    registerNewItemWithRepository(formData)
+                    if (aiImageFailed) {
+                        // AI 실패 상태에서는 기본 이미지로 등록
+                        registerWithDefaultImage(formData)
+                    } else {
+                        // 정상적인 이미지 업로드 시도
+                        registerNewItemWithRepository(formData)
+                    }
                 }
 
             } catch (e: Exception) {
@@ -287,61 +561,40 @@ class AddItemFragment : Fragment() {
         }
     }
 
-    /**
-     * 🔥 새 아이템 등록 (Repository 사용)
-     */
-    private suspend fun registerNewItemWithRepository(formData: RegisterItemRequestDto) {
+    private suspend fun registerWithDefaultImage(formData: RegisterItemRequestDto) {
         try {
-            // 1. 이미지 업로드
-            val imageUrl = if (selectedImageUri != null) {
-                Log.d("AddItemFragment", "이미지 업로드 시작: $selectedImageUri")
+            Log.d("AddItemFragment", "기본 이미지로 아이템 등록 시작")
 
-                repository.uploadImage(selectedImageUri!!)
-                    .onSuccess { url ->
-                        Log.d("AddItemFragment", "이미지 업로드 성공: $url")
-                        aiImageFailed = false
-                        btnChangeToDefault.visibility = View.GONE
-                    }
-                    .onFailure { exception ->
-                        Log.e("AddItemFragment", "이미지 업로드 실패: ${exception.message}")
-                        aiImageFailed = true
-                        // AI 이미지 실패 시: 기본 이미지, 버튼 표시
-                        withContext(Dispatchers.Main) {
-                            ivClothes.setImageResource(defaultImageResId)
-                            btnChangeToDefault.visibility = View.VISIBLE
-                            Toast.makeText(requireContext(), "AI 이미지 생성에 실패하여 기본 이미지로 변경됩니다.", Toast.LENGTH_SHORT).show()
-                        }
-                        throw exception
-                    }
-                    .getOrThrow()
-            } else {
-                throw Exception("이미지가 선택되지 않았습니다")
-            }
+            // 기본 이미지 URL 설정 (서버에서 처리할 기본 이미지 경로)
+            val defaultImageUrl = "default_image" // 또는 서버에서 정의한 기본 이미지 URL
 
-            // 2. 아이템 등록
-            val finalRequest = formData.copy(image = imageUrl)
+            val finalRequest = formData.copy(image = defaultImageUrl)
+
             repository.registerItem(finalRequest)
                 .onSuccess { result ->
-                    Log.d("AddItemFragment", "아이템 등록 성공: ${result.itemId}")
+                    Log.d("AddItemFragment", "기본 이미지로 아이템 등록 성공: ${result.itemId}")
 
                     withContext(Dispatchers.Main) {
                         // 성공 결과 전달
                         notifyRegistrationComplete(true, formData.purchaseDate)
 
-                        Toast.makeText(requireContext(), "새 아이템이 추가되었습니다", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "기본 이미지로 아이템이 추가되었습니다", Toast.LENGTH_SHORT).show()
                         findNavController().navigateUp()
                     }
                 }
-                .onFailure { exception ->
-                    Log.e("AddItemFragment", "아이템 등록 실패: ${exception.message}")
-                    throw exception
+                .onFailure { throwable ->
+                    Log.e("AddItemFragment", "기본 이미지 아이템 등록 실패: ${throwable.message}")
+                    withContext(Dispatchers.Main) {
+                        notifyRegistrationComplete(false, null)
+                        // Exception으로 변환해서 handleError 호출
+                        handleError(Exception(throwable.message ?: "등록 실패", throwable), "아이템 등록에 실패했습니다")
+                    }
                 }
 
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
                 notifyRegistrationComplete(false, null)
-                // 이미지 실패 시 이미 기본 이미지 및 버튼 노출됨
-                if (!aiImageFailed) handleError(e, "아이템 등록에 실패했습니다")
+                handleError(e, "기본 이미지 등록에 실패했습니다")
             }
         }
     }
@@ -370,8 +623,9 @@ class AddItemFragment : Fragment() {
                         findNavController().navigateUp()
                     }
                 }
-                .onFailure { exception ->
-                    throw exception
+                .onFailure { throwable ->
+                    // Exception으로 변환해서 throw
+                    throw Exception(throwable.message ?: "아이템 수정 실패", throwable)
                 }
 
         } catch (e: Exception) {
