@@ -8,9 +8,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.MediaScannerConnection
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -31,21 +31,24 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.onfit.Home.adapter.BestOutfitAdapter
 import com.example.onfit.Home.adapter.LatestStyleAdapter
 import com.example.onfit.Home.adapter.SimiliarStyleAdapter
+import com.example.onfit.Home.model.BestOutfitItem
 import com.example.onfit.Home.model.SimItem
-import com.example.onfit.Home.model.BestOutfitItem   // ★ 추가: 더미 리스트 생성용
 import com.example.onfit.Home.viewmodel.HomeViewModel
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.MainActivity
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.databinding.FragmentHomeBinding
 import com.example.onfit.network.RetrofitInstance
-import com.example.onfit.OutfitRegister.ApiService
-import com.example.onfit.OutfitRegister.RetrofitClient
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,10 +59,8 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.Calendar
-import kotlin.collections.isNotEmpty
-import kotlin.jvm.java
+import java.util.Locale
 import kotlin.math.roundToInt
 
 // 개발 편의용 스위치
@@ -252,7 +253,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         msg?.let { binding.subTv.text = it }
     }
 
-    // ★ BEST OUTFIT 더미: 파일명에 온도가 있는 asset만 사용, 현재 온도에 가장 가까운 순으로 선택
+    // BEST OUTFIT 더미: 파일명에 온도가 있는 asset만 사용, 현재 온도에 가장 가까운 순으로 선택
     private fun loadBestDummyFromAssetsByTemp(count: Int, currentTemp: Double?): List<BestOutfitItem> {
         if (count <= 0) return emptyList()
         val am = requireContext().assets
@@ -355,6 +356,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val token = TokenProvider.getToken(requireContext())
 
+        //베스트 OUTFIT3에서 버튼 클릭시 커뮤니티로 이동
+        binding.bestMoreBtn.setOnClickListener {
+            val bottomNav = requireActivity()
+                .findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+            bottomNav.selectedItemId = R.id.communityFragment
+        }
+
         // 닉네임 반영
         val nickname = TokenProvider.getNickname(requireContext())
         binding.simTextTv.text =
@@ -362,8 +370,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         binding.latestStyleTv.text =
             if (nickname.isNotEmpty()) "${nickname}님의 지난 7일 코디" else "회원님의 지난 7일 코디"
 
-        // 추천/베스트/최근 7일 기존 옵저버 유지
-        observeRecommend()
 
         // Similar: 서버 대신 assets 사용(초기엔 숫자 라벨로 1차 표기)
         if (USE_SIMILAR_FROM_ASSETS) {
@@ -378,9 +384,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         // 최근 7일
         viewModel.fetchRecentOutfits(token)
         viewModel.recentOutfits.observe(viewLifecycleOwner) { outfits ->
-            // 최대 7개만 표시할 목록 생성 (7개보다 적으면 있는 만큼 그대로)
             val top7 = outfits?.take(7).orEmpty()
-
             if (top7.isEmpty()) {
                 binding.latestStyleEmptyTv.visibility = View.VISIBLE
                 binding.latestStyleRecyclerView.visibility = View.GONE
@@ -388,12 +392,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 binding.latestStyleEmptyTv.visibility = View.GONE
                 binding.latestStyleRecyclerView.visibility = View.VISIBLE
                 binding.latestStyleRecyclerView.apply {
-                    adapter = LatestStyleAdapter(top7) // ← 7개로 자른 목록만 전달
-                    layoutManager = LinearLayoutManager(
-                        context,
-                        LinearLayoutManager.HORIZONTAL,
-                        false
-                    )
+                    adapter = LatestStyleAdapter(top7)
+                    layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 }
             }
         }
@@ -405,11 +405,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             val need = (3 - server.size).coerceAtLeast(0)
 
             val dummies = if (USE_DUMMY_BEST_WHEN_EMPTY && need > 0) {
-                loadBestDummyFromAssetsByTemp(need, lastTempAvg)     // ★ 온도 포함 파일만 사용
+                loadBestDummyFromAssetsByTemp(need, lastTempAvg)
             } else emptyList()
 
             val filled = (server + dummies).take(3)
-                .mapIndexed { idx, item -> item.copy(rank = idx + 1) } // UI용 rank 재부여
+                .mapIndexed { idx, item -> item.copy(rank = idx + 1) }
 
             if (filled.isEmpty()) {
                 binding.bestOutfitEmptyTv.visibility = View.VISIBLE
@@ -418,13 +418,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 binding.bestOutfitEmptyTv.visibility = View.GONE
                 binding.bestoutfitRecycleView.visibility = View.VISIBLE
                 binding.bestoutfitRecycleView.apply {
-                    adapter = BestOutfitAdapter(filled)
+                    adapter = BestOutfitAdapter(filled) { item ->
+                        val args = Bundle().apply {
+                            putInt("outfitId", item.id)
+                            putString("imageUrl", item.mainImage?.trim())
+                        }
+                        findNavController().navigate(R.id.communityDetailFragment, args)
+                    }
                     layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
                 }
+
             }
         }
-
-
 
         // 날짜/오류 문구
         viewModel.fetchDate()
@@ -503,7 +508,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val precipProb = w.precipitation.roundToInt().coerceIn(0, 100)
                     val precipText = "$precipProb%"
 
-                    updateCombinedInfo(getTodayDateString(), "${loc.sido} ${loc.sigungu}")
+                    updateCombinedInfo(getTodayDateString(), "${loc.sido} ${loc.sigungu} ${loc.dong}")
 
                     _binding?.apply {
                         weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 $precipText"
@@ -528,8 +533,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     // 추천/유사날씨 기존 호출 유지
                     requestRecommendForTemp(tempAvg)
                     viewModel.fetchSimilarWeather(token, tempAvg)
-                } else {
-                    Log.w("Weather", "current fail: code=${response.code()}, body=$body")
+
+                    val maxToday: Number? = body?.result?.weather?.tempMax
+                    val minToday: Number? = body?.result?.weather?.tempMin
+                    updateDailyRangeMessage(maxToday, minToday)
                 }
             } catch (e: Exception) {
                 if (!isAdded || _binding == null) return@launch
@@ -569,7 +576,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     val precipProb = w.precipitation.roundToInt().coerceIn(0, 100)
                     val precipText = "$precipProb%"
 
-                    updateCombinedInfo(getTomorrowDateString(), "${loc.sido} ${loc.sigungu}")
+                    updateCombinedInfo(getTomorrowDateString(), "${loc.sido} ${loc.sigungu} ${loc.dong}")
 
                     _binding?.apply {
                         weatherInformTv.text = "최고 ${tempMax}°C · 최저 ${tempMin}°C · 강수확률 $precipText"
@@ -588,8 +595,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                     requestRecommendForTemp(tempAvg)
                     viewModel.fetchSimilarWeather(token, tempAvg)
-                } else {
-                    Log.w("Weather", "tomorrow fail: code=${response.code()}, body=$body")
+
+                    // 예: fetchTomorrowWeather() 성공 응답 처리 직후
+                    val maxTomorrow: Number? = body?.result?.weather?.tempMax
+                    val minTomorrow: Number? = body?.result?.weather?.tempMin
+                    updateDailyRangeMessage(maxTomorrow, minTomorrow)
+
                 }
             } catch (e: Exception) {
                 if (!isAdded || _binding == null) return@launch
@@ -608,41 +619,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         } catch (_: Exception) { }
     }
 
-    // -----------------------------
-    // 추천(API) - 기존 유지
-    // -----------------------------
-    private fun observeRecommend() {
-        viewModel.recommendItems.observe(viewLifecycleOwner) { items ->
-            val hasItems = !items.isNullOrEmpty()
-
-            if (USE_DUMMY_RECOMMEND || !hasItems) {
-                showDummyRecommendations(if (USE_DUMMY_RECOMMEND) "오늘은 더미 추천을 보여드려요 🙂" else null)
-                return@observe
-            }
-
-            binding.suggestedContainer.visibility = View.VISIBLE
-            binding.suggestedEmptyTv.visibility = View.GONE
-
-            val views = listOf(binding.suggestedCloth1Iv, binding.suggestedCloth2Iv, binding.suggestedCloth3Iv)
-            for (i in views.indices) {
-                val iv = views[i]
-                val item = items.getOrNull(i)
-                if (item?.image != null) {
-                    Glide.with(iv)
-                        .load(item.image)
-                        .placeholder(ColorDrawable(Color.parseColor("#EEEEEE")))
-                        .error(ColorDrawable(Color.parseColor("#DDDDDD")))
-                        .into(iv)
-                } else {
-                    iv.setImageResource(clothSuggestList[i % clothSuggestList.size])
-                }
-            }
-        }
-
-        viewModel.diurnalMsg.observe(viewLifecycleOwner) { msg ->
-            binding.subTv.text = if (!msg.isNullOrBlank()) msg else "오늘의 팁을 불러오는 중이에요"
-        }
-    }
 
     private fun requestRecommendForTemp(tempAvg: Double) {
         val token = TokenProvider.getToken(requireContext())
@@ -653,9 +629,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewModel.fetchRecommendItems(token, tempAvg)
     }
 
-    // -----------------------------
     // 유틸
-    // -----------------------------
     private fun normalizeStatus(raw: String?): String = when (raw) {
         "Storm", "Snow", "Rain", "Fog",
         "CloudFew", "CloudMany", "CloudBroken", "Sun" -> raw
@@ -680,6 +654,29 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             else -> { binding.sunIv.setImageResource(R.drawable.weather_sun); binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg) }
         }
     }
+
+    private fun updateDailyRangeMessage(maxTemp: Number?, minTemp: Number?) {
+        // ViewBinding 사용
+        val tv = binding.subTv
+
+        // 값이 없으면 문구 지움
+        if (maxTemp == null || minTemp == null) {
+            tv.text = ""
+            return
+        }
+
+        // Number -> Double 로 안전 변환
+        val max = maxTemp.toDouble()
+        val min = minTemp.toDouble()
+        val diff = max - min
+
+        tv.text = if (diff >= 8.0) {
+            "오늘은 일교차가 커요, 겉옷 꼭 챙기세요!"
+        } else {
+            ""
+        }
+    }
+
 
     private fun updateCombinedInfo(date: String, location: String) {
         binding.combinedInfoTv.text = "$date $location 날씨"

@@ -192,31 +192,60 @@
                         android:gravity="center"
                         android:layout_marginTop="5dp">
 
-                        <ImageView
-                            android:id="@+id/suggested_cloth1_iv"
+                        <!-- 첫 번째 카드 -->
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             android:layout_margin="4dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/cloth1" />
+                            app:cardCornerRadius="8dp"
+                            app:cardUseCompatPadding="false"
+                            app:cardPreventCornerOverlap="true">
 
-                        <ImageView
-                            android:id="@+id/suggested_cloth2_iv"
+                            <ImageView
+                                android:id="@+id/suggested_cloth1_iv"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/cloth1" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- 두 번째 카드 -->
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
-                            android:layout_marginLeft="20dp"
-                            android:layout_marginRight="20dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/cloth2" />
+                            android:layout_marginLeft="17dp"
+                            android:layout_marginRight="17dp"
+                            app:cardCornerRadius="8dp"
+                            app:cardUseCompatPadding="false"
+                            app:cardPreventCornerOverlap="true">
 
-                        <ImageView
-                            android:id="@+id/suggested_cloth3_iv"
+                            <ImageView
+                                android:id="@+id/suggested_cloth2_iv"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/cloth2" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- 세 번째 카드 -->
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
                             android:layout_margin="4dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/cloth3" />
+                            app:cardCornerRadius="8dp"
+                            app:cardUseCompatPadding="false"
+                            app:cardPreventCornerOverlap="true">
+
+                            <ImageView
+                                android:id="@+id/suggested_cloth3_iv"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/cloth3" />
+                        </com.google.android.material.card.MaterialCardView>
+
                     </LinearLayout>
+
 
                     <!-- 🔹 추천 없음 안내 문구 -->
                     <TextView
