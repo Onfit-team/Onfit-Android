@@ -141,9 +141,24 @@ class WardrobeAdapter(
     /**
      * API 데이터로 업데이트하는 함수
      */
-    fun updateWithApiData(wardrobeItems: List<WardrobeItemDto>) {
-        itemList = wardrobeItems
-        notifyDataSetChanged()
-    }
 
+    fun updateWithApiData(newItems: List<WardrobeItemDto>) {
+        Log.d("WardrobeAdapter", "🔄 updateWithApiData 호출됨")
+        Log.d("WardrobeAdapter", "  - 기존 아이템 수: ${itemList.size}")
+        Log.d("WardrobeAdapter", "  - 새로운 아이템 수: ${newItems.size}")
+
+        if (newItems.isNotEmpty()) {
+            Log.d("WardrobeAdapter", "  - 새로운 아이템 ID들: ${newItems.map { it.id }}")
+        }
+
+        // 🔥 FIXED: List를 새로 생성해서 교체 (clear/addAll 대신)
+        itemList = newItems.toList()
+
+        // 🔥 전체 데이터 갱신
+        notifyDataSetChanged()
+
+        Log.d("WardrobeAdapter", "📊 updateWithApiData 완료")
+        Log.d("WardrobeAdapter", "  - 최종 아이템 수: ${itemList.size}")
+        Log.d("WardrobeAdapter", "  - itemCount: $itemCount")
+    }
 }
