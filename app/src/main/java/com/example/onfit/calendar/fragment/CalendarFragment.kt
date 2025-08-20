@@ -80,6 +80,7 @@ class CalendarFragment : Fragment() {
     private var selectedDateForRegistration: String? = null
 
     private var dateToImageUrlMap = mutableMapOf<String, String>()
+    private val dateToCommunityOutfitIdMap = mutableMapOf<String, Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -212,8 +213,9 @@ class CalendarFragment : Fragment() {
         Log.d("OutfitDebug", "저장된 이미지 URL 실제 값: '$savedImageUrl'") // ⭐ 추가
 
         if (!savedImageUrl.isNullOrBlank()) {
+            val id = dateToOutfitIdMap[dateString] ?: -1
             Log.d("OutfitDebug", "✅ 저장된 이미지 사용: $dateString -> $savedImageUrl")
-            navigateToOutfitDetailWithImage(dateString, savedImageUrl)
+            navigateToOutfitDetailWithImage(dateString, savedImageUrl, id)
             return
         }
 
@@ -224,8 +226,9 @@ class CalendarFragment : Fragment() {
         }
 
         if (matchingOutfit != null) {
+            val id = dateToOutfitIdMap[dateString] ?: -1
             Log.d("OutfitDebug", "✅ HomeViewModel 매칭 성공: $dateString -> ${matchingOutfit.image}")
-            navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+            navigateToOutfitDetailWithImage(dateString, matchingOutfit.image, id)
             return
         }
 
@@ -267,9 +270,8 @@ class CalendarFragment : Fragment() {
                         // 다음번을 위해 저장
                         dateToImageUrlMap[dateString] = imageUrl
                         saveOutfitRegistration(dateString, outfitId, imageUrl)
-
                         // 상세 화면으로 이동
-                        navigateToOutfitDetailWithImage(dateString, imageUrl)
+                        navigateToOutfitDetailWithImage(dateString, imageUrl, outfitId)
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -356,7 +358,12 @@ class CalendarFragment : Fragment() {
     /**
      * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
      */
-    private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
+    private fun navigateToOutfitDetailWithImage(
+        dateString: String,
+        imageUrl: String,
+        outfitId: Int = -1,
+        memo: String? = null
+    ) {
         try {
             Log.d("OutfitDebug", "상세 화면 이동 - 날짜: '$dateString', 이미지: '$imageUrl'")
 
@@ -367,8 +374,10 @@ class CalendarFragment : Fragment() {
             }
 
             val bundle = Bundle().apply {
-                putString("selected_date", dateString)
+                putString("selectedDate", dateString)
                 putString("main_image_url", imageUrl)
+                putInt("outfitId", outfitId)
+                putString("memo", memo)
             }
 
             Log.d("OutfitDebug", "Bundle 생성 완료: ${bundle.keySet()}")
@@ -410,32 +419,33 @@ class CalendarFragment : Fragment() {
     /**
      * ⭐ 코디 상세 화면으로 이동 (날짜, outfit_id, 메모 전달)
      */
-    private fun navigateToOutfitDetail(dateString: String, outfitId: Int, memo: String) {
-        try {
-            val bundle = Bundle().apply {
-                putString("selected_date", dateString)
-                putInt("outfit_id", outfitId)
-                putString("memo", memo)
-            }
-
-            val navController = findNavController()
-
-            runCatching {
-                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
-            }.onFailure {
-                runCatching {
-                    navController.navigate(R.id.calendarSaveFragment, bundle)
-                }.onFailure {
-                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
-                    Toast.makeText(context, "$dateString 코디 (ID: $outfitId)\n메모: $memo", Toast.LENGTH_LONG).show()
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
-            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
-        }
-    }
+//    private fun navigateToOutfitDetail(dateString: String, outfitId: Int, memo: String) {
+//        Log.d("CalendarFragment", "GO -> Save: date=$dateString id=$outfitId memo=$memo")
+//        try {
+//            val bundle = Bundle().apply {
+//                putString("selectedDate", dateString)
+//                putInt("outfit_id", outfitId)
+//                putString("memo", memo)
+//            }
+//
+//            val navController = findNavController()
+//
+//            runCatching {
+//                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+//            }.onFailure {
+//                runCatching {
+//                    navController.navigate(R.id.calendarSaveFragment, bundle)
+//                }.onFailure {
+//                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
+//                    Toast.makeText(context, "$dateString 코디 (ID: $outfitId)\n메모: $memo", Toast.LENGTH_LONG).show()
+//                }
+//            }
+//
+//        } catch (e: Exception) {
+//            Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
+//            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     /**
      * ⭐ HomeFragment와 동일한 방식으로 실제 등록된 코디 로드
@@ -459,8 +469,7 @@ class CalendarFragment : Fragment() {
             uniqueOutfits.forEach { (date, outfit) ->
                 Log.d("RealOutfits", "실제 코디: $date -> 이미지: ${outfit.image}")
 
-                // outfit_id는 필요 없으므로 임시 ID 사용
-                addRegisteredDate(date, date.hashCode())
+                addRegisteredDate(date)
             }
         }
     }
@@ -478,6 +487,12 @@ class CalendarFragment : Fragment() {
         // 5분 이내에 등록된 것만 처리 (중복 처리 방지)
         if (!newlyRegisteredDate.isNullOrBlank() &&
             System.currentTimeMillis() - timestamp < 5 * 60 * 1000) {
+            // 날짜 추가 (ID 모르면 -1로 전달 → map에 저장 안 됨)
+            addRegisteredDate(newlyRegisteredDate, newlyRegisteredId)
+            // ✅ 진짜 ID일 때만 기록 저장
+            if (newlyRegisteredId > 0) {
+                saveOutfitRegistration(newlyRegisteredDate, newlyRegisteredId, newlyRegisteredImageUrl)
+            }
 
             Log.d("CalendarFragment", "새로 등록된 코디 감지: $newlyRegisteredDate (ID: $newlyRegisteredId)")
 
@@ -503,28 +518,18 @@ class CalendarFragment : Fragment() {
      * ⭐ 코디 등록 기록을 SharedPreferences에 저장 (데이터 손실 방지)
      */
     private fun saveOutfitRegistration(date: String, outfitId: Int, imageUrl: String? = null) {
+        if (outfitId <= 0) return
         val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
         val existingData = prefs.getString("registered_outfits", "") ?: ""
+        val existingEntries = if (existingData.isNotBlank()) existingData.split(",").toMutableList() else mutableListOf()
 
         Log.d("CalendarFragment", "saveOutfitRegistration 호출: $date, $outfitId, $imageUrl")
         Log.d("CalendarFragment", "기존 데이터: $existingData")
 
-        // ⭐ 기존 데이터를 파싱해서 중복 체크
-        val existingEntries = if (existingData.isNotBlank()) {
-            existingData.split(",").toMutableList()
-        } else {
-            mutableListOf()
-        }
-
-        // 해당 날짜의 기존 엔트리 제거 (업데이트를 위해)
+        // 날짜 중복 제거
         existingEntries.removeAll { it.startsWith("$date:") }
 
-        // 새로운 엔트리 추가
-        val newEntry = if (!imageUrl.isNullOrBlank()) {
-            "$date:$outfitId:$imageUrl"
-        } else {
-            "$date:$outfitId"
-        }
+        val newEntry = if (!imageUrl.isNullOrBlank()) "$date:$outfitId:$imageUrl" else "$date:$outfitId"
         existingEntries.add(newEntry)
 
         val updatedData = existingEntries.joinToString(",")
@@ -588,23 +593,8 @@ class CalendarFragment : Fragment() {
         isLoadingDates = false
     }
 
-    /**
-     * ⭐ 코디 등록 기록을 SharedPreferences에 저장
-     */
-    private fun saveOutfitRegistration(date: String, outfitId: Int) {
-        val prefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
-        val existingData = prefs.getString("registered_outfits", "") ?: ""
-
-        val newEntry = "$date:$outfitId"
-        val updatedData = if (existingData.isBlank()) {
-            newEntry
-        } else {
-            "$existingData,$newEntry"
-        }
-
-        prefs.edit().putString("registered_outfits", updatedData).apply()
-        Log.d("CalendarFragment", "등록 기록 저장: $newEntry")
-    }
+    private fun saveOutfitRegistration(date: String, outfitId: Int) =
+        saveOutfitRegistration(date, outfitId, null)
 
     /**
      * ⭐ Navigation 결과 수신 설정 (코디 등록 완료 감지)
@@ -700,7 +690,7 @@ class CalendarFragment : Fragment() {
                     if (outfitData != null && !outfitData.mainImage.isNullOrBlank()) {
                         withContext(Dispatchers.Main) {
                             // 코디 상세 화면으로 이동 (outfit_id와 이미지 URL 전달)
-                            navigateToOutfitDetail(dateString, outfitId, outfitData.mainImage!!)
+                            navigateToOutfitDetailWithImage(dateString, outfitData.mainImage!!, outfitId)
                         }
                     } else {
                         withContext(Dispatchers.Main) {
@@ -768,11 +758,12 @@ class CalendarFragment : Fragment() {
                 val date = recentOutfit.date.substring(0, 10)
                 val realOutfitId = matchingCommunityOutfit.id
 
-                Log.d("RealMapping", "실제 매핑: $date -> 진짜 ID: $realOutfitId")
+                if (realOutfitId > 0) {
+                    Log.d("RealMapping", "실제 매핑: $date -> 진짜 ID: $realOutfitId")
 
-                // 실제 ID로 업데이트
-                dateToOutfitIdMap[date] = realOutfitId
-                saveOutfitRegistration(date, realOutfitId)
+                    // 실제 ID로 업데이트
+                    dateToCommunityOutfitIdMap[date] = realOutfitId
+                }
             }
         }
     }
@@ -1022,10 +1013,15 @@ class CalendarFragment : Fragment() {
         }
     }
 
-    private fun navigateToOutfitRegister(dateString: String) {
-        val action = CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
-        findNavController().navigate(action)
-    }
+//    private fun navigateToOutfitRegister(dateString: String) {
+//        val action = CalendarFragmentDirections
+//            .actionCalendarFragmentToCalendarSaveFragment(
+//                selectedDate = dateString,
+//                outfitId = -1,
+//                memo = null
+//            )
+//        findNavController().navigate(action)
+//    }
 
     private fun navigateToStyleOutfits() {
         try {
@@ -1051,8 +1047,6 @@ class CalendarFragment : Fragment() {
 
         view.findViewById<LinearLayout>(R.id.camera_btn).setOnClickListener {
             dialog.dismiss()
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            navigateToOutfitRegister(today)
         }
 
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
