@@ -55,21 +55,22 @@
                 android:contentDescription="옷 이미지" />
 
             <!-- 기존 이미지로 바꾸기 버튼 -->
-            <Button
+            <android.widget.Button
                 android:id="@+id/btn_change_to_default"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:minHeight="46dp"
+                android:minWidth="372dp"
+                android:textSize="16sp"
+                android:background="@drawable/rounded_button_gray"
+                android:textColor="@color/black"
                 android:text="기존 이미지로 변경"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"/>
-
-            <Button
-                android:id="@+id/btn_change_to_refined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="AI 이미지로 바꾸기"
-                android:visibility="gone" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pretendardmedium"/>
 
             <View
                 android:id="@+id/grayLine"

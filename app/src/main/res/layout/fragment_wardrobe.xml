@@ -111,6 +111,21 @@
                 style="?android:attr/borderlessButtonStyle"
                 android:text="신발"
                 android:fontFamily="@font/intermedium"/>
+
+            <android.widget.Button
+                android:id="@+id/btnTopCategory7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:minHeight="35dp"
+                android:minWidth="70dp"
+                android:textSize="14sp"
+                android:background="@drawable/rounded_button_selector"
+                android:layout_marginRight="10dp"
+                android:textColor="@color/rounded_button_text_selector"
+                style="?android:attr/borderlessButtonStyle"
+                android:text="액세서리"
+                android:fontFamily="@font/intermedium"/>
         </LinearLayout>
 
     </HorizontalScrollView>
