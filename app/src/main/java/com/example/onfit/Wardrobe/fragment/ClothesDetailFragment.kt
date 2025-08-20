@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.LinearLayout
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +25,7 @@ import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
 import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import androidx.recyclerview.widget.RecyclerView
 
 class ClothesDetailFragment : Fragment() {
 
@@ -72,6 +74,9 @@ class ClothesDetailFragment : Fragment() {
             // 기존 drawable 리소스인 경우
             setupDummyData(view)
         }
+
+        // 🔥 NEW: 코디 기록 로드 추가
+        setupOutfitRecords()
     }
 
     // 🔥 NEW: 더미 아이템 ID 판별 함수
@@ -128,33 +133,141 @@ class ClothesDetailFragment : Fragment() {
     private fun generateDummyItemInfo(dummyId: Int): DummyItemInfo {
         val index = Math.abs(dummyId + 1000) // -1000 -> 0, -1001 -> 1, ...
 
-        // Assets 폴더에서 이미지 파일명 추출
-        val imagePath = getDummyImagePath(index)
-        val fileName = imagePath.substringAfterLast("/")
+        Log.d("ClothesDetailFragment", "🎭 하드코딩된 더미 아이템 생성: dummyId=$dummyId, index=$index")
 
-        // 파일명 기반 정보 생성
-        val (category, subcategory) = estimateCategoryFromFileNameForDetail(fileName, index)
-        val brand = extractBrandFromFileNameForDetail(fileName) ?: generateDummyBrand(index)
-        val color = estimateColorFromFileNameForDetail(fileName)
-        val season = 1 // WardrobeFragment와 동일하게 봄가을로 고정
-        val size = generateDummySize(category)
-        val price = generateDummyPrice(brand)
-        val purchaseSite = generateDummyPurchaseSite(index)
-        val tags = generateDummyTags(category, index)
-
-        return DummyItemInfo(
-            id = dummyId,
-            imagePath = imagePath,
-            category = category,
-            subcategory = subcategory,
-            season = season,
-            color = color,
-            brand = brand,
-            size = size,
-            price = price,
-            purchaseSite = purchaseSite,
-            tags = tags
+        // 🔥 WardrobeFragment와 완전히 동일한 하드코딩된 더미 아이템 리스트
+        val hardcodedItems = listOf(
+            // 코디 1 관련 아이템들
+            HardcodedItem("shirts1", 1, 4, "상의", "셔츠/블라우스", "자라", "M", 59000, "자라 강남점", 1),
+            HardcodedItem("pants1", 2, 10, "하의", "긴바지", "유니클로", "30", 29900, "유니클로 온라인", 1),
+            HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1),
+            HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2),
+            HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2),
+            HardcodedItem("shoes2", 4, 29, "아우터", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2),
+            HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3),
+            HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3),
+            HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3),
+            HardcodedItem("acc3", 6, 40, "액세서리", "안경/선글라스", "무지", "FREE", 39000, "무지 매장", 3),
+            HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1),
+            HardcodedItem("pants4", 2, 14, "하의", "스커트", "자라", "S", 39900, "자라 온라인", 1),
+            HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1),
+            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1)
         )
+
+        val selectedItem = hardcodedItems[index % hardcodedItems.size]
+
+        val itemInfo = DummyItemInfo(
+            id = dummyId,
+            imagePath = "drawable://${selectedItem.imageName}",
+            category = selectedItem.category,
+            subcategory = selectedItem.subcategory,
+            season = 1, // 봄가을로 고정
+            color = generateHardcodedColor(index),
+            brand = selectedItem.brand,
+            size = selectedItem.size,
+            price = selectedItem.price,
+            purchaseSite = selectedItem.purchaseSite,
+            tags = generateHardcodedTags(selectedItem.category, index)
+        )
+
+        Log.d("ClothesDetailFragment", "✅ 하드코딩된 더미 아이템:")
+        Log.d("ClothesDetailFragment", "  - 이미지: ${selectedItem.imageName}")
+        Log.d("ClothesDetailFragment", "  - 카테고리: ${selectedItem.categoryName}")
+        Log.d("ClothesDetailFragment", "  - 서브카테고리: ${selectedItem.subcategoryName}")
+        Log.d("ClothesDetailFragment", "  - 브랜드: ${selectedItem.brand}")
+        Log.d("ClothesDetailFragment", "  - 가격: ${selectedItem.price}원")
+        Log.d("ClothesDetailFragment", "  - 구매처: ${selectedItem.purchaseSite}")
+
+        return itemInfo
+    }
+
+    // 🔥 FIXED: WardrobeFragment와 동일한 하드코딩된 아이템 데이터 클래스
+    data class HardcodedItem(
+        val imageName: String,
+        val category: Int,
+        val subcategory: Int,
+        val categoryName: String,
+        val subcategoryName: String,
+        val brand: String,
+        val size: String,
+        val price: Int,
+        val purchaseSite: String,
+        val outfitGroup: Int // 어떤 코디에 속하는지 (1, 2, 3)
+    )
+
+    fun getTagNameById(tagId: Int): String {
+        return when (tagId) {
+            1 -> "캐주얼"
+            2 -> "스트릿"
+            3 -> "미니멀"
+            4 -> "클래식"
+            5 -> "빈티지"
+            6 -> "러블리"
+            7 -> "페미닌"
+            8 -> "보이시"
+            9 -> "모던"
+            10 -> "데일리"
+            11 -> "출근룩"
+            12 -> "데이트룩"
+            13 -> "나들이룩"
+            14 -> "운동복"
+            15 -> "하객룩"
+            16 -> "파티룩"
+            17 -> "여행룩"
+            else -> "기타"
+        }
+    }
+
+    /**
+     * 🔥 SIMPLIFIED: 하드코딩된 색상 생성
+     */
+    private fun generateHardcodedColor(index: Int): Int {
+        // WardrobeFragment의 하드코딩된 아이템별 컬러 매핑
+        val colorMapping = mapOf(
+            0 to 2,  // shirts1 - color = 2 (화이트)
+            1 to 6,  // pants1 - color = 6 (베이지)
+            2 to 6,  // shoes1 - color = 6 (베이지)
+            3 to 1,  // shirts2 - color = 1 (블랙)
+            4 to 6,  // pants2 - color = 6 (베이지)
+            5 to 1,  // shoes2 - color = 1 (블랙)
+            6 to 1,  // shirts3 - color = 1 (블랙)
+            7 to 2,  // shoes3 - color = 2 (화이트)
+            8 to 1,  // pants3 - color = 1 (블랙)
+            9 to 1,  // acc3 - color = 1 (블랙)
+            10 to 3, // shirts4 - color = 3 (그레이) ← 수정
+            11 to 1, // pants4 - color = 1 (블랙) ← 수정
+            12 to 1, // bag4 - color = 1 (블랙)
+            13 to 1  // shoes4 - color = 1 (블랙)
+        )
+
+        return colorMapping[index % colorMapping.size] ?: 1 // 기본값: 블랙
+    }
+
+
+    /**
+     * 🔥 SIMPLIFIED: 하드코딩된 태그 생성
+     */
+    private fun generateHardcodedTags(category: Int, index: Int): List<String> {
+        // WardrobeFragment와 동일한 태그 ID 매핑 사용
+        val tagMapping = mapOf(
+            0 to listOf(1, 10), // 캐주얼, 데일리
+            1 to listOf(1, 4),  // 캐주얼, 클래식
+            2 to listOf(2, 13), // 스트릿, 나들이룩
+            3 to listOf(3, 11), // 미니멀, 출근룩
+            4 to listOf(3, 17), // 미니멀, 여행룩
+            5 to listOf(2, 13), // 스트릿, 나들이룩
+            6 to listOf(3, 11), // 미니멀, 출근룩
+            7 to listOf(3, 17), // 미니멀, 여행룩
+            8 to listOf(9, 11), // 모던, 출근룩
+            9 to listOf(9, 10), // 모던, 데일리
+            10 to listOf(4, 11), // 클래식, 출근룩
+            11 to listOf(4, 15), // 클래식, 하객룩
+            12 to listOf(4, 10), // 클래식, 데일리
+            13 to listOf(13, 10) // 나들이룩, 데일리
+        )
+
+        val tagIds = tagMapping[index % tagMapping.size] ?: listOf(1, 10)
+        return tagIds.map { getTagNameById(it) }
     }
 
     // 🔥 FIXED: 더미 이미지 경로 가져오기 (코디 기록 제외)
@@ -170,11 +283,16 @@ class ClothesDetailFragment : Fragment() {
                     val isOutfitRecord = isOutfitRecordFileForDetail(name)
                     val isWardrobeItem = !isOutfitRecord
 
+                    Log.d("ClothesDetailFragment", "파일 분석: $name -> 이미지:$isImageFile, 코디기록:$isOutfitRecord, 옷장아이템:$isWardrobeItem")
+
                     isImageFile && isWardrobeItem
                 } ?: emptyList()
 
+            Log.d("ClothesDetailFragment", "필터링된 옷장 아이템들: ${imageFiles.joinToString(", ")}")
+
             if (imageFiles.isNotEmpty()) {
                 val fileName = imageFiles[index % imageFiles.size]
+                Log.d("ClothesDetailFragment", "선택된 파일: index=$index, fileName=$fileName")
                 return "file:///android_asset/dummy_recommend/$fileName"
             }
         } catch (e: Exception) {
@@ -198,19 +316,35 @@ class ClothesDetailFragment : Fragment() {
     // 🔥 NEW: Assets 더미 이미지 로딩
     private fun loadDummyImageWithAssets(imageView: ImageView, imagePath: String) {
         try {
-            if (imagePath.startsWith("file:///android_asset/")) {
-                val assetPath = imagePath.removePrefix("file:///android_asset/")
-                val inputStream = requireContext().assets.open(assetPath)
-                val drawable = Drawable.createFromStream(inputStream, null)
-                imageView.setImageDrawable(drawable)
-                inputStream.close()
-                Log.d("ClothesDetailFragment", "✅ Assets 이미지 로딩 성공: $assetPath")
+            if (imagePath.startsWith("drawable://")) {
+                val imageName = imagePath.removePrefix("drawable://")
+
+                // 🔥 FIXED: WardrobeAdapter와 동일한 매핑 사용
+                val drawableResId = when (imageName) {
+                    "shirts1" -> R.drawable.shirts1      // ✅ 수정
+                    "pants1" -> R.drawable.pants1        // ✅ 수정
+                    "shoes1" -> R.drawable.shoes1        // ✅ 수정
+                    "shirts2" -> R.drawable.shirts2      // ✅ 수정
+                    "pants2" -> R.drawable.pants2        // ✅ 수정
+                    "shoes2" -> R.drawable.shoes2        // ✅ 수정
+                    "shirts3" -> R.drawable.shirts3      // ✅ 수정
+                    "shoes3" -> R.drawable.shoes3        // ✅ 수정
+                    "pants3" -> R.drawable.pants3        // ✅ 수정
+                    "shirts4" -> R.drawable.shirts4      // ✅ 수정
+                    "shoes4" -> R.drawable.shoes4        // ✅ 수정
+                    "bag4" -> R.drawable.bag4            // ✅ 수정
+                    "acc3" -> R.drawable.acc3            // ✅ 수정
+                    "pants4" -> R.drawable.pants4        // ✅ 수정
+                    else -> R.drawable.clothes8          // 기본값
+                }
+
+                imageView.setImageResource(drawableResId)
+                Log.d("ClothesDetailFragment", "✅ Drawable 이미지 로딩: $imageName -> $drawableResId")
             } else {
-                // 일반 더미 이미지 사용
                 loadDummyImage(imageView)
             }
         } catch (e: Exception) {
-            Log.e("ClothesDetailFragment", "Assets 이미지 로딩 실패", e)
+            Log.e("ClothesDetailFragment", "Drawable 이미지 로딩 실패", e)
             loadDummyImage(imageView)
         }
     }
@@ -321,91 +455,215 @@ class ClothesDetailFragment : Fragment() {
     private fun estimateCategoryFromFileNameForDetail(fileName: String, index: Int): Pair<Int, Int> {
         val name = fileName.lowercase()
 
+        Log.d("ClothesDetailFragment", "🔍 파일명 분석: $fileName")
+
+        // 🔥 더 구체적인 키워드 매칭
         return when {
-            // 상의 관련 키워드
-            name.contains("후드") || name.contains("hood") || name.contains("맨투맨") ||
-                    name.contains("티셔츠") || name.contains("셔츠") || name.contains("shirt") -> {
-                val subcategory = when {
-                    name.contains("후드") || name.contains("hood") -> 6 // 후드티
-                    name.contains("셔츠") || name.contains("shirt") -> 4 // 셔츠/블라우스
-                    name.contains("맨투맨") -> 5 // 맨투맨
-                    else -> 1 // 반팔티셔츠
-                }
-                Pair(1, subcategory) // 상의
+            // 🔥 상의 키워드 (더 구체적으로)
+            name.contains("셔츠") || name.contains("shirt") || name.contains("블라우스") -> {
+                Log.d("ClothesDetailFragment", "✅ 상의 > 셔츠/블라우스로 분류")
+                Pair(1, 4) // 상의 - 셔츠/블라우스
+            }
+            name.contains("후드") || name.contains("hood") -> {
+                Log.d("ClothesDetailFragment", "✅ 상의 > 후드티로 분류")
+                Pair(1, 6) // 상의 - 후드티
+            }
+            name.contains("맨투맨") || name.contains("스웨트") -> {
+                Log.d("ClothesDetailFragment", "✅ 상의 > 맨투맨으로 분류")
+                Pair(1, 5) // 상의 - 맨투맨
+            }
+            name.contains("티셔츠") || name.contains("tshirt") || name.contains("t-shirt") -> {
+                val subcategory = if (name.contains("긴팔")) 2 else 1 // 긴팔 vs 반팔
+                Log.d("ClothesDetailFragment", "✅ 상의 > 티셔츠(${if(subcategory==2) "긴팔" else "반팔"})로 분류")
+                Pair(1, subcategory)
+            }
+            name.contains("니트") || name.contains("스웨터") || name.contains("knit") -> {
+                Log.d("ClothesDetailFragment", "✅ 상의 > 니트/스웨터로 분류")
+                Pair(1, 7) // 상의 - 니트/스웨터
             }
 
-            // 하의 관련 키워드
-            name.contains("바지") || name.contains("pants") || name.contains("jean") ||
-                    name.contains("슬랙스") || name.contains("팬츠") -> {
-                val subcategory = when {
-                    name.contains("청바지") || name.contains("jean") -> 11 // 청바지
-                    name.contains("슬랙스") -> 10 // 긴바지
-                    else -> 10 // 긴바지
-                }
-                Pair(2, subcategory) // 하의
+            // 🔥 하의 키워드
+            name.contains("청바지") || name.contains("jean") || name.contains("denim") -> {
+                Log.d("ClothesDetailFragment", "✅ 하의 > 청바지로 분류")
+                Pair(2, 11) // 하의 - 청바지
+            }
+            name.contains("반바지") || name.contains("shorts") -> {
+                Log.d("ClothesDetailFragment", "✅ 하의 > 반바지로 분류")
+                Pair(2, 9) // 하의 - 반바지
+            }
+            name.contains("바지") || name.contains("pants") || name.contains("슬랙스") -> {
+                Log.d("ClothesDetailFragment", "✅ 하의 > 긴바지로 분류")
+                Pair(2, 10) // 하의 - 긴바지
+            }
+            name.contains("스커트") || name.contains("skirt") -> {
+                Log.d("ClothesDetailFragment", "✅ 하의 > 스커트로 분류")
+                Pair(2, 14) // 하의 - 스커트
+            }
+            name.contains("레깅스") || name.contains("leggings") -> {
+                Log.d("ClothesDetailFragment", "✅ 하의 > 레깅스로 분류")
+                Pair(2, 13) // 하의 - 레깅스
             }
 
-            // 아우터 관련 키워드
-            name.contains("자켓") || name.contains("jacket") || name.contains("코트") ||
-                    name.contains("아우터") || name.contains("outer") -> {
+            // 🔥 원피스 키워드
+            name.contains("원피스") || name.contains("dress") -> {
+                val subcategory = when {
+                    name.contains("미니") || name.contains("mini") -> 16
+                    name.contains("롱") || name.contains("long") || name.contains("맥시") -> 17
+                    name.contains("끈") || name.contains("strap") -> 18
+                    name.contains("니트") -> 19
+                    else -> 20 // 기타
+                }
+                Log.d("ClothesDetailFragment", "✅ 원피스로 분류")
+                Pair(3, subcategory)
+            }
+
+            // 🔥 아우터 키워드
+            name.contains("자켓") || name.contains("jacket") -> {
+                Log.d("ClothesDetailFragment", "✅ 아우터 > 자켓으로 분류")
                 Pair(4, 23) // 아우터 - 자켓
             }
+            name.contains("코트") || name.contains("coat") -> {
+                Log.d("ClothesDetailFragment", "✅ 아우터 > 코트로 분류")
+                Pair(4, 24) // 아우터 - 코트
+            }
+            name.contains("가디건") || name.contains("cardigan") -> {
+                Log.d("ClothesDetailFragment", "✅ 아우터 > 가디건으로 분류")
+                Pair(4, 22) // 아우터 - 가디건
+            }
+            name.contains("패딩") || name.contains("padding") || name.contains("puffer") -> {
+                Log.d("ClothesDetailFragment", "✅ 아우터 > 패딩으로 분류")
+                Pair(4, 25) // 아우터 - 패딩
+            }
+            name.contains("바람막이") || name.contains("windbreaker") -> {
+                Log.d("ClothesDetailFragment", "✅ 아우터 > 바람막이로 분류")
+                Pair(4, 21) // 아우터 - 바람막이
+            }
 
-            // 신발 관련 키워드
-            name.contains("신발") || name.contains("shoes") || name.contains("운동화") ||
-                    name.contains("sneakers") -> {
+            // 🔥 신발 키워드
+            name.contains("운동화") || name.contains("sneakers") || name.contains("nike") || name.contains("adidas") -> {
+                Log.d("ClothesDetailFragment", "✅ 신발 > 운동화로 분류")
                 Pair(5, 29) // 신발 - 운동화
             }
-
-            // 액세서리 관련 키워드
-            name.contains("안경") || name.contains("glasses") || name.contains("가방") ||
-                    name.contains("bag") || name.contains("모자") || name.contains("hat") -> {
-                val subcategory = when {
-                    name.contains("안경") || name.contains("glasses") -> 40 // 안경/선글라스
-                    name.contains("가방") || name.contains("bag") -> 41 // 가방
-                    name.contains("모자") || name.contains("hat") -> 36 // 모자
-                    else -> 43 // 기타
-                }
-                Pair(6, subcategory) // 액세서리
+            name.contains("부츠") || name.contains("boots") -> {
+                Log.d("ClothesDetailFragment", "✅ 신발 > 부츠로 분류")
+                Pair(5, 30) // 신발 - 부츠
+            }
+            name.contains("샌들") || name.contains("sandal") -> {
+                Log.d("ClothesDetailFragment", "✅ 신발 > 샌들로 분류")
+                Pair(5, 31) // 신발 - 샌들
+            }
+            name.contains("구두") || name.contains("shoes") && !name.contains("운동") -> {
+                Log.d("ClothesDetailFragment", "✅ 신발 > 구두로 분류")
+                Pair(5, 33) // 신발 - 구두
+            }
+            name.contains("로퍼") || name.contains("loafer") -> {
+                Log.d("ClothesDetailFragment", "✅ 신발 > 로퍼로 분류")
+                Pair(5, 34) // 신발 - 로퍼
             }
 
-            // 기본값: 인덱스 기반으로 순환 배치
+            // 🔥 액세서리 키워드
+            name.contains("모자") || name.contains("hat") || name.contains("cap") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 모자로 분류")
+                Pair(6, 36) // 액세서리 - 모자
+            }
+            name.contains("안경") || name.contains("glasses") || name.contains("선글라스") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 안경/선글라스로 분류")
+                Pair(6, 40) // 액세서리 - 안경/선글라스
+            }
+            name.contains("가방") || name.contains("bag") || name.contains("백팩") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 가방으로 분류")
+                Pair(6, 41) // 액세서리 - 가방
+            }
+            name.contains("시계") || name.contains("watch") || name.contains("팔찌") || name.contains("목걸이") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 시계/팔찌/목걸이로 분류")
+                Pair(6, 42) // 액세서리 - 시계/팔찌/목걸이
+            }
+            name.contains("머플러") || name.contains("scarf") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 머플러로 분류")
+                Pair(6, 37) // 액세서리 - 머플러
+            }
+            name.contains("장갑") || name.contains("glove") -> {
+                Log.d("ClothesDetailFragment", "✅ 액세서리 > 장갑으로 분류")
+                Pair(6, 38) // 액세서리 - 장갑
+            }
+
+            // 🔥 기본값: 파일명으로 추정 불가능한 경우 index 기반 순환
             else -> {
+                Log.d("ClothesDetailFragment", "❓ 파일명으로 카테고리 추정 불가 - index 기반 분류")
                 val categories = listOf(
                     Pair(1, 1), // 상의 - 반팔티셔츠
                     Pair(2, 10), // 하의 - 긴바지
+                    Pair(1, 4), // 상의 - 셔츠/블라우스
                     Pair(4, 23), // 아우터 - 자켓
                     Pair(5, 29), // 신발 - 운동화
                     Pair(6, 43)  // 액세서리 - 기타
                 )
-                categories[index % categories.size]
+                val selected = categories[index % categories.size]
+                Log.d("ClothesDetailFragment", "✅ Index 기반 분류: ${getCategoryName(selected.first)} > ${getSubcategoryName(selected.second)}")
+                selected
             }
         }
     }
 
     private fun extractBrandFromFileNameForDetail(fileName: String): String? {
-        val brands = listOf("nike", "adidas", "uniqlo", "zara", "h&m", "무지", "엠씨엠")
         val name = fileName.lowercase()
-        return brands.find { brand -> name.contains(brand) }
+
+        val brandKeywords = mapOf(
+            "nike" to "나이키",
+            "adidas" to "아디다스",
+            "uniqlo" to "유니클로",
+            "zara" to "자라",
+            "h&m" to "H&M",
+            "무지" to "무지",
+            "엠씨엠" to "MCM",
+            "gucci" to "구찌",
+            "prada" to "프라다",
+            "chanel" to "샤넬",
+            "dior" to "디올",
+            "lv" to "루이비통",
+            "louis" to "루이비통"
+        )
+
+        for ((keyword, brand) in brandKeywords) {
+            if (name.contains(keyword)) {
+                Log.d("ClothesDetailFragment", "✅ 브랜드 발견: $keyword -> $brand")
+                return brand
+            }
+        }
+
+        Log.d("ClothesDetailFragment", "❓ 브랜드 추정 불가")
+        return null
     }
 
     private fun estimateColorFromFileNameForDetail(fileName: String): Int {
         val name = fileName.lowercase()
-        return when {
-            name.contains("black") || name.contains("블랙") || name.contains("검정") -> 1 // 블랙
-            name.contains("white") || name.contains("화이트") || name.contains("흰색") -> 2 // 화이트
-            name.contains("gray") || name.contains("grey") || name.contains("그레이") -> 3 // 그레이
-            name.contains("navy") || name.contains("네이비") -> 4 // 네이비
-            name.contains("brown") || name.contains("브라운") || name.contains("갈색") -> 6 // 브라운
-            name.contains("beige") || name.contains("베이지") -> 5 // 베이지
-            name.contains("red") || name.contains("빨강") || name.contains("레드") -> 7 // 레드
-            name.contains("pink") || name.contains("핑크") -> 8 // 핑크
-            name.contains("yellow") || name.contains("노랑") || name.contains("옐로우") -> 10 // 옐로우
-            name.contains("green") || name.contains("초록") || name.contains("그린") -> 11 // 그린
-            name.contains("blue") || name.contains("파랑") || name.contains("블루") -> 12 // 블루
-            name.contains("purple") || name.contains("보라") || name.contains("퍼플") -> 13 // 퍼플
-            else -> 1 // 기본값: 블랙
+
+        val colorMap = mapOf(
+            listOf("black", "블랙", "검정", "검은") to 1, // 블랙
+            listOf("white", "화이트", "흰색", "하얀", "흰") to 2, // 화이트
+            listOf("gray", "grey", "그레이", "회색") to 3, // 그레이
+            listOf("navy", "네이비", "남색") to 4, // 네이비
+            listOf("beige", "베이지", "베이지색") to 6, // 베이지
+            listOf("brown", "브라운", "갈색", "브라운색") to 5, // 브라운
+            listOf("red", "빨강", "레드", "빨간") to 7, // 레드
+            listOf("pink", "핑크", "분홍") to 8, // 핑크
+            listOf("yellow", "노랑", "옐로우", "노란") to 10, // 옐로우
+            listOf("green", "초록", "그린", "녹색") to 11, // 그린
+            listOf("blue", "파랑", "블루", "파란") to 12, // 블루
+            listOf("purple", "보라", "퍼플", "보라색") to 13 // 퍼플
+        )
+
+        for ((keywords, colorId) in colorMap) {
+            for (keyword in keywords) {
+                if (name.contains(keyword)) {
+                    Log.d("ClothesDetailFragment", "✅ 색상 발견: $keyword -> ${getColorName(colorId)}")
+                    return colorId
+                }
+            }
         }
+
+        Log.d("ClothesDetailFragment", "❓ 색상 추정 불가 - 기본값 블랙")
+        return 1 // 기본값: 블랙
     }
 
     private fun setupButtons(view: View) {
@@ -892,7 +1150,7 @@ class ClothesDetailFragment : Fragment() {
             3 -> "원피스"
             4 -> "아우터"
             5 -> "신발"
-            6 -> "악세사리"
+            6 -> "액세서리"
             else -> "기타"
         }
     }
@@ -929,7 +1187,7 @@ class ClothesDetailFragment : Fragment() {
             21 -> "바람막이"
             22 -> "가디건"
             23 -> "자켓"
-            24 -> "코드"
+            24 -> "코트" // 🔥 FIXED: "코드" -> "코트"
             25 -> "패딩"
             26 -> "후드집업"
             27 -> "무스탕/퍼"
@@ -944,7 +1202,7 @@ class ClothesDetailFragment : Fragment() {
             34 -> "로퍼"
             35 -> "기타"
 
-            // 악세사리 (category 6)
+            // 액세서리 (category 6)
             36 -> "모자"
             37 -> "머플러"
             38 -> "장갑"
@@ -960,9 +1218,9 @@ class ClothesDetailFragment : Fragment() {
 
     private fun getSeasonName(seasonId: Int): String {
         return when (seasonId) {
-            1 -> "봄ㆍ가을" // 🔥 CHANGED: "봄" -> "봄ㆍ가을"
+            1 -> "봄ㆍ가을" // WardrobeFragment와 동일
             2 -> "여름"
-            3 -> "가을" // 🔥 이 케이스는 더 이상 사용되지 않지만 호환성을 위해 유지
+            3 -> "가을" // 호환성을 위해 유지
             4 -> "겨울"
             else -> "사계절"
         }
@@ -1319,6 +1577,210 @@ class ClothesDetailFragment : Fragment() {
         }
 
         findNavController().navigate(R.id.addItemFragment, bundle)
+    }
+
+    /**
+     * 🔥 NEW: 코디 기록 데이터 클래스
+     */
+    data class OutfitRecord(
+        val id: Int,
+        val imagePath: String,
+        val date: String,
+        val temperature: String?,
+        val displayNumber: Int
+    )
+
+    /**
+     * 🔥 NEW: onViewCreated에서 코디 기록 로드 (기존 코드 뒤에 추가)
+     */
+    private fun setupOutfitRecords() {
+        if (isDummyItemId(imageResId)) {
+            displayHardcodedOutfitRecords()
+        } else {
+            displayNoOutfitRecords()
+        }
+    }
+
+    /**
+     * 🔥 NEW: 코디 기록이 없을 때 표시
+     */
+    private fun displayNoOutfitRecords() {
+        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
+        outfitContainer?.removeAllViews()
+
+        val noRecordsView = TextView(requireContext()).apply {
+            text = "함께 코디한 기록이 없습니다"
+            textSize = 14f
+            setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+            gravity = android.view.Gravity.CENTER
+            setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16))
+        }
+        outfitContainer?.addView(noRecordsView)
+    }
+
+    /**
+     * 🔥 NEW: 하드코딩된 코디 기록 표시
+     */
+    private fun displayHardcodedOutfitRecords() {
+        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
+
+        if (outfitContainer == null) {
+            Log.w("ClothesDetailFragment", "outfit_records_container를 찾을 수 없습니다")
+            return
+        }
+
+        outfitContainer.removeAllViews()
+
+        // 가로 스크롤뷰 생성
+        val horizontalScrollView = HorizontalScrollView(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            isHorizontalScrollBarEnabled = false
+        }
+
+        val horizontalLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        // 🔥 코디 3개 하드코딩
+        for (i in 1..3) {
+            val outfitCard = createHardcodedOutfitCard(i)
+            horizontalLayout.addView(outfitCard)
+        }
+
+        horizontalScrollView.addView(horizontalLayout)
+        outfitContainer.addView(horizontalScrollView)
+
+        Log.d("ClothesDetailFragment", "하드코딩된 코디 기록 3개 표시 완료")
+    }
+
+    /**
+     * 🔥 NEW: 하드코딩된 코디 카드 생성
+     */
+    private fun createHardcodedOutfitCard(outfitNumber: Int): View {
+        val cardLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            background = ContextCompat.getDrawable(context, R.drawable.rounded_button_selector)
+            setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12))
+
+            val params = LinearLayout.LayoutParams(
+                dpToPx(100),
+                dpToPx(110)
+            ).apply {
+                if (outfitNumber > 1) leftMargin = dpToPx(8)
+            }
+            layoutParams = params
+
+            setOnClickListener {
+                Toast.makeText(context, "코디 ${outfitNumber}번 클릭", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // 🔥 하드코딩된 코디 이미지
+        val imageView = ImageView(requireContext()).apply {
+            layoutParams = LinearLayout.LayoutParams(dpToPx(76), dpToPx(76))
+            scaleType = ImageView.ScaleType.CENTER_CROP
+
+            // 코디별 대표 이미지 (하드코딩)
+            val outfitImage = when (outfitNumber) {
+                1 -> R.drawable.clothes1 // cody1
+                2 -> R.drawable.clothes4 // cody2
+                3 -> R.drawable.clothes7 // cody3
+                else -> R.drawable.clothes8
+            }
+
+            setImageResource(outfitImage)
+        }
+
+        val numberText = TextView(requireContext()).apply {
+            text = outfitNumber.toString()
+            textSize = 16f
+            setTextColor(ContextCompat.getColor(context, android.R.color.black))
+            gravity = android.view.Gravity.CENTER
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dpToPx(8)
+            }
+            layoutParams = params
+        }
+
+        cardLayout.addView(imageView)
+        cardLayout.addView(numberText)
+
+        return cardLayout
+    }
+
+    /**
+     * 🔥 NEW: 파일명에서 날짜와 온도 추출
+     */
+    private fun extractDateAndTemperature(fileName: String): Pair<String, String?> {
+        try {
+            // "6월8.14(26.4).jpg" 형태에서 날짜와 온도 추출
+            val pattern = Regex("(\\d+월)(\\d+\\.\\d+)\\((\\d+\\.\\d+)\\)")
+            val matchResult = pattern.find(fileName)
+
+            if (matchResult != null) {
+                val month = matchResult.groupValues[1]
+                val day = matchResult.groupValues[2]
+                val temperature = matchResult.groupValues[3]
+
+                return Pair("$month $day", "${temperature}°C")
+            }
+
+            // 다른 패턴 시도: "1번8.13(26.3)" 형태
+            val pattern2 = Regex("(\\d+번)(\\d+\\.\\d+)\\((\\d+\\.\\d+)\\)")
+            val matchResult2 = pattern2.find(fileName)
+
+            if (matchResult2 != null) {
+                val number = matchResult2.groupValues[1]
+                val day = matchResult2.groupValues[2]
+                val temperature = matchResult2.groupValues[3]
+
+                return Pair("코디 $number", "${temperature}°C")
+            }
+
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "날짜/온도 추출 실패: $fileName", e)
+        }
+
+        // 기본값
+        return Pair("코디 기록", null)
+    }
+
+    /**
+     * 🔥 NEW: 코디 기록들을 UI에 표시
+     */
+
+    /**
+     * 🔥 NEW: Assets에서 코디 이미지 로딩
+     */
+    private fun loadOutfitImageFromAssets(imageView: ImageView, imagePath: String) {
+        try {
+            if (imagePath.startsWith("file:///android_asset/")) {
+                val assetPath = imagePath.removePrefix("file:///android_asset/")
+                val inputStream = requireContext().assets.open(assetPath)
+                val drawable = Drawable.createFromStream(inputStream, null)
+                imageView.setImageDrawable(drawable)
+                inputStream.close()
+                Log.d("ClothesDetailFragment", "✅ 코디 이미지 로딩 성공: $assetPath")
+            } else {
+                // 기본 이미지
+                imageView.setImageResource(R.drawable.clothes8)
+            }
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "코디 이미지 로딩 실패", e)
+            imageView.setImageResource(R.drawable.clothes8)
+        }
     }
 
 }

@@ -231,7 +231,7 @@
                     android:visibility="gone" />
 
                 <!-- 코디 기록 리사이클러뷰 -->
-                <androidx.recyclerview.widget.RecyclerView
+                <LinearLayout
                     android:id="@+id/rv_outfit_history"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
