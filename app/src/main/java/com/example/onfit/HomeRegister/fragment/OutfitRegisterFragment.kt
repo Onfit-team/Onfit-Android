@@ -26,14 +26,21 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.onfit.HomeRegister.adapter.OutfitAdapter
 import com.example.onfit.HomeRegister.model.RetrofitClient
+import com.example.onfit.HomeRegister.service.AiCropService
 import com.example.onfit.HomeRegister.service.CropItem
 import com.example.onfit.OutfitRegister.RetrofitClient as UploadRetrofit
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.R
+import com.example.onfit.Refine.HeavyApiRetrofit
+import com.example.onfit.Refine.RefineRequest
+import com.example.onfit.Refine.RefineRetrofit
+import com.example.onfit.Refine.RefineService
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
@@ -58,6 +65,7 @@ class OutfitRegisterFragment : Fragment() {
     private val processedDetectPaths = mutableSetOf<String>()
     // 이미 추가한 crop Uri를 기억
     private val addedCropUriStrings = mutableSetOf<String>()
+
 
     // 갤러리에서 이미지 선택 결과를 받는 Launcher
     private val galleryLauncher = registerForActivityResult(
@@ -114,15 +122,15 @@ class OutfitRegisterFragment : Fragment() {
             }
 
         // 더미데이터 추가
-        if (outfitList.isEmpty()) {
-            outfitList.addAll(
-                listOf(
-                    OutfitItem2(R.drawable.calendar_save_image2),
-                    OutfitItem2(R.drawable.calendar_save_image3),
-                    OutfitItem2(R.drawable.calendar_save_image4)
-                )
-            )
-        }
+//        if (outfitList.isEmpty()) {
+//            outfitList.addAll(
+//                listOf(
+//                    OutfitItem2(R.drawable.calendar_save_image2),
+//                    OutfitItem2(R.drawable.calendar_save_image3),
+//                    OutfitItem2(R.drawable.calendar_save_image4)
+//                )
+//            )
+//        }
         passedSaveDate = arguments?.getString("save_date")
 
 
@@ -203,73 +211,58 @@ class OutfitRegisterFragment : Fragment() {
 
         // 이미지 넘겨주면서 OutfitSave 화면으로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            // 어댑터에서 아이템 리스트 꺼내기
-            val items = adapter.getItems()
+            val itemsToRefine = adapter.getItems()
+                .filter { !it.cropId.isNullOrBlank() } // ✅ 크롭된 것만
 
-            val totalToUpload = items.count { it.imageUri != null || it.imageResId != null }
-            val token = "Bearer " + TokenProvider.getToken(requireContext())
-            val api = UploadRetrofit.instance.create(ApiService::class.java)
-
-            // 전송 데이터 준비
-            val localUriStrings  = ArrayList<String>()
-            val resIds = ArrayList<Int>()
-            items.forEach { item ->
-                item.imageUri?.let { localUriStrings .add(it.toString()) }
-                item.imageResId?.let { resIds.add(it) }
+            if (itemsToRefine.isEmpty()) {
+                Toast.makeText(requireContext(), "크롭된 항목이 없어요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            val token = TokenProvider.getToken(requireContext())
+            if (token.isNullOrBlank()) {
+                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val bearer = "Bearer $token"
 
-            // 업로드 시작
-            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                val uploadedUrls = mutableListOf<String>()
-                for (item in items) {
-                    val part = when {
-                        item.imageUri != null -> uriToPart(item.imageUri!!, requireContext(), partName = "image")
-                        item.imageResId != null -> resIdToPart(item.imageResId!!, requireContext(), partName = "image")
-                        else -> null
-                    } ?: continue
+            binding.outfitRegisterSaveBtn.isEnabled = false
 
-                    try {
-                        val resp = api.uploadImage(token, part)
-                        if (resp.isSuccessful) {
-                            val body = resp.body()
-                            if (body?.ok == true) {
-                                body.payload?.imageUrl?.let { uploadedUrls.add(it) }
-                            } else {
-                                Log.w("Upload", "Server not ok: ${body?.message}")
-                            }
-                        } else {
-                            Log.e("Upload", "HTTP ${resp.code()} - ${resp.errorBody()?.string()}")
+            viewLifecycleOwner.lifecycleScope.launch {
+                val refineApi = HeavyApiRetrofit.retrofit.create(RefineService::class.java)
+
+                // 병렬 refine
+                val refinedUrls = withContext(Dispatchers.IO) {
+                    itemsToRefine.map { item ->
+                        async {
+                            runCatching {
+                                val resp = refineApi.refine(bearer, RefineRequest(cropId = item.cropId!!))
+                                if (resp.isSuccessful && resp.body()?.isSuccess == true) {
+                                    resp.body()!!.result!!.previewUrl
+                                } else null
+                            }.getOrNull()
                         }
-                    } catch (e: Exception) {
-                        Log.e("Upload", "Upload failed", e)
-                    }
+                    }.awaitAll().filterNotNull()
                 }
 
-                withContext(Dispatchers.Main) {
-                    val success = uploadedUrls.size
-                    val fail = (totalToUpload - success).coerceAtLeast(0)
+                binding.outfitRegisterSaveBtn.isEnabled = true
 
-                    // 결과에 따라 토스트 메시지 분기
-                    val msg = when {
-                        success == 0 -> "업로드에 실패했어요. 로컬 이미지로 표시할게요."
-                        fail == 0    -> "이미지 ${success}개 업로드 완료!"
-                        else         -> "이미지 ${success}개 업로드, ${fail}개 실패"
-                    }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
-
-                    // 업로드 성공분이 있으면 그 URL들로, 아니면 로컬 URI로 뷰페이저 표시
-                    val toShow = if (uploadedUrls.isNotEmpty()) uploadedUrls else localUriStrings
-
-                    val directions = OutfitRegisterFragmentDirections
-                        .actionOutfitRegisterFragmentToOutfitSaveFragment(
-                            toShow.toTypedArray(),     // imageUris: URL/로컬 URI 문자열 모두 가능
-                            resIds.toIntArray()        // 리소스 이미지가 있다면 그대로 전달
-                        )
-                    val outBundle = directions.arguments.apply {
-                        putString("save_date", passedSaveDate)
-                    }
-                    findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment, outBundle)
+                if (refinedUrls.isEmpty()) {
+                    Toast.makeText(requireContext(), "이미지 정제에 실패했어요.", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
+
+                // ✅ refine 결과(preview_url)만 다음 화면으로
+                val directions = OutfitRegisterFragmentDirections
+                    .actionOutfitRegisterFragmentToOutfitSaveFragment(
+                        refinedUrls.toTypedArray(), // imageUris
+                        intArrayOf()                // 리소스 ID는 사용 안 함
+                    )
+                directions.arguments.putString("save_date", passedSaveDate)
+
+                findNavController().navigate(
+                    R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
+                    directions.arguments
+                )
             }
         }
 
@@ -376,7 +369,7 @@ class OutfitRegisterFragment : Fragment() {
             try {
                 // ✅ 1) 호출 시작 로그
                 val callId = System.currentTimeMillis().toString()
-                val response = RetrofitClient.instance.detectItems(header, part)
+                val response = aiCropApi.detectItems(header, part)
 
                 // ✅ 3) 응답 파싱 + 크롭 로그 (IO 스레드에서 미리)
                 val cropsIO = if (response.isSuccessful) {
@@ -416,7 +409,8 @@ class OutfitRegisterFragment : Fragment() {
                                 OutfitItem2(
                                     imageUri = uri,
                                     imageResId = null,
-                                    isClosetButtonActive = true
+                                    isClosetButtonActive = true,
+                                    cropId = crop.cropId
                                 )
                             )
                         }
@@ -444,6 +438,9 @@ class OutfitRegisterFragment : Fragment() {
                 e.printStackTrace()
             }
         }
+    }
+    private val aiCropApi by lazy {
+        HeavyApiRetrofit.retrofit.create(AiCropService::class.java)
     }
 
     private fun openGallery() {

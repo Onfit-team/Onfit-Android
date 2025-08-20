@@ -1,5 +1,7 @@
 package com.example.onfit.HomeRegister.service
 
+import com.google.gson.annotations.SerializedName
+
 data class DetectResponse(
     val isSuccess: Boolean,
     val code: String,
@@ -13,7 +15,7 @@ data class DetectResult(
 
 
 data class CropItem(
-    val crop_id: String,
+    @SerializedName("crop_id") val cropId: String,
     val category: String,
     val bbox: List<Float> // [x1, y1, x2, y2]
 )

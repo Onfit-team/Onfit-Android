@@ -51,7 +51,7 @@ object RetrofitClient {
         chain.proceed(req)
     }
 
-    private val client = OkHttpClient.Builder()
+    private val _client = OkHttpClient.Builder()
         .addInterceptor(multipartLogger)
         .addInterceptor(httpLogger)
         .connectTimeout(60, TimeUnit.SECONDS)
@@ -59,10 +59,14 @@ object RetrofitClient {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
+    // 🔓 외부에서 재사용할 수 있게 공개
+    val client: OkHttpClient
+        get() = _client
+
     val instance: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(client)
+            .client(_client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
