@@ -81,9 +81,14 @@ class OutfitSaveFragment : Fragment() {
 
         // ViewPager 이미지 준비
         val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+
+        val refinedUrls: List<String> = args.imageUris
+            ?.filter { it != null && (it.startsWith("http://") || it.startsWith("https://")) }
+            ?.distinct()
+            ?: emptyList()
+
         currentImages.clear()
-        args.imageUris?.forEach { s -> currentImages.add(DisplayImage(uri = Uri.parse(s))) }
-        args.imageResIds?.forEach { id -> currentImages.add(DisplayImage(resId = id)) }
+        currentImages.addAll(refinedUrls.map { s -> DisplayImage(uri = Uri.parse(s)) })
 
         // 드래프트 개수 동기화
         drafts.clear()
