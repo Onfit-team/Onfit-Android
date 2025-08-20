@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private const val BASE_URL = "http://15.164.35.198:3000/"
+    private const val BASE_URL = "http://3.36.113.173/"
 
     // 표준 HTTP 로깅 (민감 헤더 마스킹)
     private val httpLogger = HttpLoggingInterceptor { msg ->

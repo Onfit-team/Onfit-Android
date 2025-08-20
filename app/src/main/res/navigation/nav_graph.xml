@@ -97,6 +97,9 @@
         <action
             android:id="@+id/action_homeFragment_to_myPageFragment"
             app:destination="@id/myPageFragment" />
+        <action
+            android:id="@+id/action_calendarFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
     </fragment>
 
     <!-- 마이페이지 Destination 추가 -->
@@ -126,6 +129,9 @@
                 android:name="saveDate"
                 app:argType="string"
                 app:nullable="true" />
+            <argument
+                android:name="outfit_id"
+                app:argType="string"/>
         </action>
     </fragment>
 
@@ -154,12 +160,24 @@
     <fragment
         android:id="@+id/outfitSelectFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSelectFragment"
-        android:label="outfitSelectFragment" />
+        android:label="outfitSelectFragment" >
+        <argument
+            android:name="imageSource"
+            app:argType="string"
+            app:nullable="true"/>
+        <argument
+            android:name="itemPosition"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/outfitCropFragment"
         android:name="com.example.onfit.HomeRegister.fragment.OutfitCropFragment"
-        android:label="outfitCropFragment" />
+        android:label="outfitCropFragment" >
+        <argument
+            android:name="outfit_image_path"
+            app:argType="string"/>
+    </fragment>
 
     <fragment
         android:id="@+id/outfitSaveFragment"

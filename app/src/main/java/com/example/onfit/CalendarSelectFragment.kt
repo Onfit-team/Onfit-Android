@@ -30,6 +30,7 @@ class CalendarSelectFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // CalendarRewriteFragment에서 이미지 받기
         val iv = binding.calendarSelectOutfitIv
         val src = args.imageSource  // 번들 키: "imageSource"
 
@@ -47,13 +48,14 @@ class CalendarSelectFragment : Fragment() {
             .replace(R.id.calendar_select_fragment_container, WardrobeSelectFragment())
             .commit()
 
+        // 저장 버튼에서 선택값(이미지) 돌려주고 뒤로가기
         binding.calendarSelectSaveBtn.setOnClickListener {
             val child = childFragmentManager
                 .findFragmentById(R.id.calendar_select_fragment_container) as? WardrobeSelectFragment
 
             val selectedResIds = child?.getSelectedImages().orEmpty()
             if (selectedResIds.isEmpty()) {
-                Toast.makeText(requireContext(), "이미지를 선택해 주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "옷을 선택해 주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
