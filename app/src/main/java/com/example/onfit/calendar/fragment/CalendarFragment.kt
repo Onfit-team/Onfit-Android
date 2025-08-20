@@ -713,12 +713,7 @@ class CalendarFragment : Fragment() {
         }
 
         view.findViewById<View>(R.id.calendar_register_btn)?.setOnClickListener {
-            try {
-                showBottomSheet()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Toast.makeText(requireContext(), "이동 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            showBottomSheet()
         }
     }
 
@@ -849,13 +844,14 @@ class CalendarFragment : Fragment() {
                 openCamera()
                 dialog.dismiss()
             }
-            // 갤러리 버튼
-            view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
-                ensurePhotoPermission { rescanPicturesAndOpenGallery() }
-                dialog.dismiss()
-            }
-            dialog.show()
         }
+        // 갤러리 버튼
+        view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
+            ensurePhotoPermission { rescanPicturesAndOpenGallery() }
+            dialog.dismiss()
+        }
+        dialog.show()
+
     }
 
         private fun uriToCacheFile(context: Context, uri: Uri): File {
