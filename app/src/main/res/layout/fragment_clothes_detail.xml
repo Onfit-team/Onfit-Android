@@ -241,6 +241,7 @@
             </LinearLayout>
 
             <!-- 함께 코디하면 좋을 아이템 섹션 -->
+
             <LinearLayout
                 android:id="@+id/recommended_items_section"
                 android:layout_width="match_parent"
@@ -272,12 +273,22 @@
                     android:visibility="gone" />
 
                 <!-- 추천 아이템 리사이클러뷰 -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_recommended_items"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:visibility="gone" />
+                <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:visibility="visible"
+                        android:id="@+id/hsv_recommended_items">
+
+                    <LinearLayout
+                            android:id="@+id/rv_recommended_items"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingStart="0dp"
+                            android:paddingEnd="16dp" />
+
+                </HorizontalScrollView>
 
             </LinearLayout>
 

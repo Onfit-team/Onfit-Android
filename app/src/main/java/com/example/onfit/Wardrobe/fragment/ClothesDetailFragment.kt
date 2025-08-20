@@ -11,6 +11,7 @@ import android.widget.*
 import android.widget.LinearLayout
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import java.util.Calendar as JavaCalendar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -23,9 +24,11 @@ import com.example.onfit.R
 import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
+import com.example.onfit.calendar.fragment.CalendarFragment
 import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.example.onfit.Wardrobe.Network.RecommendationItem
 
 class ClothesDetailFragment : Fragment() {
 
@@ -1594,193 +1597,465 @@ class ClothesDetailFragment : Fragment() {
      * 🔥 NEW: onViewCreated에서 코디 기록 로드 (기존 코드 뒤에 추가)
      */
     private fun setupOutfitRecords() {
+        Log.d("ClothesDetailFragment", "🎯 setupOutfitRecords 시작: imageResId=$imageResId")
+
         if (isDummyItemId(imageResId)) {
+            Log.d("ClothesDetailFragment", "더미 아이템임 - 코디 기록 표시")
             displayHardcodedOutfitRecords()
         } else {
-            displayNoOutfitRecords()
+            Log.d("ClothesDetailFragment", "API 아이템임 - 코디 기록 없음")
+            displayNoOutfitRecordsWithStyle()
         }
+
+        // 🔥 NEW: 추천 아이템 섹션 추가
+        setupRecommendationItems()
     }
 
-    /**
-     * 🔥 NEW: 코디 기록이 없을 때 표시
-     */
-    private fun displayNoOutfitRecords() {
-        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
-        outfitContainer?.removeAllViews()
+    private fun setupRecommendationItems() {
+        Log.d("ClothesDetailFragment", "🎯 추천 아이템 설정 시작")
 
-        val noRecordsView = TextView(requireContext()).apply {
-            text = "함께 코디한 기록이 없습니다"
-            textSize = 14f
-            setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
-            gravity = android.view.Gravity.CENTER
-            setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16))
-        }
-        outfitContainer?.addView(noRecordsView)
-    }
+        // 🔥 올바른 컨테이너 찾기 - LinearLayout이 아닌 HorizontalScrollView 내부의 LinearLayout
+        val recommendationContainer = view?.findViewById<LinearLayout>(R.id.rv_recommended_items)
+        val scrollView = view?.findViewById<HorizontalScrollView>(R.id.hsv_recommended_items)
 
-    /**
-     * 🔥 NEW: 하드코딩된 코디 기록 표시
-     */
-    private fun displayHardcodedOutfitRecords() {
-        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
-
-        if (outfitContainer == null) {
-            Log.w("ClothesDetailFragment", "outfit_records_container를 찾을 수 없습니다")
+        if (recommendationContainer == null || scrollView == null) {
+            Log.e("ClothesDetailFragment", "❌ 추천 아이템 컨테이너를 찾을 수 없습니다")
             return
         }
 
-        outfitContainer.removeAllViews()
+        // 🔥 스크롤뷰를 보이게 하고, 내부 LinearLayout만 클리어
+        scrollView.visibility = View.VISIBLE
+        recommendationContainer.removeAllViews()
 
-        // 가로 스크롤뷰 생성
-        val horizontalScrollView = HorizontalScrollView(requireContext()).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            isHorizontalScrollBarEnabled = false
+        // 🔥 더미 추천 아이템 데이터 생성
+        val dummyRecommendations = createDummyRecommendations()
+
+        dummyRecommendations.forEachIndexed { index, item ->
+            val itemCard = createRecommendationItemCard(item, index)
+            recommendationContainer.addView(itemCard) // LinearLayout에 추가
         }
 
-        val horizontalLayout = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
+        Log.d("ClothesDetailFragment", "✅ 더미 추천 아이템 ${dummyRecommendations.size}개 표시 완료")
+    }
 
-        // 🔥 코디 3개 하드코딩
-        for (i in 1..3) {
-            val outfitCard = createHardcodedOutfitCard(i)
-            horizontalLayout.addView(outfitCard)
-        }
-
-        horizontalScrollView.addView(horizontalLayout)
-        outfitContainer.addView(horizontalScrollView)
-
-        Log.d("ClothesDetailFragment", "하드코딩된 코디 기록 3개 표시 완료")
+    private fun createDummyRecommendations(): List<String> {
+        // 일단 간단하게 문자열 리스트로
+        return listOf("더미1", "더미2", "더미3", "더미4")
     }
 
     /**
-     * 🔥 NEW: 하드코딩된 코디 카드 생성
+     * 🔥 수정된 코디 기록 카드 생성 - 날짜 표시 문제 해결
      */
     private fun createHardcodedOutfitCard(outfitNumber: Int): View {
-        val cardLayout = LinearLayout(requireContext()).apply {
+        val context = requireContext()
+        val imageWidth = dpToPx(117)
+        val imageHeight = dpToPx(147)
+        val cardLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            background = ContextCompat.getDrawable(context, R.drawable.rounded_button_selector)
-            setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12))
-
-            val params = LinearLayout.LayoutParams(
-                dpToPx(100),
-                dpToPx(110)
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth, // 카드 width를 이미지 width와 동일하게!
+                LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (outfitNumber > 1) leftMargin = dpToPx(8)
+                rightMargin = dpToPx(12)
+            }
+            gravity = android.view.Gravity.START
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+
+        val imageView = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth,
+                imageHeight
+            ).apply {
+                gravity = android.view.Gravity.START
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = createRoundedDrawable(10f, android.graphics.Color.TRANSPARENT)
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, dpToPx(12).toFloat())
+                }
+            }
+            setImageResource(
+                when (outfitNumber) {
+                    1 -> R.drawable.cody1
+                    2 -> R.drawable.cody2
+                    3 -> R.drawable.cody3
+                    4 -> R.drawable.cody4
+                    else -> R.drawable.cody4
+                }
+            )
+        }
+
+        val dateMap = mapOf(
+            1 to "8월 13일",
+            2 to "8월 12일",
+            3 to "8월 11일",
+            4 to "8월 10일"
+        )
+        val dateText = TextView(context).apply {
+            text = dateMap[outfitNumber] ?: "코디 $outfitNumber"
+            textSize = 13f
+            setTextColor(android.graphics.Color.parseColor("#333333"))
+            gravity = android.view.Gravity.CENTER
+            background = createRoundedDrawable(
+                radiusDp = 12f,
+                color = android.graphics.Color.parseColor("#F1F2F4")
+            )
+            setPadding(dpToPx(14), dpToPx(3), dpToPx(14), dpToPx(3))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = android.view.Gravity.START
+                topMargin = dpToPx(10) // 간격 넓힘!
+                bottomMargin = dpToPx(10)
+            }
+        }
+
+        cardLayout.addView(imageView)
+        cardLayout.addView(dateText)
+
+        cardLayout.setOnClickListener {
+            navigateToCalendarWithOutfit(outfitNumber)
+        }
+        return cardLayout
+    }
+
+    /**
+     * 🔥 수정된 추천 아이템 카드 생성 - 간격 조정
+     */
+    private fun createRecommendationItemCard(item: Any, index: Int): View {
+        val cardLayout = android.widget.FrameLayout(requireContext()).apply {
+            val params = LinearLayout.LayoutParams(
+                dpToPx(117),
+                dpToPx(147)
+            ).apply {
+                rightMargin = dpToPx(20) // 🔥 오른쪽 간격 늘림 (12 → 20)
+                leftMargin = dpToPx(0)   // 🔥 왼쪽 잘림 방지
             }
             layoutParams = params
 
             setOnClickListener {
-                Toast.makeText(context, "코디 ${outfitNumber}번 클릭", Toast.LENGTH_SHORT).show()
+                navigateToItemDetail(item)
             }
+
+            background = createRippleDrawable()
+            isClickable = true
+            isFocusable = true
         }
 
-        // 🔥 하드코딩된 코디 이미지
         val imageView = ImageView(requireContext()).apply {
-            layoutParams = LinearLayout.LayoutParams(dpToPx(76), dpToPx(76))
-            scaleType = ImageView.ScaleType.CENTER_CROP
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
 
-            // 코디별 대표 이미지 (하드코딩)
-            val outfitImage = when (outfitNumber) {
-                1 -> R.drawable.clothes1 // cody1
-                2 -> R.drawable.clothes4 // cody2
-                3 -> R.drawable.clothes7 // cody3
-                else -> R.drawable.clothes8
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = createRoundedDrawable(10f, android.graphics.Color.TRANSPARENT)
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, 10f * resources.displayMetrics.density)
+                }
             }
 
-            setImageResource(outfitImage)
+            setItemImage(this, item, index)
+            elevation = 4f
         }
 
-        val numberText = TextView(requireContext()).apply {
-            text = outfitNumber.toString()
-            textSize = 16f
-            setTextColor(ContextCompat.getColor(context, android.R.color.black))
+        val infoText = TextView(requireContext()).apply {
+            text = getItemDisplayText(item, index)
+            textSize = 11f
+            setTextColor(android.graphics.Color.parseColor("#333333"))
             gravity = android.view.Gravity.CENTER
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
 
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+            // 🔥 더 진한 배경으로 가시성 향상
+            background = createRoundedDrawable(8f, android.graphics.Color.parseColor("#E6FFFFFF"))
+
+            setPadding(dpToPx(6), dpToPx(3), dpToPx(6), dpToPx(3))
+            visibility = View.VISIBLE
+
+            val params = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = dpToPx(8)
+                gravity = android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+                bottomMargin = dpToPx(6)
+                leftMargin = dpToPx(4)
+                rightMargin = dpToPx(4)
             }
             layoutParams = params
         }
 
         cardLayout.addView(imageView)
-        cardLayout.addView(numberText)
+        cardLayout.addView(infoText)
 
         return cardLayout
     }
 
     /**
-     * 🔥 NEW: 파일명에서 날짜와 온도 추출
+     * 🔥 아이템 이미지 설정 (더미 + 실제 데이터)
      */
-    private fun extractDateAndTemperature(fileName: String): Pair<String, String?> {
-        try {
-            // "6월8.14(26.4).jpg" 형태에서 날짜와 온도 추출
-            val pattern = Regex("(\\d+월)(\\d+\\.\\d+)\\((\\d+\\.\\d+)\\)")
-            val matchResult = pattern.find(fileName)
-
-            if (matchResult != null) {
-                val month = matchResult.groupValues[1]
-                val day = matchResult.groupValues[2]
-                val temperature = matchResult.groupValues[3]
-
-                return Pair("$month $day", "${temperature}°C")
+    private fun setItemImage(imageView: ImageView, item: Any, index: Int) {
+        when (item) {
+            is RecommendationItem -> {
+                // 실제 API 데이터인 경우
+                if (!item.image.isNullOrBlank()) {
+                    Glide.with(requireContext())
+                        .load(item.image)
+                        .placeholder(R.drawable.clothes8)
+                        .error(getDummyItemImage(index))
+                        .into(imageView)
+                } else {
+                    imageView.setImageResource(getDummyItemImage(index))
+                }
             }
-
-            // 다른 패턴 시도: "1번8.13(26.3)" 형태
-            val pattern2 = Regex("(\\d+번)(\\d+\\.\\d+)\\((\\d+\\.\\d+)\\)")
-            val matchResult2 = pattern2.find(fileName)
-
-            if (matchResult2 != null) {
-                val number = matchResult2.groupValues[1]
-                val day = matchResult2.groupValues[2]
-                val temperature = matchResult2.groupValues[3]
-
-                return Pair("코디 $number", "${temperature}°C")
+            else -> {
+                // 더미 데이터인 경우
+                imageView.setImageResource(getDummyItemImage(index))
             }
-
-        } catch (e: Exception) {
-            Log.e("ClothesDetailFragment", "날짜/온도 추출 실패: $fileName", e)
-        }
-
-        // 기본값
-        return Pair("코디 기록", null)
-    }
-
-    /**
-     * 🔥 NEW: 코디 기록들을 UI에 표시
-     */
-
-    /**
-     * 🔥 NEW: Assets에서 코디 이미지 로딩
-     */
-    private fun loadOutfitImageFromAssets(imageView: ImageView, imagePath: String) {
-        try {
-            if (imagePath.startsWith("file:///android_asset/")) {
-                val assetPath = imagePath.removePrefix("file:///android_asset/")
-                val inputStream = requireContext().assets.open(assetPath)
-                val drawable = Drawable.createFromStream(inputStream, null)
-                imageView.setImageDrawable(drawable)
-                inputStream.close()
-                Log.d("ClothesDetailFragment", "✅ 코디 이미지 로딩 성공: $assetPath")
-            } else {
-                // 기본 이미지
-                imageView.setImageResource(R.drawable.clothes8)
-            }
-        } catch (e: Exception) {
-            Log.e("ClothesDetailFragment", "코디 이미지 로딩 실패", e)
-            imageView.setImageResource(R.drawable.clothes8)
         }
     }
 
+    /**
+     * 🔥 더미 아이템 이미지 반환
+     */
+    private fun getDummyItemImage(index: Int): Int {
+        val dummyItems = listOf(
+            R.drawable.shirts1,  // 셔츠
+            R.drawable.pants1,   // 바지
+            R.drawable.shoes1,   // 신발
+            R.drawable.shirts2,  // 다른 셔츠
+            R.drawable.pants2,   // 다른 바지
+            R.drawable.shoes2,   // 다른 신발
+            R.drawable.acc3,     // 액세서리
+            R.drawable.bag4      // 가방
+        )
+        return dummyItems[index % dummyItems.size]
+    }
+
+    /**
+     * 🔥 아이템 표시 텍스트 (날짜 대신 브랜드나 카테고리)
+     */
+    private fun getItemDisplayText(item: Any, index: Int): String {
+        return when (item) {
+            is RecommendationItem -> {
+                item.brand ?: "추천 아이템"
+            }
+            else -> {
+                // 더미 데이터
+                val dummyBrands = listOf("ZARA", "UNIQLO", "NIKE", "H&M", "무지", "MCM")
+                dummyBrands[index % dummyBrands.size]
+            }
+        }
+    }
+
+    /**
+     * 🔥 아이템 상세 화면으로 이동
+     */
+    private fun navigateToItemDetail(item: Any) {
+        when (item) {
+            is RecommendationItem -> {
+                // 실제 아이템 상세 화면으로 이동
+                val bundle = Bundle().apply {
+                    putInt("image_res_id", item.id)
+                    putBoolean("is_recommendation", true)
+                }
+                findNavController().navigate(R.id.clothesDetailFragment, bundle)
+            }
+            else -> {
+                // 더미 아이템 처리
+                Toast.makeText(requireContext(), "더미 추천 아이템입니다", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * 🔥 둥근 모서리 Drawable 생성 헬퍼 함수
+     */
+    private fun createRoundedDrawable(radiusDp: Float, color: Int): android.graphics.drawable.GradientDrawable {
+        return android.graphics.drawable.GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = radiusDp * resources.displayMetrics.density
+        }
+    }
+
+    /**
+     * 🔥 리플 효과가 있는 Drawable 생성
+     */
+    private fun createRippleDrawable(): android.graphics.drawable.Drawable {
+        val normalDrawable = createRoundedDrawable(8f, android.graphics.Color.TRANSPARENT)
+
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#20000000")),
+                normalDrawable,
+                null
+            )
+        } else {
+            // 구형 Android 버전 호환성
+            normalDrawable
+        }
+    }
+
+    private fun displayHardcodedOutfitRecords() {
+        Log.d("ClothesDetailFragment", "🎭 displayHardcodedOutfitRecords 시작")
+
+        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
+
+        if (outfitContainer == null) {
+            Log.e("ClothesDetailFragment", "❌ rv_outfit_history를 찾을 수 없습니다")
+            return
+        }
+
+        outfitContainer.apply {
+            visibility = View.VISIBLE
+            removeAllViews()
+            orientation = LinearLayout.HORIZONTAL
+
+            // 🔥 왼쪽 패딩을 줄여서 텍스트와 맞춤
+            setPadding(dpToPx(0), dpToPx(8), dpToPx(16), dpToPx(8))
+        }
+
+        val currentOutfitNumber = getCurrentItemOutfitGroup()
+
+        if (currentOutfitNumber != null) {
+            val outfitCard = createHardcodedOutfitCard(currentOutfitNumber)
+            outfitContainer.addView(outfitCard)
+
+            view?.findViewById<TextView>(R.id.tv_no_outfit_history)?.visibility = View.GONE
+
+            Log.d("ClothesDetailFragment", "✅ 코디 ${currentOutfitNumber}번 기록 표시 완료")
+        } else {
+            displayNoOutfitRecordsWithStyle()
+        }
+    }
+
+    /**
+     * 🔥 스타일이 개선된 "코디 기록 없음" 표시
+     */
+    private fun displayNoOutfitRecordsWithStyle() {
+        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
+        outfitContainer?.removeAllViews()
+
+        val noRecordsLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = android.view.Gravity.CENTER
+            setPadding(dpToPx(24), dpToPx(32), dpToPx(24), dpToPx(32))
+
+            // 🔥 미묘한 배경 색상과 둥근 모서리
+            background = createRoundedDrawable(12f, android.graphics.Color.parseColor("#F9F9F9"))
+        }
+
+        // 🔥 아이콘 추가
+        val iconView = ImageView(requireContext()).apply {
+            setImageResource(R.drawable.cody1) // 적절한 아이콘으로 변경
+            layoutParams = LinearLayout.LayoutParams(dpToPx(48), dpToPx(48)).apply {
+                bottomMargin = dpToPx(12)
+                gravity = android.view.Gravity.CENTER_HORIZONTAL
+            }
+            alpha = 0.6f
+        }
+
+        val noRecordsText = TextView(requireContext()).apply {
+            text = "함께 코디한 기록이 없습니다"
+            textSize = 14f
+            setTextColor(android.graphics.Color.parseColor("#666666"))
+            gravity = android.view.Gravity.CENTER
+            typeface = android.graphics.Typeface.DEFAULT
+        }
+
+        val subText = TextView(requireContext()).apply {
+            text = "이 아이템으로 코디를 만들어보세요!"
+            textSize = 12f
+            setTextColor(android.graphics.Color.parseColor("#999999"))
+            gravity = android.view.Gravity.CENTER
+
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dpToPx(4)
+            }
+            layoutParams = params
+        }
+
+        noRecordsLayout.addView(iconView)
+        noRecordsLayout.addView(noRecordsText)
+        noRecordsLayout.addView(subText)
+
+        outfitContainer?.addView(noRecordsLayout)
+
+        // 🔥 부드러운 페이드인 애니메이션
+        noRecordsLayout.alpha = 0f
+        noRecordsLayout.animate()
+            .alpha(1f)
+            .setDuration(300)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .start()
+    }
+
+    private fun getCurrentItemOutfitGroup(): Int? {
+        val index = Math.abs(imageResId + 1000) // -1000 -> 0, -1001 -> 1, ...
+
+        // WardrobeFragment의 하드코딩된 아이템 순서와 코디 그룹 매핑
+        val outfitGroupMapping = mapOf(
+            0 to 1,  // shirts1 -> cody1
+            1 to 1,  // pants1 -> cody1
+            2 to 1,  // shoes1 -> cody1
+            3 to 2,  // shirts2 -> cody2
+            4 to 2,  // pants2 -> cody2
+            5 to 2,  // shoes2 -> cody2
+            6 to 3,  // shirts3 -> cody3
+            7 to 3,  // shoes3 -> cody3
+            8 to 3,  // pants3 -> cody3
+            9 to 3,  // acc3 -> cody3
+            10 to 1, // shirts4 -> cody1
+            11 to 1, // pants4 -> cody1
+            12 to 1, // bag4 -> cody1
+            13 to 1  // shoes4 -> cody1
+        )
+
+        return outfitGroupMapping[index % outfitGroupMapping.size]
+    }
+
+    private fun navigateToCalendarWithOutfit(outfitNumber: Int) {
+        try {
+            // 🔥 JavaCalendar로 변경
+            val calendar = JavaCalendar.getInstance()
+            val currentYear = calendar.get(JavaCalendar.YEAR)
+            val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+
+            val outfitDateMap = mapOf(
+                1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // 이번 달 20일
+                2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // 이번 달 19일
+                3 to "$currentYear-${String.format("%02d", currentMonth)}-11",  // 이번 달 18일
+                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"
+            )
+
+            val targetDate = outfitDateMap[outfitNumber]
+
+            if (targetDate != null) {
+                Log.d("ClothesDetailFragment", "🗓️ 코디 ${outfitNumber}번 클릭 -> ${targetDate}")
+
+                val bundle = Bundle().apply {
+                    putString("selected_date", targetDate)
+                    putInt("outfit_number", outfitNumber)
+                    putBoolean("from_outfit_record", true)
+                }
+
+                try {
+                    findNavController().navigate(R.id.calendarSaveFragment, bundle)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "코디 ${outfitNumber}번 (${targetDate})", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "💥 캘린더 이동 실패", e)
+            Toast.makeText(context, "오류: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
 }
