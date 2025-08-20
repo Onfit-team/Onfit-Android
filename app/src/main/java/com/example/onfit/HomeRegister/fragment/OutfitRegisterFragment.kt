@@ -66,6 +66,9 @@ class OutfitRegisterFragment : Fragment() {
     // 이미 추가한 crop Uri를 기억
     private val addedCropUriStrings = mutableSetOf<String>()
 
+    // SaveFragment로부터 전달받은 이미지 path 기억
+    private var originalImagePath: String? = null
+
 
     // 갤러리에서 이미지 선택 결과를 받는 Launcher
     private val galleryLauncher = registerForActivityResult(
@@ -162,11 +165,11 @@ class OutfitRegisterFragment : Fragment() {
         // SaveFragment에서 전달받은 이미지 경로 가져오기
         val imagePath = arguments?.getString("outfit_image_path")
         if (!imagePath.isNullOrEmpty()) {
+            originalImagePath = imagePath // 이미지 경로 보관
             if (processedDetectPaths.add(imagePath)) {
                 // set에 처음 들어갈 때만 true -> detect 1회만 수행
                 Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
                 uploadImageToServer(File(imagePath))
-                arguments?.putString("outfit_image_path", null)
             } else {
                 Log.d("OutfitRegister", "detect already processed for $imagePath")
             }
@@ -191,12 +194,18 @@ class OutfitRegisterFragment : Fragment() {
                 findNavController().navigate(directions)
             },
             onCropButtonClick = { position ->
-                // OutfitCropFragment로 전환
-                val item = outfitList[position]
-                val imagePath = item.imageUri?.path ?: ""
-
+                val pathForCrop: String? = originalImagePath
+                    ?: outfitList.getOrNull(position)?.imageUri?.let { uri ->
+                        // uri가 content:// 또는 file://이면 그대로, 아니면 파일 경로만
+                        if (uri.scheme.isNullOrBlank()) uri.path else uri.toString()
+                    }
+                if (pathForCrop.isNullOrBlank()) {
+                    Toast.makeText(requireContext(), "크롭할 원본 이미지가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@OutfitAdapter
+                }
                 val bundle = Bundle().apply {
-                    putString("outfit_image_path", imagePath)
+                    putString("outfit_image_path", pathForCrop) // ✅ 원본 path 그대로 전달
+                    putInt("itemPosition", position)
                 }
                 findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
             })
