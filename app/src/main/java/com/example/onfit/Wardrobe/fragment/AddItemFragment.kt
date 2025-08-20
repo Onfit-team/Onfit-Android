@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import android.graphics.drawable.Drawable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -247,9 +248,6 @@ class AddItemFragment : Fragment() {
         }
     }
 
-    /**
-     * 🔥 사용자가 선택한 원본 이미지 표시
-     */
     // 🔥 수정된 setupImageDisplay 함수 - 진입 시 즉시 AI 처리
     private fun setupImageDisplay() {
         arguments?.let { bundle ->
@@ -258,9 +256,26 @@ class AddItemFragment : Fragment() {
                 isEditMode -> {
                     val itemImage = bundle.getString("item_image")
                     tvTitle.text = "아이템 정보를 수정해주세요"
-                    if (!itemImage.isNullOrEmpty()) {
-                        loadImageIntoView(itemImage)
+
+                    // 🔥 NEW: Assets 이미지 처리 추가
+                    when {
+                        // Assets 이미지 처리
+                        itemImage?.startsWith("file:///android_asset/") == true -> {
+                            Log.d("AddItemFragment", "📱 Assets 이미지 로딩: $itemImage")
+                            loadAssetsImage(itemImage)
+                        }
+                        // 기존 네트워크/로컬 이미지 처리
+                        !itemImage.isNullOrEmpty() -> {
+                            Log.d("AddItemFragment", "🌐 네트워크/로컬 이미지 로딩: $itemImage")
+                            loadImageIntoView(itemImage)
+                        }
+                        // 이미지가 없는 경우
+                        else -> {
+                            Log.d("AddItemFragment", "❌ 이미지 URI 없음")
+                            ivClothes.setImageResource(defaultImageResId)
+                        }
                     }
+
                     btnChangeToDefault.visibility = View.VISIBLE
                     btnChangeToDefault.text = "이미지 변경하기"
                 }
@@ -298,6 +313,27 @@ class AddItemFragment : Fragment() {
 
         Log.d("AddItemFragment", "🔍 setupImageDisplay 완료")
         Log.d("AddItemFragment", "🔍 원본 이미지 URI: $originalImageUri")
+    }
+
+    private fun loadAssetsImage(assetUri: String) {
+        try {
+            val assetPath = assetUri.removePrefix("file:///android_asset/")
+            val inputStream = requireContext().assets.open(assetPath)
+            val drawable = Drawable.createFromStream(inputStream, null)
+
+            if (drawable != null) {
+                ivClothes.setImageDrawable(drawable)
+                Log.d("AddItemFragment", "✅ Assets 이미지 로딩 성공: $assetPath")
+            } else {
+                Log.e("AddItemFragment", "❌ Drawable 생성 실패: $assetPath")
+                ivClothes.setImageResource(defaultImageResId)
+            }
+
+            inputStream.close()
+        } catch (e: Exception) {
+            Log.e("AddItemFragment", "❌ Assets 이미지 로딩 실패: ${e.message}", e)
+            ivClothes.setImageResource(defaultImageResId)
+        }
     }
 
     // 🔥 NEW: 이미지 진입 시 즉시 AI 처리하는 함수
@@ -474,24 +510,32 @@ class AddItemFragment : Fragment() {
     }
 
     private fun loadImageIntoView(imageUrl: String) {
-        if (imageUrl.startsWith("http")) {
+        when {
+            // 🔥 NEW: Assets 이미지 처리
+            imageUrl.startsWith("file:///android_asset/") -> {
+                loadAssetsImage(imageUrl)
+                btnChangeToDefault.visibility = View.VISIBLE
+            }
             // 네트워크 이미지
-            Glide.with(this)
-                .load(imageUrl)
-                .placeholder(defaultImageResId)
-                .error(defaultImageResId)
-                .into(ivClothes)
-            btnChangeToDefault.visibility = View.GONE
-        } else {
+            imageUrl.startsWith("http") -> {
+                Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(defaultImageResId)
+                    .error(defaultImageResId)
+                    .into(ivClothes)
+                btnChangeToDefault.visibility = View.GONE
+            }
             // 로컬 이미지나 URI
-            try {
-                val uri = Uri.parse(imageUrl)
-                ivClothes.setImageURI(uri)
-                selectedImageUri = uri
-                btnChangeToDefault.visibility = View.GONE
-            } catch (e: Exception) {
-                ivClothes.setImageResource(defaultImageResId)
-                btnChangeToDefault.visibility = View.GONE
+            else -> {
+                try {
+                    val uri = Uri.parse(imageUrl)
+                    ivClothes.setImageURI(uri)
+                    selectedImageUri = uri
+                    btnChangeToDefault.visibility = View.GONE
+                } catch (e: Exception) {
+                    ivClothes.setImageResource(defaultImageResId)
+                    btnChangeToDefault.visibility = View.GONE
+                }
             }
         }
     }

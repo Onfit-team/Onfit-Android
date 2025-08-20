@@ -290,64 +290,6 @@ open class WardrobeFragment : Fragment() {
         }
     }
 
-    // 🔥 NEW: 상세 데이터로 서브 필터 업데이트
-    private fun updateSubFiltersWithDetailedData(subcategories: List<SubcategoryDto>, categoryItems: List<WardrobeItemDto>) {
-        if (!isAdded || context == null) return
-
-        Log.d("WardrobeFragment", "updateSubFiltersWithDetailedData 시작")
-
-        subFilterLayout.removeAllViews()
-        selectedIndex = 0
-
-        // '전체' 버튼 추가
-        val allButton = createFilterButton("전체 ${categoryItems.size}", 0, subcategories.size + 1)
-        allButton.setOnClickListener {
-            if (isAdded && context != null) {
-                updateButtonSelection(0)
-                moveUnderline(0)
-                currentSelectedSubcategory = null
-
-                // 🔥 FIXED: 즉시 현재 카테고리의 모든 아이템 표시
-                adapter.updateWithApiData(categoryItems)
-                Log.d("WardrobeFragment", "전체 세부카테고리 선택: ${categoryItems.size}개 아이템 표시")
-            }
-        }
-        subFilterLayout.addView(allButton)
-
-        // 서브카테고리 버튼들 추가
-        subcategories.forEachIndexed { index, subcategoryDto ->
-            val subcategoryItemCount = categoryItems.count { it.subcategory == subcategoryDto.subcategory }
-            val displayName = "${subcategoryDto.name} $subcategoryItemCount"
-
-            val button = createFilterButton(displayName, index + 1, subcategories.size + 1)
-            button.setOnClickListener {
-                if (isAdded && context != null) {
-                    updateButtonSelection(index + 1)
-                    moveUnderline(index + 1)
-                    currentSelectedSubcategory = subcategoryDto.subcategory
-
-                    // 🔥 FIXED: 즉시 해당 서브카테고리 아이템만 필터링해서 표시
-                    val filteredItems = categoryItems.filter { it.subcategory == subcategoryDto.subcategory }
-                    adapter.updateWithApiData(filteredItems)
-
-                    Log.d("WardrobeFragment", "서브카테고리 ${subcategoryDto.name} 선택: ${filteredItems.size}개 아이템 표시")
-                }
-            }
-            subFilterLayout.addView(button)
-        }
-
-        // 🔥 FIXED: 초기 선택 시 바로 전체 아이템 표시
-        updateButtonSelection(0)
-        adapter.updateWithApiData(categoryItems)
-        Log.d("WardrobeFragment", "초기 로드: 전체 ${categoryItems.size}개 아이템 표시")
-
-        subFilterLayout.post {
-            if (isAdded && view != null) {
-                moveUnderline(0)
-            }
-        }
-    }
-
     // 🔥 WardrobeFragment의 setupFragmentResultListeners() 함수를 완전히 교체하세요
 
     private fun setupFragmentResultListeners() {
@@ -632,7 +574,7 @@ open class WardrobeFragment : Fragment() {
 
         Log.d("WardrobeFragment", "🔄 updateCategoryButtonsWithCount 시작")
         Log.d("WardrobeFragment", "받은 카테고리 정보: ${categories.map { "${it.name}(${it.category}): ${it.count}" }}")
-        Log.d("WardrobeFragment", "아이템 개수: ${items.size}")
+        Log.d("WardrobeFragment", "아이템 개수 (더미 포함): ${items.size}")
 
         try {
             val totalCount = items.size
@@ -640,14 +582,14 @@ open class WardrobeFragment : Fragment() {
             allButton?.text = "전체 $totalCount"
             Log.d("WardrobeFragment", "전체 버튼 업데이트: 전체 $totalCount")
 
-            // 🔥 FIXED: 액세서리 버튼 추가
+            // 🔥 FIXED: 원피스(3) -> 아우터(4) 순서로 수정, 더미 데이터 포함
             val categoryMapping = mapOf(
                 1 to Pair(R.id.btnTopCategory2, "상의"),
                 2 to Pair(R.id.btnTopCategory3, "하의"),
-                4 to Pair(R.id.btnTopCategory4, "원피스"),
-                3 to Pair(R.id.btnTopCategory5, "아우터"),
-                5 to Pair(R.id.btnTopCategory6, "신발"),
-                6 to Pair(R.id.btnTopCategory7, "액세서리")
+                3 to Pair(R.id.btnTopCategory4, "원피스"),
+                4 to Pair(R.id.btnTopCategory5, "아우터"),
+                5 to Pair(R.id.btnTopCategory6, "신발")
+                // 6 to Pair(R.id.btnTopCategory7, "액세서리") // 레이아웃 추가 후 활성화
             )
 
             categoryMapping.forEach { (categoryId, buttonInfo) ->
@@ -658,10 +600,10 @@ open class WardrobeFragment : Fragment() {
                 val count = items.count { it.category == categoryId }
 
                 button?.text = "$categoryName $count"
-                Log.d("WardrobeFragment", "버튼 업데이트: $categoryName $count")
+                Log.d("WardrobeFragment", "버튼 업데이트: $categoryName $count (더미 포함)")
             }
 
-            Log.d("WardrobeFragment", "✅ 카테고리 버튼 업데이트 완료")
+            Log.d("WardrobeFragment", "✅ 카테고리 버튼 업데이트 완료 (더미 포함)")
         } catch (e: Exception) {
             Log.e("WardrobeFragment", "Error updating category buttons", e)
         }
@@ -716,30 +658,27 @@ open class WardrobeFragment : Fragment() {
             return
         }
 
-        // 🔥 FIXED: 서버에서 카테고리 정보가 0으로 오는 문제 해결
-        val currentItems = viewModel.uiState.value.wardrobeItems
-        Log.d("WardrobeFragment", "🔍 전체 아이템 개수: ${currentItems.size}")
+        // 🔥 CRITICAL FIX: 서버 + 더미 데이터 결합하여 사용
+        val serverItems = viewModel.uiState.value.wardrobeItems
+        val allItems = if (USE_WARDROBE_DUMMY) {
+            combineServerAndDummyData(serverItems)
+        } else {
+            serverItems
+        }
 
-        currentItems.forEach { item ->
+        Log.d("WardrobeFragment", "🔍 전체 아이템 개수 (서버+더미): ${allItems.size}")
+
+        allItems.forEach { item ->
             Log.d("WardrobeFragment", "📱 아이템 ID: ${item.id}, 카테고리: ${item.category}, 서브카테고리: ${item.subcategory}")
         }
 
-        // 🔥 NEW: 서버에서 카테고리 정보가 0으로 오는 경우 모든 서브카테고리 표시
-        val hasValidCategories = currentItems.any { it.category != null && it.category != 0 }
-
-        if (!hasValidCategories) {
-            Log.w("WardrobeFragment", "⚠️ 서버에서 유효한 카테고리 정보 없음 - 모든 서브카테고리 표시")
-            showAllSubcategoriesForCategory(categoryId)
-            return
-        }
-
-        // 🔥 정상적인 카테고리 정보가 있는 경우 기존 로직 사용
-        val categoryItems = currentItems.filter { item ->
+        // 🔥 FIXED: 해당 카테고리의 아이템들 필터링 (더미 포함)
+        val categoryItems = allItems.filter { item ->
             Log.d("WardrobeFragment", "🔍 아이템 ${item.id} 카테고리 비교: ${item.category} == $categoryId ?")
             item.category == categoryId
         }
 
-        Log.d("WardrobeFragment", "카테고리 $categoryId 보유 아이템 수: ${categoryItems.size}")
+        Log.d("WardrobeFragment", "카테고리 $categoryId 보유 아이템 수 (더미 포함): ${categoryItems.size}")
 
         if (categoryItems.isEmpty()) {
             Log.d("WardrobeFragment", "❌ 해당 카테고리에 아이템 없음 - 모든 서브카테고리 표시")
@@ -811,6 +750,7 @@ open class WardrobeFragment : Fragment() {
         val itemSubcategories = categoryItems.mapNotNull { it.subcategory }.distinct()
         Log.d("WardrobeFragment", "🔍 실제 아이템들의 서브카테고리 ID: $itemSubcategories")
 
+        // 🔥 CRITICAL FIX: 보유한 서브카테고리만 표시하되, 더미 데이터 포함
         val availableSubcategories = allSubcategories.filter { subcategoryDto ->
             val hasItem = itemSubcategories.contains(subcategoryDto.subcategory)
             Log.d("WardrobeFragment", "🔍 서브카테고리 ${subcategoryDto.name}(${subcategoryDto.subcategory}) 보유 여부: $hasItem")
@@ -818,13 +758,16 @@ open class WardrobeFragment : Fragment() {
         }
 
         if (availableSubcategories.isNotEmpty()) {
-            Log.d("WardrobeFragment", "✅ 보유 서브카테고리로 필터 생성")
-            updateSubFiltersWithApiData(availableSubcategories)
+            Log.d("WardrobeFragment", "✅ 보유 서브카테고리로 필터 생성: ${availableSubcategories.map { it.name }}")
+            // 🔥 CRITICAL: categoryItems를 함께 전달
+            updateSubFiltersWithDetailedData(availableSubcategories, categoryItems)
         } else {
             Log.d("WardrobeFragment", "❌ 매칭되는 서브카테고리 없음 - 모든 서브카테고리 표시")
             showAllSubcategoriesForCategory(categoryId)
         }
     }
+
+
 
     // 🔥 NEW: 모든 서브카테고리를 표시하는 함수 (서버 응답 문제 대응용)
     private fun showAllSubcategoriesForCategory(categoryId: Int) {
@@ -897,6 +840,79 @@ open class WardrobeFragment : Fragment() {
         }
     }
 
+    private fun updateSubFiltersWithApiData(subcategories: List<SubcategoryDto>) {
+        if (!isAdded || context == null) return
+
+        Log.d("WardrobeFragment", "updateSubFiltersWithApiData 시작: ${subcategories.size}개")
+
+        subFilterLayout.removeAllViews()
+        selectedIndex = 0
+
+        // 🔥 서버 + 더미 데이터 결합
+        val serverItems = viewModel.uiState.value.wardrobeItems
+        val allItems = if (USE_WARDROBE_DUMMY) {
+            combineServerAndDummyData(serverItems)
+        } else {
+            serverItems
+        }
+
+        // 현재 선택된 카테고리의 아이템들 필터링
+        val categoryItems = if (currentSelectedCategory != null) {
+            allItems.filter { it.category == currentSelectedCategory }
+        } else {
+            allItems
+        }
+
+        // '전체' 버튼 추가
+        val allButton = createFilterButton("전체 ${categoryItems.size}", 0, subcategories.size + 1)
+        allButton.setOnClickListener {
+            if (isAdded && context != null) {
+                updateButtonSelection(0)
+                moveUnderline(0)
+                currentSelectedSubcategory = null
+
+                // 현재 카테고리의 모든 아이템 표시
+                adapter.updateWithApiData(categoryItems)
+                Log.d("WardrobeFragment", "전체 세부카테고리 선택: ${categoryItems.size}개 아이템 표시")
+            }
+        }
+        subFilterLayout.addView(allButton)
+
+        // 서브카테고리 버튼들 추가
+        subcategories.forEachIndexed { index, subcategoryDto ->
+            val subcategoryItemCount = categoryItems.count { it.subcategory == subcategoryDto.subcategory }
+            val displayName = "${subcategoryDto.name} $subcategoryItemCount"
+
+            val button = createFilterButton(displayName, index + 1, subcategories.size + 1)
+            button.setOnClickListener {
+                if (isAdded && context != null) {
+                    updateButtonSelection(index + 1)
+                    moveUnderline(index + 1)
+                    currentSelectedSubcategory = subcategoryDto.subcategory
+
+                    // 해당 서브카테고리 아이템만 필터링해서 표시
+                    val filteredItems = categoryItems.filter { it.subcategory == subcategoryDto.subcategory }
+                    adapter.updateWithApiData(filteredItems)
+
+                    Log.d("WardrobeFragment", "서브카테고리 ${subcategoryDto.name} 선택: ${filteredItems.size}개 아이템 표시")
+                }
+            }
+            subFilterLayout.addView(button)
+        }
+
+        // 초기 선택 및 UI 업데이트
+        updateButtonSelection(0)
+        adapter.updateWithApiData(categoryItems)
+
+        subFilterLayout.post {
+            if (isAdded && view != null) {
+                moveUnderline(0)
+            }
+        }
+
+        Log.d("WardrobeFragment", "updateSubFiltersWithApiData 완료")
+    }
+
     // 🔥 NEW: 기본 '전체' 버튼만 생성하는 함수
     private fun createDefaultAllButton() {
         if (!isAdded || context == null) return
@@ -937,39 +953,17 @@ open class WardrobeFragment : Fragment() {
     }
 
     // 🔥 WardrobeFragment의 updateSubFiltersWithApiData 함수 수정
-    private fun updateSubFiltersWithApiData(subcategories: List<SubcategoryDto>) {
+    private fun updateSubFiltersWithDetailedData(subcategories: List<SubcategoryDto>, categoryItems: List<WardrobeItemDto>) {
         if (!isAdded || context == null) return
 
-        Log.d("WardrobeFragment", "updateSubFiltersWithApiData 시작, 세부카테고리: ${subcategories.map { it.name }}")
+        Log.d("WardrobeFragment", "updateSubFiltersWithDetailedData 시작")
+        Log.d("WardrobeFragment", "세부카테고리: ${subcategories.map { it.name }}")
+        Log.d("WardrobeFragment", "카테고리 아이템: ${categoryItems.size}개")
 
         subFilterLayout.removeAllViews()
         selectedIndex = 0
 
-        // 🔥 FIXED: 현재 선택된 카테고리의 아이템만 가져오기
-        val currentItems = viewModel.uiState.value.wardrobeItems
-        val currentCategory = getCurrentSelectedCategory()
-
-        val categoryItems = if (currentCategory == null) {
-            // 전체 카테고리인 경우
-            currentItems
-        } else {
-            // 🔥 FIX: 선택된 카테고리의 아이템만 필터링
-            val filteredItems = currentItems.filter { item ->
-                Log.d("WardrobeFragment", "🔍 아이템 ${item.id} 카테고리 체크: ${item.category} == $currentCategory")
-                item.category == currentCategory
-            }
-
-            Log.d("WardrobeFragment", "🎯 선택된 카테고리($currentCategory) 아이템: ${filteredItems.size}개")
-            filteredItems.forEach { item ->
-                Log.d("WardrobeFragment", "  - 아이템 ${item.id}: category=${item.category}, subcategory=${item.subcategory}")
-            }
-
-            filteredItems
-        }
-
-        Log.d("WardrobeFragment", "📊 카테고리 아이템 개수: ${categoryItems.size}")
-
-        // '전체' 버튼 추가 (해당 카테고리의 모든 아이템 개수 표시)
+        // '전체' 버튼 추가
         val allButton = createFilterButton("전체 ${categoryItems.size}", 0, subcategories.size + 1)
         allButton.setOnClickListener {
             if (isAdded && context != null) {
@@ -977,22 +971,17 @@ open class WardrobeFragment : Fragment() {
                 moveUnderline(0)
                 currentSelectedSubcategory = null
 
-                // 🔥 FIXED: 현재 카테고리의 아이템만 표시
+                // 🔥 FIXED: 즉시 현재 카테고리의 모든 아이템 표시
                 adapter.updateWithApiData(categoryItems)
                 Log.d("WardrobeFragment", "전체 세부카테고리 선택: ${categoryItems.size}개 아이템 표시")
             }
         }
         subFilterLayout.addView(allButton)
 
-        // 세부 카테고리 버튼들 추가
+        // 서브카테고리 버튼들 추가
         subcategories.forEachIndexed { index, subcategoryDto ->
-            // 해당 서브카테고리의 아이템 개수 계산
             val subcategoryItemCount = categoryItems.count { it.subcategory == subcategoryDto.subcategory }
-            val displayName = if (subcategoryItemCount > 0) {
-                "${subcategoryDto.name} $subcategoryItemCount"
-            } else {
-                subcategoryDto.name
-            }
+            val displayName = "${subcategoryDto.name} $subcategoryItemCount"
 
             val button = createFilterButton(displayName, index + 1, subcategories.size + 1)
             button.setOnClickListener {
@@ -1001,21 +990,21 @@ open class WardrobeFragment : Fragment() {
                     moveUnderline(index + 1)
                     currentSelectedSubcategory = subcategoryDto.subcategory
 
-                    // 🔥 FIXED: 현재 카테고리 + 서브카테고리로 필터링
+                    // 🔥 FIXED: 즉시 해당 서브카테고리 아이템만 필터링해서 표시
                     val filteredItems = categoryItems.filter { it.subcategory == subcategoryDto.subcategory }
                     adapter.updateWithApiData(filteredItems)
+
                     Log.d("WardrobeFragment", "서브카테고리 ${subcategoryDto.name} 선택: ${filteredItems.size}개 아이템 표시")
                 }
             }
             subFilterLayout.addView(button)
         }
 
-        // 🔥 FIXED: 초기 로드 시 현재 카테고리 아이템만 표시
+        // 🔥 FIXED: 초기 선택 시 바로 전체 아이템 표시
         updateButtonSelection(0)
         adapter.updateWithApiData(categoryItems)
-        Log.d("WardrobeFragment", "초기 로드: 현재 카테고리 ${categoryItems.size}개 아이템 표시")
+        Log.d("WardrobeFragment", "초기 로드: 전체 ${categoryItems.size}개 아이템 표시")
 
-        // 밑줄 위치 계산
         subFilterLayout.post {
             if (isAdded && view != null) {
                 moveUnderline(0)
@@ -1125,7 +1114,7 @@ open class WardrobeFragment : Fragment() {
                 } else {
                     Log.d("WardrobeFragment", "카테고리 선택: $categoryName (ID: $categoryId)")
 
-                    // 🔥 서버 + 더미 데이터에서 해당 카테고리만 필터링
+                    // 🔥 FIXED: 서버 + 더미 데이터에서 해당 카테고리만 필터링
                     val allItems = if (USE_WARDROBE_DUMMY) {
                         combineServerAndDummyData(viewModel.uiState.value.wardrobeItems)
                     } else {
@@ -1140,7 +1129,8 @@ open class WardrobeFragment : Fragment() {
                     Log.d("WardrobeFragment", "필터링된 카테고리 아이템: ${categoryItems.size}개")
                     adapter.updateWithApiData(categoryItems)
 
-                    createSubcategoriesFromClient(categoryId!!)
+                    // 🔥 FIXED: 더미 데이터 포함한 서브카테고리 생성
+                    createSubcategoriesFromClientWithDummy(categoryId!!, allItems)
                     viewModel.loadWardrobeItemsByCategory(category = categoryId)
                 }
             }
@@ -1151,6 +1141,115 @@ open class WardrobeFragment : Fragment() {
                 currentSelectedCategory = null
                 currentSelectedSubcategory = null
             }
+        }
+    }
+
+    // 🔥 NEW: 더미 데이터를 포함한 서브카테고리 생성
+    private fun createSubcategoriesFromClientWithDummy(categoryId: Int, allItems: List<WardrobeItemDto>) {
+        Log.d("WardrobeFragment", "🏭 createSubcategoriesFromClientWithDummy 시작: categoryId=$categoryId")
+
+        if (!isAdded || context == null) {
+            Log.w("WardrobeFragment", "❌ Fragment가 attach되지 않았거나 context가 null")
+            return
+        }
+
+        // 🔥 FIXED: 서버 + 더미 데이터 모두 사용
+        Log.d("WardrobeFragment", "🔍 전체 아이템 개수 (서버+더미): ${allItems.size}")
+
+        allItems.forEach { item ->
+            Log.d("WardrobeFragment", "📱 아이템 ID: ${item.id}, 카테고리: ${item.category}, 서브카테고리: ${item.subcategory}")
+        }
+
+        // 🔥 정상적인 카테고리 정보가 있는 경우 기존 로직 사용
+        val categoryItems = allItems.filter { item ->
+            Log.d("WardrobeFragment", "🔍 아이템 ${item.id} 카테고리 비교: ${item.category} == $categoryId ?")
+            item.category == categoryId
+        }
+
+        Log.d("WardrobeFragment", "카테고리 $categoryId 보유 아이템 수: ${categoryItems.size}")
+
+        if (categoryItems.isEmpty()) {
+            Log.d("WardrobeFragment", "❌ 해당 카테고리에 아이템 없음 - 모든 서브카테고리 표시")
+            showAllSubcategoriesForCategory(categoryId)
+            return
+        }
+
+        // 카테고리별 서브카테고리 정의
+        val allSubcategoryMap = mapOf(
+            1 to listOf(
+                SubcategoryDto(1, "반팔티셔츠"),
+                SubcategoryDto(2, "긴팔티셔츠"),
+                SubcategoryDto(3, "민소매"),
+                SubcategoryDto(4, "셔츠/블라우스"),
+                SubcategoryDto(5, "맨투맨"),
+                SubcategoryDto(6, "후드티"),
+                SubcategoryDto(7, "니트/스웨터"),
+                SubcategoryDto(8, "기타")
+            ),
+            2 to listOf(
+                SubcategoryDto(9, "반바지"),
+                SubcategoryDto(10, "긴바지"),
+                SubcategoryDto(11, "청바지"),
+                SubcategoryDto(12, "트레이닝 팬츠"),
+                SubcategoryDto(13, "레깅스"),
+                SubcategoryDto(14, "스커트"),
+                SubcategoryDto(15, "기타")
+            ),
+            3 to listOf(
+                SubcategoryDto(16, "미니원피스"),
+                SubcategoryDto(17, "롱 원피스"),
+                SubcategoryDto(18, "끈 원피스"),
+                SubcategoryDto(19, "니트 원피스"),
+                SubcategoryDto(20, "기타")
+            ),
+            4 to listOf(
+                SubcategoryDto(21, "바람막이"),
+                SubcategoryDto(22, "가디건"),
+                SubcategoryDto(23, "자켓"),
+                SubcategoryDto(24, "코트"),
+                SubcategoryDto(25, "패딩"),
+                SubcategoryDto(26, "후드집업"),
+                SubcategoryDto(27, "무스탕/퍼"),
+                SubcategoryDto(28, "기타")
+            ),
+            5 to listOf(
+                SubcategoryDto(29, "운동화"),
+                SubcategoryDto(30, "부츠"),
+                SubcategoryDto(31, "샌들"),
+                SubcategoryDto(32, "슬리퍼"),
+                SubcategoryDto(33, "구두"),
+                SubcategoryDto(34, "로퍼"),
+                SubcategoryDto(35, "기타")
+            ),
+            6 to listOf(
+                SubcategoryDto(36, "모자"),
+                SubcategoryDto(37, "머플러"),
+                SubcategoryDto(38, "장갑"),
+                SubcategoryDto(39, "양말"),
+                SubcategoryDto(40, "안경/선글라스"),
+                SubcategoryDto(41, "가방"),
+                SubcategoryDto(42, "시계/팔찌/목걸이"),
+                SubcategoryDto(43, "기타")
+            )
+        )
+
+        val allSubcategories = allSubcategoryMap[categoryId] ?: emptyList()
+
+        val itemSubcategories = categoryItems.mapNotNull { it.subcategory }.distinct()
+        Log.d("WardrobeFragment", "🔍 실제 아이템들의 서브카테고리 ID: $itemSubcategories")
+
+        val availableSubcategories = allSubcategories.filter { subcategoryDto ->
+            val hasItem = itemSubcategories.contains(subcategoryDto.subcategory)
+            Log.d("WardrobeFragment", "🔍 서브카테고리 ${subcategoryDto.name}(${subcategoryDto.subcategory}) 보유 여부: $hasItem")
+            hasItem
+        }
+
+        if (availableSubcategories.isNotEmpty()) {
+            Log.d("WardrobeFragment", "✅ 보유 서브카테고리로 필터 생성")
+            updateSubFiltersWithApiData(availableSubcategories)
+        } else {
+            Log.d("WardrobeFragment", "❌ 매칭되는 서브카테고리 없음 - 모든 서브카테고리 표시")
+            showAllSubcategoriesForCategory(categoryId)
         }
     }
 
@@ -1340,6 +1439,10 @@ open class WardrobeFragment : Fragment() {
     /**
      * Assets 폴더에서 더미 옷장 아이템 생성
      */
+
+    /**
+     * Assets 폴더에서 더미 옷장 아이템 생성 (코디 기록 완전 제외)
+     */
     private fun loadDummyWardrobeFromAssets(): List<WardrobeItemDto> {
         if (!USE_WARDROBE_DUMMY) return emptyList()
 
@@ -1350,7 +1453,7 @@ open class WardrobeFragment : Fragment() {
                     val l = name.lowercase()
                     val isImageFile = l.endsWith(".png") || l.endsWith(".jpg") || l.endsWith(".jpeg") || l.endsWith(".jfif") || l.endsWith(".webp")
 
-                    // 🔥 FIXED: 코디 기록과 옷장 아이템 구분
+                    // 🔥 FIXED: 코디 기록과 옷장 아이템 구분 (더 정확한 필터링)
                     val isOutfitRecord = isOutfitRecordFile(name) // 코디 기록 파일 체크
                     val isWardrobeItem = !isOutfitRecord // 코디 기록이 아니면 옷장 아이템
 
@@ -1394,19 +1497,22 @@ open class WardrobeFragment : Fragment() {
         }
     }
 
-
-
     /**
      * 🔥 NEW: 코디 기록 파일인지 판별하는 함수
      */
     private fun isOutfitRecordFile(fileName: String): Boolean {
         val name = fileName.lowercase()
 
-        // 날짜.온도(체감온도) 패턴: "6월8.14(26.4).jpg" 형태
-        val dateTemperaturePattern = Regex("\\d+월\\d+\\.\\d+\\(\\d+\\.\\d+\\)")
+        // 🔥 FIXED: "1번8.13(26.3)" 같은 패턴 감지
+        val patterns = listOf(
+            Regex("\\d+번\\d+\\.\\d+\\(\\d+\\.\\d+\\)"), // "1번8.13(26.3)" 패턴
+            Regex("\\d+월\\d+\\.\\d+\\(\\d+\\.\\d+\\)"), // "6월8.14(26.4)" 패턴
+            Regex("\\d+\\.\\d+\\(\\d+\\.\\d+\\)") // 일반적인 날짜/온도 패턴
+        )
 
-        return name.contains(dateTemperaturePattern)
+        return patterns.any { pattern -> name.contains(pattern) }
     }
+
 
     /**
      * 🔥 NEW: Assets 폴더에서 코디 기록 로드하는 함수 (나중에 사용)

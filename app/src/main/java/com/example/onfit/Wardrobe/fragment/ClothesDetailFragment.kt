@@ -415,25 +415,160 @@ class ClothesDetailFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-        // 편집 버튼 클릭 리스너 - 더미 데이터는 편집 불가
+        // 🔥 FIXED: 더미 데이터도 편집 가능
         val editButton = view.findViewById<ImageButton>(R.id.edit_black)
         editButton?.setOnClickListener {
             if (isDummyItemId(imageResId)) {
-                Toast.makeText(context, "더미 아이템은 편집할 수 없습니다", Toast.LENGTH_SHORT).show()
+                // 더미 아이템도 편집 허용 (단, 실제 저장은 안 됨)
+                Toast.makeText(context, "더미 아이템은 편집 모드만 지원됩니다", Toast.LENGTH_SHORT).show()
+                navigateToAddItemForDummy()
             } else {
                 navigateToAddItem()
             }
         }
 
-        // 삭제 버튼 클릭 리스너 - 더미 데이터는 삭제 불가
+        // 🔥 FIXED: 더미 데이터도 삭제 가능 (옷장에서만 제거)
         val deleteButton = view.findViewById<ImageButton>(R.id.ic_delete)
         deleteButton?.setOnClickListener {
             if (isDummyItemId(imageResId)) {
-                Toast.makeText(context, "더미 아이템은 삭제할 수 없습니다", Toast.LENGTH_SHORT).show()
+                showDeleteConfirmDialogForDummy()
             } else {
                 showDeleteConfirmDialog()
             }
         }
+    }
+
+    // 🔥 NEW: 더미 아이템 삭제 다이얼로그
+    private fun showDeleteConfirmDialogForDummy() {
+        val dialog = android.app.Dialog(requireContext())
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+
+        val mainLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(30, 60, 30, 60)
+            gravity = android.view.Gravity.CENTER
+
+            val outerDrawable = android.graphics.drawable.GradientDrawable().apply {
+                setColor(android.graphics.Color.WHITE)
+                cornerRadius = 8.09f * resources.displayMetrics.density
+            }
+            background = outerDrawable
+
+            val params = LinearLayout.LayoutParams(
+                (294 * resources.displayMetrics.density).toInt(),
+                (132 * resources.displayMetrics.density).toInt()
+            )
+            layoutParams = params
+        }
+
+        val messageText = TextView(requireContext()).apply {
+            text = "이 더미 아이템을 옷장에서 제거하겠습니까?"
+            textSize = 17f
+            setTextColor(android.graphics.Color.BLACK)
+            gravity = android.view.Gravity.CENTER
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+            layoutParams = params
+        }
+        mainLayout.addView(messageText)
+
+        val buttonLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER
+
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 50, 0, 0)
+            }
+            layoutParams = params
+        }
+
+        val yesButton = Button(requireContext()).apply {
+            text = "예"
+            setTextColor(android.graphics.Color.WHITE)
+            textSize = 16.17f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+            val buttonDrawable = android.graphics.drawable.GradientDrawable().apply {
+                setColor(android.graphics.Color.parseColor("#007AFF"))
+                cornerRadius = 4.04f * resources.displayMetrics.density
+            }
+            background = buttonDrawable
+
+            val params = LinearLayout.LayoutParams(
+                (127 * resources.displayMetrics.density).toInt(),
+                (38 * resources.displayMetrics.density).toInt()
+            ).apply {
+                setMargins(0, 0, 10, 0)
+            }
+            layoutParams = params
+
+            setOnClickListener {
+                deleteDummyItem()
+                dialog.dismiss()
+            }
+        }
+
+        val noButton = Button(requireContext()).apply {
+            text = "아니오"
+            setTextColor(android.graphics.Color.WHITE)
+            textSize = 16.17f
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+
+            val buttonDrawable = android.graphics.drawable.GradientDrawable().apply {
+                setColor(android.graphics.Color.parseColor("#007AFF"))
+                cornerRadius = 4.04f * resources.displayMetrics.density
+            }
+            background = buttonDrawable
+
+            val params = LinearLayout.LayoutParams(
+                (127 * resources.displayMetrics.density).toInt(),
+                (38 * resources.displayMetrics.density).toInt()
+            ).apply {
+                setMargins(10, 0, 0, 0)
+            }
+            layoutParams = params
+
+            setOnClickListener {
+                dialog.dismiss()
+            }
+        }
+
+        buttonLayout.addView(yesButton)
+        buttonLayout.addView(noButton)
+        mainLayout.addView(buttonLayout)
+
+        dialog.setContentView(mainLayout)
+        dialog.window?.apply {
+            setLayout(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        }
+
+        dialog.show()
+    }
+
+    // 🔥 NEW: 더미 아이템 삭제 (옷장에서만 제거)
+    private fun deleteDummyItem() {
+        Toast.makeText(requireContext(), "더미 아이템이 옷장에서 제거되었습니다", Toast.LENGTH_SHORT).show()
+
+        // WardrobeFragment에 더미 아이템 제거 신호 전송
+        val bundle = Bundle().apply {
+            putInt("removed_dummy_item_id", imageResId)
+            putBoolean("dummy_item_removed", true)
+        }
+        parentFragmentManager.setFragmentResult("dummy_item_removed", bundle)
+
+        findNavController().navigateUp()
     }
 
     private fun setupDummyData(view: View) {
@@ -1146,4 +1281,44 @@ class ClothesDetailFragment : Fragment() {
             }
         }
     }
+
+    private fun navigateToAddItemForDummy() {
+        val dummyItemInfo = generateDummyItemInfo(imageResId)
+
+        val bundle = Bundle().apply {
+            putBoolean("edit_mode", true)
+            putBoolean("is_dummy_item", true) // 더미 아이템 표시
+            putInt("item_id", imageResId)
+
+            // 🔥 FIXED: 더미 아이템 이미지 URI를 올바르게 전달
+            val imageUri = dummyItemInfo.imagePath
+            Log.d("ClothesDetailFragment", "🖼️ 더미 이미지 URI 전달: $imageUri")
+            putString("item_image", imageUri)
+
+            putInt("item_category", dummyItemInfo.category)
+            putInt("item_subcategory", dummyItemInfo.subcategory)
+            putInt("item_season", dummyItemInfo.season)
+            putInt("item_color", dummyItemInfo.color)
+            putString("item_brand", dummyItemInfo.brand)
+            putString("item_size", dummyItemInfo.size)
+            putInt("item_price", dummyItemInfo.price)
+            putString("item_purchase_site", dummyItemInfo.purchaseSite)
+
+            // 더미 태그 ID 전달
+            val tagNameToIdMap = mapOf(
+                "캐주얼" to 1, "스트릿" to 2, "미니멀" to 3, "클래식" to 4, "빈티지" to 5,
+                "러블리" to 6, "페미닌" to 7, "보이시" to 8, "모던" to 9,
+                "데일리" to 10, "출근룩" to 11, "데이트룩" to 12, "나들이룩" to 13,
+                "여행룩" to 14, "운동복" to 15, "하객룩" to 16, "파티룩" to 17
+            )
+
+            val tagIds = dummyItemInfo.tags.mapNotNull { tagName ->
+                tagNameToIdMap[tagName]
+            }
+            putIntegerArrayList("item_tag_ids", ArrayList(tagIds))
+        }
+
+        findNavController().navigate(R.id.addItemFragment, bundle)
+    }
+
 }
