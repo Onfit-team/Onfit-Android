@@ -177,6 +177,10 @@
         <argument
             android:name="outfit_image_path"
             app:argType="string"/>
+        <argument
+            android:name="itemPosition"
+            app:argType="integer"
+            android:defaultValue="-1" />
     </fragment>
 
     <fragment
