@@ -350,6 +350,7 @@ class CalendarFragment : Fragment() {
                 }
             }
         }
+
     }
 
     /**
@@ -849,13 +850,13 @@ class CalendarFragment : Fragment() {
                 openCamera()
                 dialog.dismiss()
             }
+
         }
         // 갤러리 버튼
         view.findViewById<LinearLayout>(R.id.gallery_btn).setOnClickListener {
             ensurePhotoPermission { rescanPicturesAndOpenGallery() }
             dialog.dismiss()
         }
-        dialog.show()
     }
 
         private fun uriToCacheFile(context: Context, uri: Uri): File {
