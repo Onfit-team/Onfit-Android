@@ -41,6 +41,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
@@ -233,10 +234,20 @@ class OutfitRegisterFragment : Fragment() {
                 // outfitId (Int로 보냄; String으로 가지고 있으면 toIntOrNull)
                 putInt("outfitId", passedOutfitId.takeIf { id -> id > 0 } ?: -1)
             }
-            findNavController().navigate(
-                R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
-                bundle
-            )
+            // 뷰 라이프사이클에 자동으로 취소되도록 viewLifecycleOwner.scope 사용
+            viewLifecycleOwner.lifecycleScope.launch {
+                // 10초 대기
+                delay(10_000)
+
+                // 아직 이 프래그먼트가 화면에 있고, 네비게이션이 유효한지 확인
+                val nav = findNavController()
+                if (isAdded && nav.currentDestination?.id == R.id.outfitRegisterFragment) {
+                    nav.navigate(R.id.action_outfitRegisterFragment_to_outfitSaveFragment, bundle)
+                }
+
+                // 혹시 못 이동했으면 버튼 다시 살리기
+                if (isAdded) binding.outfitRegisterSaveBtn.isEnabled = true
+            }
         }
 
         // 뒤로가기

@@ -126,16 +126,19 @@ class OutfitSaveFragment : Fragment() {
         // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
         currentImages.clear()
         val dummyResIds = listOf(
-            R.drawable.calendar_save_image2,
-            R.drawable.calendar_save_image3,
-            R.drawable.calendar_save_image4
-            // 필요하면 더 추가
+            R.drawable.item_top,
+            R.drawable.item_bottom,
+            R.drawable.item_shoes,
+            R.drawable.item_bag
         )
         currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
 
-        // 3) 드래프트 개수 동기화
+        // 3) 드래프트 개수 동기화, 기본값 주입
         drafts.clear()
-        repeat(currentImages.size) { drafts.add(ItemDraft()) }
+        currentImages.forEach { di ->
+            drafts += di.resId?.let { defaultSpinnerDraftForRes(it) } ?: ItemDraft()
+        }
+        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
 
         // 4) ViewPager 세팅
         pagerAdapter = SaveImagePagerAdapter(currentImages)
@@ -659,6 +662,48 @@ class OutfitSaveFragment : Fragment() {
                 bindingInProgress = false
             }
         }
+    }
+
+    // 보조 인덱스 함수(카테고리 더미데이터)
+    private fun categoryIdx(name: String) =
+        categoryMap.keys.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    private fun subcategoryIdx(cat: String, sub: String) =
+        (categoryMap[cat]?.indexOf(sub)?.let { it + 1 }) ?: 1
+
+    private fun seasonIdx(name: String) =
+        seasonList.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    private fun colorIdx(name: String) =
+        colorList.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    // "스피너 전용" 기본 드래프트
+    private fun defaultSpinnerDraftForRes(@DrawableRes resId: Int): ItemDraft = when (resId) {
+        R.drawable.item_top -> ItemDraft(
+            categoryId    = categoryIdx("상의"),
+            subcategoryId = subcategoryIdx("상의", "셔츠/블라우스"),
+            // 필요하면 아래 두 줄도 설정(원치 않으면 생략 가능)
+            seasonId      = seasonIdx("여름"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_bottom -> ItemDraft(
+            categoryId    = categoryIdx("하의"),
+            subcategoryId = subcategoryIdx("하의", "청바지"),
+            seasonId      = seasonIdx("봄가을"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_shoes -> ItemDraft(
+            categoryId    = categoryIdx("신발"),
+            subcategoryId = subcategoryIdx("신발", "슬리퍼"),
+            seasonId      = seasonIdx("여름"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_bag -> ItemDraft(
+            categoryId    = categoryIdx("액세사리"),
+            subcategoryId = subcategoryIdx("액세사리", "가방"),
+            colorId       = colorIdx("블랙"),
+        )
+        else -> ItemDraft()
     }
 
     override fun onResume() {
