@@ -1614,7 +1614,7 @@ class ClothesDetailFragment : Fragment() {
     private fun setupRecommendationItems() {
         Log.d("ClothesDetailFragment", "🎯 추천 아이템 설정 시작")
 
-        // 🔥 올바른 컨테이너 찾기 - LinearLayout이 아닌 HorizontalScrollView 내부의 LinearLayout// ✅ onViewCreated(view: View, ...)의 파라미터 view를 쓰는 게 안전합니다.
+        // 🔥 올바른 컨테이너 찾기 - LinearLayout이 아닌 HorizontalScrollView 내부의 LinearLayout
         val recommendationContainer = view?.findViewById<LinearLayout>(R.id.rv_recommended_items)
         val scrollView = view?.findViewById<HorizontalScrollView>(R.id.hsv_recommended_items)
 
