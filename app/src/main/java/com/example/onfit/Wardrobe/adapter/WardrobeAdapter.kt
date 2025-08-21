@@ -2,7 +2,6 @@ package com.example.onfit.Wardrobe.adapter
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,12 +9,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.example.onfit.R
 import com.example.onfit.Wardrobe.Network.WardrobeItemDto
 
@@ -108,6 +101,10 @@ class WardrobeAdapter(
         return when (imageName) {
             // 🔥 실제 drawable 파일명과 동일하게 매핑
 
+            "shirts5" -> R.drawable.shirts5
+            "pants5" -> R.drawable.pants5
+            "shoes5" -> R.drawable.shoes5
+            "acc5" -> R.drawable.acc5
             "shirts6" -> R.drawable.shirts6
             "pants6" -> R.drawable.pants6
             "shoes6" -> R.drawable.shoes6
@@ -185,7 +182,7 @@ class WardrobeAdapter(
     private fun loadDummyImage(holder: WardrobeViewHolder, itemId: Int) {
         val dummyImages = listOf(
             R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
-            R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+            R.drawable.clothes4, R.drawable.shirts5, R.drawable.clothes6,
             R.drawable.clothes7, R.drawable.clothes8
         )
 
