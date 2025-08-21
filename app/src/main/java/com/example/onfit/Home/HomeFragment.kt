@@ -132,13 +132,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    // HomeFragment.kt
     private fun openCalendarSave(outfitId: Int?, imageUrl: String?) {
         val b = Bundle().apply {
-            putInt("outfit_id", outfitId ?: -1)    // ★ 키 수정
-            imageUrl?.let { putString("image_url", it) }  // ★ 키 수정
+            putInt("outfit_id", outfitId ?: -1)
+            imageUrl?.let { putString("main_image_url", it) }
         }
         findNavController().navigate(R.id.calendarSaveFragment, b)
     }
+
 
 
 
