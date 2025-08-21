@@ -227,9 +227,6 @@ class ClothesDetailFragment : Fragment() {
         }
     }
 
-    /**
-     * 🔥 SIMPLIFIED: 하드코딩된 색상 생성
-     */
     private fun generateHardcodedColor(index: Int): Int {
         // WardrobeFragment의 하드코딩된 아이템별 컬러 매핑
         val colorMapping = mapOf(

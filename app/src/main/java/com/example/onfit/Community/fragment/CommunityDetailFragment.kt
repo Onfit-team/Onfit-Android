@@ -12,12 +12,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.onfit.Community.adapter.ClothItemUi
 import com.example.onfit.Community.adapter.CommunityDetailClothAdapter
 import com.example.onfit.Community.model.OutfitDetailResponse
 import com.example.onfit.Community.model.ToggleLikeResponse
@@ -82,19 +84,31 @@ class CommunityDetailFragment : Fragment() {
         binding.likesTv.setOnClickListener { toggleLike() }
 
         if (args.outfitId <= 0) {
-            // 등록 직후 서버 id 없을 때의 임시 표시(더미 로직 유지)
             binding.dateTv.text = "8월 22일"
 
-            Log.d("DetailDummy", "main dummy url=${args.imageUrl}")
-
             val dummyCloth = mapDummyClothFromMain(args.imageUrl)
-            Log.d("DetailDummy", "cloth dummy list(size=${dummyCloth.size})=$dummyCloth")
 
             if (dummyCloth.isEmpty()) {
                 binding.clothRecyclerview.visibility = View.GONE
             } else {
                 binding.clothRecyclerview.visibility = View.VISIBLE
-                binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(dummyCloth)
+
+                val uiItems = dummyCloth.map { raw ->
+                    ClothItemUi(
+                        id = resolveDummyIdFromAssetName(raw) ?: -1999, // ← 매핑 실패 대비 기본값
+                        image = raw
+                    )
+                }
+
+
+                binding.clothRecyclerview.adapter =
+                    CommunityDetailClothAdapter(uiItems) { clicked ->
+                        // Wardrobe의 ClothesDetailFragment가 받는 키: "image_res_id"
+                        findNavController().navigate(
+                            R.id.clothesDetailFragment,
+                            bundleOf("image_res_id" to clicked.id)
+                        )
+                    }
             }
 
             binding.styleChips.visibility = View.GONE
@@ -103,6 +117,36 @@ class CommunityDetailFragment : Fragment() {
 
         loadDetail()
     }
+
+
+    // CommunityDetailFragment.kt
+    private fun resolveDummyIdFromAssetName(uri: String): Int? {
+        // 파일명 추출 (확장자 제거)
+        val name = uri.substringAfterLast('/').substringBeforeLast('.')
+
+        // "2번-신발.운동화...." 형태에서 코디 번호 추출
+        val outfitNo = Regex("""^(\d+)번""").find(name)?.groupValues?.getOrNull(1) ?: return null
+
+        // 대분류 추정
+        val isTop    = listOf("상의", "셔츠", "반팔티", "셔츠블라우스").any { name.contains(it) }
+        val isBottom = name.contains("하의")
+        val isShoes  = name.contains("신발")
+        val isAcc    = name.contains("액세사리") || name.contains("액세서리")
+        val isBag    = name.contains("가방")
+
+        // ClothesDetailFragment 하드코딩 순서에 맞춘 인덱스 매핑
+        val idx = when (outfitNo) {
+            "6" -> when { isTop -> 0; isBottom -> 1; isShoes -> 2; isAcc -> 3; else -> null }
+            "1" -> when { isTop -> 4; isBottom -> 5; isShoes -> 6; else -> null }
+            "2" -> when { isTop -> 7; isBottom -> 8; isShoes -> 9; else -> null }
+            "3" -> when { isTop ->10; isShoes  ->11; isBottom->12; isAcc  ->13; else -> null }
+            "4" -> when { isTop ->14; isBottom ->15; isBag   ->16; isShoes->17; else -> null }
+            else -> null
+        } ?: return null
+
+        return -1000 - idx
+    }
+
 
     private fun pickAssetUri(baseName: String): String? {
         if (baseName.isBlank()) return null
@@ -271,17 +315,29 @@ class CommunityDetailFragment : Fragment() {
             binding.deleteIv.visibility = if (d.isMyPost) View.VISIBLE else View.GONE
 
             // 6) 아이템 리스트
-            val itemUrls = d.items.mapNotNull { it.image?.takeIf { s -> s.isNotBlank() } }
-            if (itemUrls.isEmpty()) {
+            val uiItems = d.items.mapNotNull { item ->
+                val img = item.image?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+                ClothItemUi(id = item.id, image = img)
+            }
+
+            if (uiItems.isEmpty()) {
                 binding.clothRecyclerview.visibility = View.GONE
             } else {
                 binding.clothRecyclerview.visibility = View.VISIBLE
-                binding.clothRecyclerview.adapter = CommunityDetailClothAdapter(itemUrls)
+                binding.clothRecyclerview.adapter =
+                    CommunityDetailClothAdapter(uiItems) { clicked ->
+                        // id > 0 이므로 ClothesDetailFragment에서 API 아이템으로 처리
+                        findNavController().navigate(
+                            R.id.clothesDetailFragment,
+                            bundleOf("image_res_id" to clicked.id)
+                        )
+                    }
             }
+
         }
     }
 
-    /** 이름 기준(공백/대소문자 무시) 중복 제거 */
+
     private fun distinctByName(list: List<OutfitDetailResponse.Tag>): List<OutfitDetailResponse.Tag> {
         return list
             .filter { !it.name.isNullOrBlank() }
