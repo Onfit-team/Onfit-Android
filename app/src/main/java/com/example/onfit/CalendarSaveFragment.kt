@@ -74,50 +74,44 @@ class CalendarSaveFragment : Fragment() {
         // ⭐ 날짜 표시
         binding.calendarSaveDateTv.text = selectedDate ?: "날짜 없음"
 
-        // 🔥 더미 코디 판별 (1001~1004 또는 1101~1104)
-        val isStyleOutfitsDummy = outfitId in 1101..1104
+        // 🔥 더미 코디 판별 (1001~1004 또는 1101~1105)
+        val isStyleOutfitsDummy = outfitId in 1101..1105
         val isCalendarDummy = outfitId in 1001..1004
 
         when {
-            // 1. StyleOutfits 더미 코디 (1101~1104)
+            // 1. StyleOutfits 더미 코디 (1101~1105)
             isStyleOutfitsDummy -> {
                 Log.d("CalendarSaveFragment", "🎨 StyleOutfits 더미 코디 처리: ID=$outfitId")
-                val actualOutfitNumber = outfitId - 1100  // 1101->1, 1102->2, 1103->3, 1104->4
+                val actualOutfitNumber = outfitId - 1100  // 1101->1, 1102->2, 1103->3, 1104->4, 1105->5
                 setupDummyOutfitData(actualOutfitNumber)
             }
 
-            // 2. Calendar 더미 코디 (1001~1004)
+            // 2. Calendar 더미 코디 (1001~1005)
             isCalendarDummy -> {
                 Log.d("CalendarSaveFragment", "📅 Calendar 더미 코디 처리: ID=$outfitId")
-                val actualOutfitNumber = outfitId - 1000  // 1001->1, 1002->2, 1003->3, 1004->4
+                val actualOutfitNumber = outfitId - 1000  // 1001->1, 1002->2, 1003->3, 1004->4, 1005->5
                 setupDummyOutfitData(actualOutfitNumber)
             }
 
-            // 3. 기존 더미 처리 방식 (from_outfit_record)
+            // 3. 🔥 NEW: 코디 기록에서 온 더미 처리 (outfitNumber 5, 6번)
+            (fromOutfitRecord && outfitNumber in 5..6) -> {
+                Log.d("CalendarSaveFragment", "🎯 코디 기록 더미 처리: outfitNumber=$outfitNumber")
+                setupDummyOutfitData(outfitNumber)
+            }
+
+            // 4. 기존 더미 처리 방식 (from_outfit_record)
             isDummyOutfit || (fromOutfitRecord && outfitNumber != -1) -> {
                 Log.d("CalendarSaveFragment", "🎭 기존 더미 코디 처리: outfitNumber=$outfitNumber")
                 setupDummyOutfitData(outfitNumber)
             }
 
-            // 4. 실제 API 코디
+            // 5. 실제 API 코디
             isRealOutfit && !mainImageUrl.isNullOrBlank() -> {
                 Log.d("CalendarSaveFragment", "🌐 실제 API 코디 처리")
                 setupRealApiOutfitData(normalizeServerUrl(mainImageUrl), memo)
             }
 
-            // 5. 기타 처리 (기존 로직)
-            !mainImageUrl.isNullOrBlank() && !itemImageUrls.isNullOrEmpty() -> {
-                Log.d("CalendarSaveFragment", "📦 기존 서버 코디 처리")
-                setupMainImage(normalizeServerUrl(mainImageUrl))
-                setupItemRecyclerView(itemImageUrls.map { normalizeServerUrl(it) })
-            }
-
-            !mainImageUrl.isNullOrBlank() -> {
-                Log.d("CalendarSaveFragment", "🖼️ 메인 이미지만 처리")
-                setupMainImage(normalizeServerUrl(mainImageUrl))
-                setupDummyRecyclerView()
-            }
-
+            // 나머지는 기존과 동일...
             else -> {
                 Log.d("CalendarSaveFragment", "🔄 폴백: 더미 데이터 사용")
                 setupDummyRecyclerView()
@@ -345,14 +339,13 @@ class CalendarSaveFragment : Fragment() {
         _binding = null
     }
 
-    // 🔥 더미 코디 데이터 설정
-    // CalendarSaveFragment.kt의 setupDummyOutfitData 함수를 수정하세요:
-
     private fun setupDummyOutfitData(outfitNumber: Int) {
         Log.d("CalendarSaveFragment", "🎭 더미 코디 ${outfitNumber}번 데이터 설정")
 
         // 🔥 날짜는 arguments에서 받은 selected_date 사용 (계산하지 않음)
         val selectedDate = arguments?.getString("selected_date") ?: arguments?.getString("selectedDate")
+        val outfitId = arguments?.getInt("outfit_id", -1) ?: -1
+
         if (!selectedDate.isNullOrBlank()) {
             binding.calendarSaveDateTv.text = selectedDate
             Log.d("CalendarSaveFragment", "전달받은 날짜 사용: $selectedDate")
@@ -361,31 +354,64 @@ class CalendarSaveFragment : Fragment() {
             Log.w("CalendarSaveFragment", "날짜 정보가 없음")
         }
 
-        // 🔥 더미 코디별 이미지 리소스 매핑 (ccody1~ccody4)
-        val mainImageRes = when (outfitNumber) {
-            1 -> {
-                // ccody1이 없으면 cody1 사용
-                val ccody1Id = resources.getIdentifier("ccody1", "drawable", requireContext().packageName)
-                if (ccody1Id != 0) ccody1Id else R.drawable.cody1
+        // 🔥 outfit_id 범위에 따라 다른 이미지 사용
+        val isStyleOutfitsDummy = outfitId in 1101..1105  // 8월 1~5일: ccody 시리즈
+        val isCalendarDummy = outfitId in 1001..1005      // 8월 10~14일: cody 시리즈
+
+        val mainImageRes = when {
+            // StyleOutfits 더미 (8월 1~5일): ccody1~ccody4, cody5
+            isStyleOutfitsDummy -> {
+                when (outfitNumber) {
+                    1 -> {
+                        val ccody1Id = resources.getIdentifier("ccody1", "drawable", requireContext().packageName)
+                        if (ccody1Id != 0) ccody1Id else R.drawable.cody1
+                    }
+                    2 -> {
+                        val ccody2Id = resources.getIdentifier("ccody2", "drawable", requireContext().packageName)
+                        if (ccody2Id != 0) ccody2Id else R.drawable.cody2
+                    }
+                    3 -> {
+                        val ccody3Id = resources.getIdentifier("ccody3", "drawable", requireContext().packageName)
+                        if (ccody3Id != 0) ccody3Id else R.drawable.cody3
+                    }
+                    4 -> {
+                        val ccody4Id = resources.getIdentifier("ccody4", "drawable", requireContext().packageName)
+                        if (ccody4Id != 0) ccody4Id else R.drawable.clothes8
+                    }
+                    5 -> R.drawable.cody5  // 🔥 수정: 8월 5일 - cody5 (cody6이 아님!)
+                    else -> R.drawable.clothes8
+                }
             }
-            2 -> {
-                val ccody2Id = resources.getIdentifier("ccody2", "drawable", requireContext().packageName)
-                if (ccody2Id != 0) ccody2Id else R.drawable.cody2
+
+            // 🔥 FIXED: Calendar 더미 (8월 10~14일) - 정확한 매핑
+            isCalendarDummy -> {
+                when (outfitNumber) {
+                    1 -> R.drawable.cody1  // ✅ 8월 13일 - cody1
+                    2 -> R.drawable.cody2  // 🔥 수정: 8월 12일 - cody2
+                    3 -> R.drawable.cody3  // 🔥 수정: 8월 11일 - cody3
+                    4 -> R.drawable.cody4  // 🔥 수정: 8월 10일 - cody4
+                    5 -> R.drawable.cody6  // ✅ 8월 14일 - cody6 (필요시)
+                    else -> R.drawable.cody1
+                }
             }
-            3 -> {
-                val ccody3Id = resources.getIdentifier("ccody3", "drawable", requireContext().packageName)
-                if (ccody3Id != 0) ccody3Id else R.drawable.cody3
+
+            // 🔥 FIXED: 기본값 (코디 기록에서 오는 경우) - 5번과 6번 추가
+            else -> {
+                when (outfitNumber) {
+                    1 -> R.drawable.cody1  // 8월 13일
+                    2 -> R.drawable.cody2  // 8월 12일
+                    3 -> R.drawable.cody3  // 8월 11일
+                    4 -> R.drawable.cody4  // 8월 10일
+                    5 -> R.drawable.cody5  // 🔥 수정: 8월 5일 - cody5 이미지
+                    6 -> R.drawable.cody6  // 🔥 추가: 8월 14일 - cody6 이미지
+                    else -> R.drawable.clothes8
+                }
             }
-            4 -> {
-                val ccody4Id = resources.getIdentifier("ccody4", "drawable", requireContext().packageName)
-                if (ccody4Id != 0) ccody4Id else R.drawable.clothes8
-            }
-            else -> R.drawable.clothes8
         }
 
         setupMainImageFromDrawable(mainImageRes)
 
-        // 🔥 더미 코디별 개별 아이템 이미지 설정
+        // 🔥 더미 코디별 개별 아이템 이미지 설정 (5번, 6번 추가)
         val itemList = when (outfitNumber) {
             1 -> listOf(
                 CalendarSaveItem(imageResId = R.drawable.shirts1),
@@ -403,16 +429,28 @@ class CalendarSaveFragment : Fragment() {
                 CalendarSaveItem(imageResId = R.drawable.pants3)
             )
             4 -> listOf(
-                CalendarSaveItem(imageResId = R.drawable.shirts1), // 임시로 shirts1 사용
-                CalendarSaveItem(imageResId = R.drawable.pants1),  // 임시로 pants1 사용
-                CalendarSaveItem(imageResId = R.drawable.shoes1)   // 임시로 shoes1 사용
+                CalendarSaveItem(imageResId = R.drawable.shirts4),
+                CalendarSaveItem(imageResId = R.drawable.pants4),
+                CalendarSaveItem(imageResId = R.drawable.shoes4)
+            )
+            5 -> listOf(  // 🔥 추가: 코디 5번 - 5시리즈 아이템들
+                CalendarSaveItem(imageResId = R.drawable.shirts5),
+                CalendarSaveItem(imageResId = R.drawable.pants5),
+                CalendarSaveItem(imageResId = R.drawable.shoes5),
+                CalendarSaveItem(imageResId = R.drawable.acc5)
+            )
+            6 -> listOf(  // 🔥 추가: 코디 6번 - 6시리즈 아이템들
+                CalendarSaveItem(imageResId = R.drawable.shirts6),
+                CalendarSaveItem(imageResId = R.drawable.pants6),
+                CalendarSaveItem(imageResId = R.drawable.shoes6),
+                CalendarSaveItem(imageResId = R.drawable.acc6)
             )
             else -> calendarSaveList
         }
 
         setupDummyItemRecyclerView(itemList)
 
-        Log.d("CalendarSaveFragment", "✅ 코디 ${outfitNumber}번 설정 완료: 날짜=$selectedDate, 메인이미지=${mainImageRes}")
+        Log.d("CalendarSaveFragment", "✅ 코디 ${outfitNumber}번 설정 완료: 날짜=$selectedDate, 메인이미지=${mainImageRes}, 타입=${if(isStyleOutfitsDummy) "StyleOutfits" else if(isCalendarDummy) "Calendar" else "기본"}")
     }
 
     // 🔥 Drawable 리소스로 메인 이미지 설정
