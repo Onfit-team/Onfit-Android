@@ -177,6 +177,10 @@
         <argument
             android:name="outfit_image_path"
             app:argType="string"/>
+        <argument
+            android:name="itemPosition"
+            app:argType="integer"
+            android:defaultValue="-1" />
     </fragment>
 
     <fragment
@@ -216,7 +220,8 @@
         tools:layout="@layout/fragment_clothes_detail">
         <argument
             android:name="image_res_id"
-            app:argType="integer" />
+            app:argType="integer"
+            android:defaultValue="0" />
         <action
             android:id="@+id/action_clothesDetailFragment_to_addItemFragment"
             app:destination="@id/addItemFragment" />
@@ -253,14 +258,24 @@
     <fragment
         android:id="@+id/calendarSaveFragment"
         android:name="com.example.onfit.CalendarSaveFragment"
-        android:label="아웃핏 저장화면">
+        android:label="캘린더 저장"
+        tools:layout="@layout/fragment_calendar_save">
+
         <argument
-            android:name="selectedDate"
-            app:argType="string" />
+            android:name="outfit_id"
+            app:argType="integer"
+            android:defaultValue="-1" />
+
+        <argument
+            android:name="image_url"
+            app:argType="string"
+            android:defaultValue="" />
         <action
             android:id="@+id/action_calendarSaveFragment_to_calendarRewriteFragment"
-            app:destination="@id/calendarRewriteFragment"/>
+            app:destination="@id/calendarRewriteFragment" />
+
     </fragment>
+
 
     <fragment
         android:id="@+id/calendarRewriteFragment"
@@ -269,6 +284,11 @@
         <action
             android:id="@+id/action_calendarRewriteFragment_to_calendarSelectFragment"
             app:destination="@id/calendarSelectFragment" />
+        <argument android:name="selectedDate"  app:argType="string"  app:nullable="true"/>
+        <argument android:name="mainImageUrl"  app:argType="string"  app:nullable="true"/>
+        <argument android:name="itemImageUrls" app:argType="string[]" app:nullable="true"/>
+        <argument android:name="weatherText"   app:argType="string"  app:nullable="true"/>
+        <argument android:name="memoText"      app:argType="string"  app:nullable="true"/>
     </fragment>
 
     <fragment

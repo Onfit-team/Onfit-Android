@@ -9,8 +9,10 @@ import com.bumptech.glide.Glide
 import com.example.onfit.Home.model.SimItem
 import com.example.onfit.databinding.SimiliarStyleItemBinding
 
-class SimiliarStyleAdapter(private val itemList: List<SimItem>) :
-    RecyclerView.Adapter<SimiliarStyleAdapter.ImageViewHolder>() {
+class SimiliarStyleAdapter(
+    private val itemList: List<SimItem>,
+    private val onItemClick: (SimItem) -> Unit     // ★ 클릭 콜백 받기
+) : RecyclerView.Adapter<SimiliarStyleAdapter.ImageViewHolder>() {
 
     inner class ImageViewHolder(val binding: SimiliarStyleItemBinding) :
         RecyclerView.ViewHolder(binding.root)
@@ -26,16 +28,18 @@ class SimiliarStyleAdapter(private val itemList: List<SimItem>) :
         val item = itemList[position]
         val iv = holder.binding.simCloth1Iv
 
+        // ★ 여기서 전달받은 콜백으로 통일
+        holder.itemView.setOnClickListener { onItemClick(item) }
+
         val url = item.imageUrl
         if (!url.isNullOrBlank()) {
-            val full = normalizeUrl(url) // ← 자산/콘텐츠 스킴은 그대로 반환
+            val full = normalizeUrl(url)
             Glide.with(iv)
                 .load(full)
                 .placeholder(ColorDrawable(Color.parseColor("#EEEEEE")))
                 .error(ColorDrawable(Color.parseColor("#DDDDDD")))
                 .into(iv)
         } else {
-            // 로컬 drawable 플레이스홀더
             item.imageResId?.let { iv.setImageResource(it) }
         }
 
@@ -44,10 +48,6 @@ class SimiliarStyleAdapter(private val itemList: List<SimItem>) :
 
     override fun getItemCount(): Int = itemList.size
 
-    // URL 보정 규칙:
-    // 1) http/https → 그대로 사용
-    // 2) file://, content:// → 그대로 사용 (assets/미디어)
-    // 3) 그 외(상대경로) → 서버 호스트를 붙여 절대경로로 변환
     private fun normalizeUrl(raw: String): String {
         val s = raw.trim()
         return when {

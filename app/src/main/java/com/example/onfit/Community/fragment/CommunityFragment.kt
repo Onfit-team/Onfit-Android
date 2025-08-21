@@ -506,7 +506,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
         }
 
         dialogBinding.postDialogOutfitImage.layoutParams = dialogBinding.postDialogOutfitImage.layoutParams.apply {
-            height = dpToPx(240)
+            height = dpToPx(330)
         }
         dialogBinding.postDialogOutfitImage.requestLayout()
 

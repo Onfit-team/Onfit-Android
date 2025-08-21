@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 뒤로가기 + 날짜 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp">
+
+            <ImageView
+                android:id="@+id/back_iv"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/backarrow"
+                android:layout_marginTop="10dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <TextView
+                android:id="@+id/date_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025.04.29"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toEndOf="@id/back_iv"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/delete_iv" />
+
+            <ImageView
+                android:id="@+id/delete_iv"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/deletebtn"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <!-- 메인 이미지 -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:layout_marginTop="12dp">
+
+            <!-- 배경 이미지 -->
+            <ImageView
+                android:id="@+id/main_iv"
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_gray_bg"
+                android:clipToOutline="true"
+                android:src="@drawable/communitycloth1"
+                android:outlineProvider="background" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="10dp"
+                android:padding="7dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/rounded_transparent_bg">
+                <ImageButton
+                    android:id="@+id/likes_iv"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/heart_empty"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginBottom="2dp"
+                    android:layout_marginEnd="30dp" />
+                <!-- 좋아요 수 -->
+                <TextView
+                    android:id="@+id/likes_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/black"
+                    android:textSize="13sp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_marginEnd="4dp"
+                    android:background="@android:color/transparent"/>
+            </FrameLayout>
+        </FrameLayout>
+
+
+        <!-- 착장 아이템 RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/cloth_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"/>
+
+        <!-- 날씨 정보 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/temp_iv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/sun_black" />
+
+            <TextView
+                android:id="@+id/temp_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18.5°C"
+                android:textSize="15.59sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/roboto" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/weather_chip"
+                android:text="조금 더움"
+                android:textSize="12sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:chipBackgroundColor="@color/black"
+                android:textColor="@color/white"
+                android:fontFamily="@font/pretendardmedium"
+                android:layout_marginLeft="15dp"
+                style="@style/Widget.MaterialComponents.Chip.Choice"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/basic_gray" />
+
+        <!-- 설명 -->
+        <TextView
+            android:id="@+id/desc_title_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘의 Outfit을 설명해보세요"
+            android:textSize="15sp"
+            android:fontFamily="@font/roboto"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/desc_tv"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/rounded_gray_bg"
+            android:text="오늘은 이 옷을 입었습니다."
+            android:fontFamily="@font/pretendardmedium"
+            android:textColor="@color/black"
+            android:padding="10dp"
+            android:textSize="13sp"
+            android:gravity="top"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pretendardbold"
+            android:textSize="15sp"
+            android:text="스타일 태그"
+            android:layout_marginTop="15dp" />
+
+        <!-- 태그 -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/style_chips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="start"
+            app:chipSpacingHorizontal="2dp"
+            app:chipSpacingVertical="2dp" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

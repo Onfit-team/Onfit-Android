@@ -610,6 +610,7 @@ class CalendarFragment : Fragment() {
                 }
             }
         }
+
     }
 
     /**
@@ -978,10 +979,16 @@ class CalendarFragment : Fragment() {
         }
     }
 
-    private fun navigateToOutfitRegister(dateString: String) {
-        val action =
-            CalendarFragmentDirections.actionCalendarFragmentToCalendarSaveFragment(dateString)
-        findNavController().navigate(action)
+    private fun navigateToOutfitRegister(
+        dateString: String,           // 필요 없으면 지워도 됨
+        outfitId: Int?,               // ← 호출할 때 넘겨줘
+        imageUrl: String?             // ← 호출할 때 넘겨줘
+    ) {
+        val b = Bundle().apply {
+            putInt("outfit_id", outfitId ?: -1)     // ❗ nav_graph와 키 일치
+            putString("image_url", imageUrl ?: "")  // ❗ nav_graph와 키 일치
+        }
+        findNavController().navigate(R.id.calendarSaveFragment, b)
     }
 
     private fun navigateToStyleOutfits() {
