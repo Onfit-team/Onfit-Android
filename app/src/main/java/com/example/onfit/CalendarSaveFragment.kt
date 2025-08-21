@@ -493,11 +493,11 @@ class CalendarSaveFragment : Fragment() {
                 CalendarSaveItem(imageResId = R.drawable.acc6)
             )
             7 -> listOf(  // 🔥 NEW: 코디 7번 - 캐주얼 코디 아이템들 ✅
-                CalendarSaveItem(imageResId = R.drawable.shirts1),  // 체크 셔츠 (임시로 shirts1 사용)
-                CalendarSaveItem(imageResId = R.drawable.shirts2),  // 화이트 이너 (임시로 shirts2 사용)
-                CalendarSaveItem(imageResId = R.drawable.pants5),   // 네이비 청바지 (pants5 사용)
+                CalendarSaveItem(imageResId = R.drawable.shirts7),  // 체크 셔츠 (임시로 shirts1 사용)
+                CalendarSaveItem(imageResId = R.drawable.check7),  // 화이트 이너 (임시로 shirts2 사용)
+                CalendarSaveItem(imageResId = R.drawable.pants7),   // 네이비 청바지 (pants5 사용)
                 CalendarSaveItem(imageResId = R.drawable.shoes1),   // 블랙 컨버스 (shoes1 사용)
-                CalendarSaveItem(imageResId = R.drawable.acc5)      // 블랙 백팩 (acc5 사용)
+                CalendarSaveItem(imageResId = R.drawable.bag7)      // 블랙 백팩 (acc5 사용)
             )
             else -> calendarSaveList
         }
