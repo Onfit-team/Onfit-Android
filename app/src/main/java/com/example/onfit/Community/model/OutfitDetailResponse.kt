@@ -1,5 +1,7 @@
 package com.example.onfit.Community.model
 
+import com.google.gson.annotations.SerializedName
+
 data class OutfitDetailResponse(
     val isSuccess: Boolean,
     val code: String?,
@@ -20,13 +22,19 @@ data class OutfitDetailResponse(
         val isMyPost: Boolean
     )
     data class Author(val id: Int, val nickname: String, val profileImage: String?)
+
     data class Item(
         val id: Int,
         val category: Int,
         val subcategory: Int?,
-        val brand: String?, val color: Int?, val size: String?, val season: Int?,
+        val brand: String?,
+        val color: Int?,
+        val size: String?,
+        val season: Int?,
+        @SerializedName(value = "image", alternate = ["imageUrl", "url", "path"])
         val image: String?
     )
+
     data class Tags(
         val moodTags: List<Tag> = emptyList(),
         val purposeTags: List<Tag> = emptyList()

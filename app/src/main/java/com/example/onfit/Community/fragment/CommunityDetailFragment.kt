@@ -4,6 +4,7 @@ package com.example.onfit.Community.fragment
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -150,7 +151,6 @@ class CommunityDetailFragment : Fragment() {
             try {
                 val res = RetrofitInstance.api.getOutfitDetail(token, outfitId)
                 if (!res.isSuccessful) {
-                    Toast.makeText(requireContext(), "상세 조회 실패: ${res.code()}", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 val body: OutfitDetailResponse? = res.body()
@@ -158,6 +158,9 @@ class CommunityDetailFragment : Fragment() {
                     Toast.makeText(requireContext(), body?.message ?: "데이터 없음", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
+
+                Log.d("DetailCheck", "items.size=${d.items.size}, first=${d.items.firstOrNull()}")
+
 
                 // 날짜
                 binding.dateTv.text = formatUtcToKst(d.date)
@@ -293,7 +296,7 @@ class CommunityDetailFragment : Fragment() {
                 val res = RetrofitInstance.api.toggleOutfitLike(token, outfitId)
                 if (!res.isSuccessful) {
                     rollbackLike()
-                    Toast.makeText(requireContext(), "좋아요 실패: ${res.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "더미데이터에는 좋아요를 누를 수 없습니다.", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 val body: ToggleLikeResponse? = res.body()
