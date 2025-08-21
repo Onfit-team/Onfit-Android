@@ -145,6 +145,14 @@ class OutfitSaveFragment : Fragment() {
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
+        // 닉네임 세팅
+        val nickname = TokenProvider.getNickname(requireContext())
+        binding.outfitSaveTitle1Tv2.text = if (nickname.isNullOrBlank()) {
+            "님의 착장 아이템을"
+        } else {
+            "$nickname 님의 착장 아이템을"
+        }
+
         // 사진 왼쪽, 오른쪽 버튼 눌러서 전환
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
