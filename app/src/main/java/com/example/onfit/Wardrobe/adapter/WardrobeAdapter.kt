@@ -74,61 +74,79 @@ class WardrobeAdapter(
         }
     }
 
+    /**
+     * 🔥 NEW: 옷장 아이템 이미지 로딩
+     */
+    // WardrobeAdapter에서 수정된 코드
     private fun loadWardrobeImage(holder: WardrobeViewHolder, item: WardrobeItemDto) {
-        val imageUrl = item.image
-        val itemId = item.id
-
-        Log.d("WardrobeAdapter", "이미지 로딩 시도 - ID: $itemId, URL: '$imageUrl'")
+        // 🔥 이미지 로딩 전에 초기화
+        holder.imageView.setImageDrawable(null)
 
         when {
-            // 🔥 Assets 이미지 처리 (더미 데이터용)
-            imageUrl.startsWith("file:///android_asset/") -> {
-                Log.d("WardrobeAdapter", "Assets 이미지 로딩: $imageUrl")
-                loadAssetsImageDirect(holder.itemView.context, imageUrl, holder.imageView, itemId)
+            item.image.startsWith("drawable://") -> {
+                val imageName = item.image.removePrefix("drawable://")
+                val drawableResId = getDrawableResourceId(imageName)
+                holder.imageView.setImageResource(drawableResId)
             }
-
-            // 🔥 네트워크 이미지 처리 (서버 데이터)
-            !imageUrl.isNullOrEmpty() &&
-                    imageUrl.trim().isNotEmpty() &&
-                    imageUrl != "null" &&
-                    (imageUrl.startsWith("http") || imageUrl.startsWith("data:")) -> {
-
-                Log.d("WardrobeAdapter", "네트워크 이미지 로딩: $imageUrl")
-                Glide.with(holder.itemView.context)
-                    .load(imageUrl)
-                    .transform(CenterCrop(), RoundedCorners(16))
-                    .placeholder(R.drawable.clothes1)
-                    .error(R.drawable.clothes2)
-                    .listener(object : RequestListener<Drawable> {
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.e("WardrobeAdapter", "이미지 로딩 실패: ${e?.message}")
-                            loadDummyImage(holder, itemId)
-                            return true
-                        }
-
-                        override fun onResourceReady(
-                            resource: Drawable?,
-                            model: Any?,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource?,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            Log.d("WardrobeAdapter", "이미지 로딩 성공")
-                            return false
-                        }
-                    })
+            item.image.startsWith("http") -> {
+                Glide.with(holder.imageView.context)
+                    .load(item.image)
+                    .placeholder(R.drawable.clothes8)
+                    .error(R.drawable.clothes8)
                     .into(holder.imageView)
             }
-
-            // 🔥 빈 문자열이나 유효하지 않은 URL인 경우
             else -> {
-                Log.d("WardrobeAdapter", "유효하지 않은 URL - 더미 이미지 사용, URL: '$imageUrl', ID: $itemId")
-                loadDummyImage(holder, itemId)
+                holder.imageView.setImageResource(R.drawable.clothes8)
+            }
+        }
+    }
+
+    /**
+     * 🔥 NEW: drawable 리소스 ID 매핑
+     */
+    private fun getDrawableResourceId(imageName: String): Int {
+        return when (imageName) {
+            // 🔥 실제 drawable 파일명과 동일하게 매핑
+            "shirts1" -> R.drawable.shirts1
+            "pants1" -> R.drawable.pants1
+            "shoes1" -> R.drawable.shoes1
+            "shirts2" -> R.drawable.shirts2
+            "pants2" -> R.drawable.pants2
+            "shoes2" -> R.drawable.shoes2
+            "shirts3" -> R.drawable.shirts3
+            "shoes3" -> R.drawable.shoes3
+            "pants3" -> R.drawable.pants3
+            "shirts4" -> R.drawable.shirts4
+            "shoes4" -> R.drawable.shoes4
+            "bag4" -> R.drawable.bag4
+            "acc3" -> R.drawable.acc3
+            "pants4" -> R.drawable.pants4
+            else -> R.drawable.clothes8 // 기본값 (없는 이미지일 때)
+        }
+    }
+
+    private fun loadItemImage(imageView: ImageView, imageUrl: String) {
+        when {
+            // 🔥 NEW: drawable 리소스 처리
+            imageUrl.startsWith("drawable://") -> {
+                val imageName = imageUrl.removePrefix("drawable://")
+                val drawableResId = getDrawableResourceId(imageName)
+                imageView.setImageResource(drawableResId)
+                Log.d("WardrobeAdapter", "✅ Drawable 이미지 로딩: $imageName")
+            }
+
+            // 기존 네트워크 이미지 처리
+            imageUrl.startsWith("http") -> {
+                Glide.with(imageView.context)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.clothes8)
+                    .error(R.drawable.clothes8)
+                    .into(imageView)
+            }
+
+            // 기본 이미지
+            else -> {
+                imageView.setImageResource(R.drawable.clothes8)
             }
         }
     }
