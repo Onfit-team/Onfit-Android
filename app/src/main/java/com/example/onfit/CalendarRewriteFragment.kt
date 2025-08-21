@@ -14,9 +14,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.onfit.databinding.FragmentCalendarRewriteBinding
 import java.io.File
 import java.io.FileOutputStream
@@ -27,6 +30,11 @@ class CalendarRewriteFragment : Fragment() {
     private lateinit var adapter: CalendarRewriteAdapter
     private lateinit var pickImageLauncher: ActivityResultLauncher<String>
     private var selectedImageUri: Uri? = null
+
+    // ⭐ Safe Args 받기
+    private val args by navArgs<CalendarRewriteFragmentArgs>()
+    private val rewriteItems = mutableListOf<CalendarRewriteItem>() // ← 저장/전달용 리스트
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,16 +61,39 @@ class CalendarRewriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // ⭐ 1) Save → Rewrite 전달값을 그대로 UI에 반영
+        binding.calendarRewriteDateTv.text    = args.selectedDate
+        binding.calendarRewriteWeatherTv.text = args.weatherText
+        binding.calendarRewriteMemoTv.setText(args.memoText)
+
+        // 메인 이미지: URL/URI 모두 Glide로 처리 가능
+        args.mainImageUrl?.let { url ->
+            Glide.with(this)
+                .load(url) // "http://", "content://", "file://" 모두 OK
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .into(binding.calendarRewriteOutfitIv)
+        }
+
         // RecyclerView 설정
         val recyclerView = binding.calendarRewriteRv
         recyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
 
-        val dummyItems = mutableListOf(
-            CalendarRewriteItem(R.drawable.calendar_save_image2),
-            CalendarRewriteItem(R.drawable.calendar_save_image3)
-        )
+        val passedUrls: List<String> = args.itemImageUrls?.toList().orEmpty()
 
-        adapter = CalendarRewriteAdapter(dummyItems)
+        val items = if (passedUrls.isNotEmpty()) {
+            passedUrls.map { CalendarRewriteItem(imageUrl = it) }
+        } else {
+            // 넘어온 게 없으면 기존 더미 사용
+            listOf(
+                CalendarRewriteItem(imageResId = R.drawable.calendar_save_image2),
+                CalendarRewriteItem(imageResId = R.drawable.calendar_save_image3)
+            )
+        }
+        rewriteItems.clear()
+        rewriteItems.addAll(items)
+
+        adapter = CalendarRewriteAdapter(rewriteItems)
         recyclerView.adapter = adapter
 
         // CalendarSelect에서 돌아온 선택값 수신
@@ -117,7 +148,20 @@ class CalendarRewriteFragment : Fragment() {
 
         // 저장하면 수정한 정보 담아서 뒤로가기
         binding.calendarRewriteSaveBtn.setOnClickListener {
-            parentFragmentManager.popBackStack()
+            val newDate    = binding.calendarRewriteDateTv.text?.toString()
+            val newWeather = binding.calendarRewriteWeatherTv.text?.toString()
+            val newMemo    = binding.calendarRewriteMemoTv.text?.toString()
+            val newMainUrl = currentMainImageString() // 아래 3) 함수
+            val newItemUrls = collectItemUrls() // 아래 3) 함수
+
+            findNavController().previousBackStackEntry?.savedStateHandle?.apply {
+                set("rewrite_date", newDate)
+                set("rewrite_weather", newWeather)
+                set("rewrite_memo", newMemo)
+                set("rewrite_main_image_url", newMainUrl)
+                set("rewrite_item_image_urls", newItemUrls) // ArrayList<String>
+            }
+            findNavController().popBackStack()
         }
 
         // 날짜 선택 드롭다운
@@ -135,6 +179,30 @@ class CalendarRewriteFragment : Fragment() {
 
             datePickerDialog.show()
         }
+    }
+
+    private fun currentMainImageString(): String? {
+        // 1) 갤러리에서 고른 경우 우선
+        selectedImageUri?.let { return it.toString() }
+        // 2) 처음 넘어온 Safe Args
+        if (!args.mainImageUrl.isNullOrBlank()) return args.mainImageUrl
+        // 3) 현재 ImageView의 Drawable을 캐시에 저장해서 file:// 로
+        return drawableToCacheUri(requireContext(), binding.calendarRewriteOutfitIv.drawable)?.toString()
+    }
+
+    private fun collectItemUrls(): ArrayList<String> {
+        val list = arrayListOf<String>()
+        for (item in rewriteItems) {
+            when {
+                item.imageUrl != null -> list.add(item.imageUrl)
+                item.imageResId != null -> {
+                    val d = ContextCompat.getDrawable(requireContext(), item.imageResId)
+                    val uri = drawableToCacheUri(requireContext(), d)
+                    if (uri != null) list.add(uri.toString())
+                }
+            }
+        }
+        return list
     }
 
     // drawable -> 캐시 파일 -> file://Uri

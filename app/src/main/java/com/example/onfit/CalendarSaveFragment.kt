@@ -28,6 +28,14 @@ class CalendarSaveFragment : Fragment() {
         CalendarSaveItem(imageResId = R.drawable.cloth2)
     )
 
+    // ⭐ 현재 화면 값 보관(앞으로 전달에 사용)
+    private var currentSelectedDate: String? = null
+    private var currentMainImageUrl: String? = null
+    private var currentItemImageUrls: ArrayList<String> = arrayListOf()
+    private var currentWeatherText: String? = null
+    private var currentMemoText: String? = null
+    private var currentOutfitId: Int = -1
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -69,14 +77,37 @@ class CalendarSaveFragment : Fragment() {
             setupDummyRecyclerView()
         }
 
-        // 버튼 리스너들
+        // ⭐ 현재 화면의 날씨/메모 텍스트도 보관
+        currentWeatherText = binding.calendarSaveWeatherTv.text?.toString()
+        currentMemoText = binding.calendarSaveMemoTv.text?.toString()
+
+        // 뒤로가기
         binding.calendarSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
 
+        // ⭐ 수정 아이콘 클릭: 현재 값들을 Safe Args로 전달
         binding.calendarSaveEditIv.setOnClickListener {
-            findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
+            // 혹시 화면에서 사용자가 방금 수정했을 수도 있으니 다시 읽어서 최신화
+            val selectedDateText = binding.calendarSaveDateTv.text?.toString()
+            val weatherText      = binding.calendarSaveWeatherTv.text?.toString()
+            val memoText         = binding.calendarSaveMemoTv.text?.toString()
+            val mainUrl  = currentMainImageUrl      // String?
+            val itemArr  = currentItemImageUrls.toTypedArray() // Array<String>
+
+            val action = CalendarSaveFragmentDirections
+                .actionCalendarSaveFragmentToCalendarRewriteFragment(
+                    selectedDateText,
+                    mainUrl,
+                    itemArr, // string[] 전달
+                    weatherText,
+                    memoText
+                )
+
+            findNavController().navigate(action)
         }
+
+        observeRewriteResults()
 
         binding.calendarSaveSendIv.setOnClickListener {
             showDeleteDialog()
@@ -167,6 +198,62 @@ class CalendarSaveFragment : Fragment() {
             TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
         ).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    private fun observeRewriteResults() {
+        val handle = findNavController().currentBackStackEntry?.savedStateHandle ?: return
+
+        // 날짜
+        handle.getLiveData<String>("rewrite_date")
+            .observe(viewLifecycleOwner) { newDate ->
+                if (!newDate.isNullOrBlank()) {
+                    binding.calendarSaveDateTv.text = newDate
+                    // (선택) 상태 보관 변수도 갱신 중이면 함께 갱신
+                    // currentSelectedDate = newDate
+                }
+                handle.remove<String>("rewrite_date") // 소비 후 제거 (중복 방지)
+            }
+
+        // 날씨
+        handle.getLiveData<String>("rewrite_weather")
+            .observe(viewLifecycleOwner) { weather ->
+                binding.calendarSaveWeatherTv.text = weather ?: ""
+                handle.remove<String>("rewrite_weather")
+            }
+
+        // 메모
+        handle.getLiveData<String>("rewrite_memo")
+            .observe(viewLifecycleOwner) { memo ->
+                binding.calendarSaveMemoTv.text = memo ?: ""
+                handle.remove<String>("rewrite_memo")
+            }
+
+        // 메인 이미지(URL/URI 문자열)
+        handle.getLiveData<String>("rewrite_main_image_url")
+            .observe(viewLifecycleOwner) { url ->
+                if (!url.isNullOrBlank()) {
+                    // currentMainImageUrl = url
+                    setupMainImage(url)   // 네가 이미 만든 함수 재사용
+                }
+                handle.remove<String>("rewrite_main_image_url")
+            }
+
+        // 아이템 리스트(ArrayList<String> = URL/URI)
+        handle.getLiveData<ArrayList<String>>("rewrite_item_image_urls")
+            .observe(viewLifecycleOwner) { urls ->
+                val list = urls ?: arrayListOf()
+                if (list.isNotEmpty()) {
+                    // currentItemImageUrls = ArrayList(list)
+                    setupItemRecyclerView(list)     // 네가 이미 만든 함수 재사용
+                } else {
+                    // 실제 편집 결과를 존중해 비우고 싶다면 여기서 비우기:
+                    // binding.calendarSaveRv.adapter = CalendarSaveAdapter(emptyList())
+                    // binding.calendarSaveRv.visibility = View.GONE
+                    // or 네가 쓰던 더미 유지 전략이라면:
+                    setupDummyRecyclerView()
+                }
+                handle.remove<ArrayList<String>>("rewrite_item_image_urls")
+            }
     }
 
     override fun onDestroyView() {
