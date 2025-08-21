@@ -252,24 +252,24 @@ class ClothesDetailFragment : Fragment() {
             2 to 1,
             3 to 1,
             4 to 1,
-            5 to 1,
-            6 to 2,
+            5 to 2,
+            6 to 1,
             7 to 1,
-            8 to 1,
-            9 to 2,  // shirts1 - color = 2 (화이트)
+            8 to 2,
+            9 to 6,  // shirts1 - color = 2 (화이트)
             10 to 6,  // pants1 - color = 6 (베이지)
-            11 to 6,  // shoes1 - color = 6 (베이지)
-            12 to 1,  // shirts2 - color = 1 (블랙)
-            13 to 6,  // pants2 - color = 6 (베이지)
+            11 to 1,  // shoes1 - color = 6 (베이지)
+            12 to 6,  // shirts2 - color = 1 (블랙)
+            13 to 1,  // pants2 - color = 6 (베이지)
             14 to 1,  // shoes2 - color = 1 (블랙)
-            15 to 1,  // shirts3 - color = 1 (블랙)
-            16 to 2,  // shoes3 - color = 2 (화이트)
+            15 to 2,  // shirts3 - color = 1 (블랙)
+            16 to 1,  // shoes3 - color = 2 (화이트)
             17 to 1,  // pants3 - color = 1 (블랙)
             18 to 1,  // acc3 - color = 1 (블랙)
             19 to 3, // shirts4 - color = 3 (그레이) ← 수정
             20 to 1, // pants4 - color = 1 (블랙) ← 수정
             21 to 1, // bag4 - color = 1 (블랙)
-            22 to 1  // shoes4 - color = 1 (블랙)
+            22 to 1
         )
 
         return colorMapping[index % colorMapping.size] ?: 1 // 기본값: 블랙
