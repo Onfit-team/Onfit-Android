@@ -217,61 +217,16 @@ class OutfitRegisterFragment : Fragment() {
             openGallery()
         }
 
-        // 이미지 넘겨주면서 OutfitSave 화면으로 이동
+        // 이미지 안 넘기고 그냥 OutfitSaveFragment로 이동
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            val itemsToRefine = adapter.getItems()
-                .filter { !it.cropId.isNullOrBlank() } // ✅ 크롭된 것만
-
-            if (itemsToRefine.isEmpty()) {
-                Toast.makeText(requireContext(), "크롭된 항목이 없어요.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            val bundle = Bundle().apply {
+                // 날짜만 넘기기
+                passedSaveDate?.let { putString("save_date", it) }
             }
-            val token = TokenProvider.getToken(requireContext())
-            if (token.isNullOrBlank()) {
-                Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val bearer = "Bearer $token"
-
-            binding.outfitRegisterSaveBtn.isEnabled = false
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                val refineApi = HeavyApiRetrofit.retrofit.create(RefineService::class.java)
-
-                // 병렬 refine
-                val refinedUrls = withContext(Dispatchers.IO) {
-                    itemsToRefine.map { item ->
-                        async {
-                            runCatching {
-                                val resp = refineApi.refine(bearer, RefineRequest(cropId = item.cropId!!))
-                                if (resp.isSuccessful && resp.body()?.isSuccess == true) {
-                                    resp.body()!!.result!!.previewUrl
-                                } else null
-                            }.getOrNull()
-                        }
-                    }.awaitAll().filterNotNull()
-                }
-
-                binding.outfitRegisterSaveBtn.isEnabled = true
-
-                if (refinedUrls.isEmpty()) {
-                    Toast.makeText(requireContext(), "이미지 정제에 실패했어요.", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                // ✅ refine 결과(preview_url)만 다음 화면으로
-                val directions = OutfitRegisterFragmentDirections
-                    .actionOutfitRegisterFragmentToOutfitSaveFragment(
-                        refinedUrls.toTypedArray(), // imageUris
-                        intArrayOf()                // 리소스 ID는 사용 안 함
-                    )
-                directions.arguments.putString("save_date", passedSaveDate)
-
-                findNavController().navigate(
-                    R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
-                    directions.arguments
-                )
-            }
+            findNavController().navigate(
+                R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
+                bundle
+            )
         }
 
         // 뒤로가기

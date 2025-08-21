@@ -1,5 +1,6 @@
 package com.example.onfit.Community.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -12,7 +13,7 @@ class CommunityDetailClothAdapter(
 
     companion object {
         // BASE_URL + 이미지 폴더 경로
-        private const val BASE_IMAGE_URL: String = "http://3.36.113.173/images/"
+        private const val BASE_IMAGE_URL: String = "http://3.36.113.173/image/"
     }
 
 
@@ -21,6 +22,8 @@ class CommunityDetailClothAdapter(
 
         fun bind(raw: String) {
             val url = toAbsoluteUrl(raw)
+            Log.d("DetailCloth", "bind() raw=$raw → url=$url")
+
             Glide.with(itemView)
                 .load(url)
                 .into(b.clothIv)
@@ -42,15 +45,29 @@ class CommunityDetailClothAdapter(
 
     private fun toAbsoluteUrl(input: String?): String? {
         val s = input?.trim().orEmpty()
-        if (s.isEmpty()) return s
-        val lower = s.lowercase()
-        return if (lower.startsWith("http://") || lower.startsWith("https://")) {
-            s
-        } else {
-            // BASE_IMAGE_URL과 슬래시 중복/누락을 안전하게 처리
-            val base = if (BASE_IMAGE_URL.endsWith("/")) BASE_IMAGE_URL else "$BASE_IMAGE_URL/"
-            val path = if (s.startsWith("/")) s.drop(1) else s
-            base + path
+        if (s.isEmpty()) {
+            Log.d("DetailCloth", "toAbsoluteUrl() empty input")
+            return s
         }
+        val lower = s.lowercase()
+
+        val out =
+            if (lower.startsWith("http://") ||
+                lower.startsWith("https://") ||
+                lower.startsWith("file:///android_asset/") ||
+                lower.startsWith("android.resource://")
+            ) {
+                s
+            } else {
+                val base = if (BASE_IMAGE_URL.endsWith("/")) BASE_IMAGE_URL else "$BASE_IMAGE_URL/"
+                val path = if (s.startsWith("/")) s.drop(1) else s
+                base + path
+            }
+
+        Log.d("DetailCloth", "toAbsoluteUrl() in=$input → out=$out")
+        return out
     }
+
+
+
 }
