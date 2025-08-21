@@ -161,7 +161,6 @@ class CalendarFragment : Fragment() {
     }
 
     // CalendarFragment.kt에서 addDummyDataToCalendar() 함수 수정
-    // CalendarFragment.kt의 addDummyDataToCalendar() 수정
     private fun addDummyDataToCalendar() {
         Log.d("CalendarFragment", "🎭 더미 데이터를 캘린더에 추가")
 
@@ -187,12 +186,17 @@ class CalendarFragment : Fragment() {
             "$currentYear-${String.format("%02d", currentMonth)}-13" to 1013  // cody1
         )
 
+        // 🔥 NEW: 코디 7번 추가 (8월 16일)
+        val cody7DummyOutfits = mapOf(
+            "$currentYear-${String.format("%02d", currentMonth)}-16" to 1107  // 🔥 cody7 (id=7) - 8월 16일
+        )
+
         // 기존 데이터 초기화
         registeredDates.clear()
         dateToOutfitIdMap.clear()
 
-        // 🔥 모든 더미 데이터 통합
-        val allDummyOutfits = styleDummyOutfits + calendarDummyOutfits
+        // 🔥 모든 더미 데이터 통합 (코디 7번 포함)
+        val allDummyOutfits = styleDummyOutfits + calendarDummyOutfits + cody7DummyOutfits
 
         allDummyOutfits.forEach { (date, outfitId) ->
             registeredDates.add(date)
@@ -208,7 +212,7 @@ class CalendarFragment : Fragment() {
 
         Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료")
         Log.d("CalendarFragment", "📅 이제 StyleOutfits와 정확히 매칭:")
-        Log.d("CalendarFragment", "   5일(1105-cody5) ✅, 14일(1106-cody6) ✅")
+        Log.d("CalendarFragment", "   5일(1105-cody5) ✅, 14일(1106-cody6) ✅, 16일(1107-cody7) ✅")
     }
 
     /**
@@ -283,7 +287,6 @@ class CalendarFragment : Fragment() {
     }
 
     // 🔥 더미 코디 상세 화면 이동 함수 최종 수정
-    // 🔥 더미 코디 상세 화면 이동 함수 - description 수정
     private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
         try {
             // StyleOutfitsFragment 더미 데이터와 정확히 일치하는 매핑
@@ -294,7 +297,8 @@ class CalendarFragment : Fragment() {
                 1103 -> Triple(3, "ccody3", "캐주얼 스타일 코디 3")  // 3일
                 1104 -> Triple(4, "ccody4", "캐주얼 스타일 코디 4")  // 4일
                 1105 -> Triple(5, "cody5", "캐주얼 스타일 코디 5")   // 🔥 5일 - cody5 ✅
-                1106 -> Triple(6, "cody6", "캐주얼 스타일 코디 6")   // 🔥 14일 - cody6 ✅ (설명 수정)
+                1106 -> Triple(6, "cody6", "캐주얼 스타일 코디 6")   // 🔥 14일 - cody6 ✅
+                1107 -> Triple(7, "cody7", "체크 셔츠 + 청바지 + 컨버스 + 백팩으로 완성한 캐주얼 데일리 룩") // 🔥 NEW: 16일 - cody7 ✅
 
                 // 기존 캘린더 더미 데이터 (1010~1013으로 수정)
                 1013 -> Triple(1, "cody1", "화이트 셔츠와 베이지 팬츠로 깔끔한 오피스 룩")   // 13일
@@ -316,6 +320,13 @@ class CalendarFragment : Fragment() {
                 putBoolean("from_outfit_record", true)
                 putBoolean("is_dummy_outfit", true)
                 putString("memo", description)
+
+                // 🔥 NEW: 코디 7번인 경우 캐주얼 스타일 정보 추가
+                if (dummyOutfitId == 1107) {
+                    putString("outfit_style", "캐주얼")
+                    putString("outfit_description", "체크 셔츠 + 청바지 + 컨버스 + 백팩")
+                    putBoolean("is_new_casual_style", true) // 새로운 캐주얼 스타일 표시
+                }
             }
 
             val navController = findNavController()
@@ -1269,8 +1280,9 @@ class CalendarFragment : Fragment() {
 
             // 🔥 CalendarFragment의 더미 데이터와 정확히 일치하는 날짜 매핑
             val outfitDateMap = mapOf(
-                5 to "$currentYear-${String.format("%02d", currentMonth)}-05", // 🔥 cody5 -> 5일 (StyleOutfits)
-                6 to "$currentYear-${String.format("%02d", currentMonth)}-14", // 🔥 cody6 -> 14일
+                7 to "$currentYear-${String.format("%02d", currentMonth)}-16", // 🔥 NEW: cody7 -> 16일 ✅
+                5 to "$currentYear-${String.format("%02d", currentMonth)}-05", // cody5 -> 5일
+                6 to "$currentYear-${String.format("%02d", currentMonth)}-14", // cody6 -> 14일
                 1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // cody1 -> 13일
                 2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // cody2 -> 12일
                 3 to "$currentYear-${String.format("%02d", currentMonth)}-11", // cody3 -> 11일
@@ -1286,6 +1298,12 @@ class CalendarFragment : Fragment() {
                     putString("selected_date", targetDate)
                     putInt("outfit_number", outfitNumber)
                     putBoolean("from_outfit_record", true)
+
+                    // 🔥 코디 7번은 캐주얼 스타일
+                    if (outfitNumber == 7) {
+                        putString("outfit_style", "캐주얼")
+                        putString("outfit_description", "체크 셔츠 + 청바지 + 컨버스 + 백팩")
+                    }
                 }
 
                 try {
@@ -1378,8 +1396,9 @@ class CalendarFragment : Fragment() {
      */
     private fun isDummyOutfitId(outfitId: Int): Boolean {
         return when (outfitId) {
-            in 1010..1013 -> true  // 기존 캘린더 더미 코디 (새로운 ID 체계)
-            in 1101..1106 -> true  // StyleOutfitsFragment 더미 코디 (ccody1~4, cody5, cody6) ✅
+            in 1010..1013 -> true  // 기존 캘린더 더미 코디 (10,11,12,13일)
+            in 1101..1106 -> true  // StyleOutfitsFragment 더미 코디 (1,2,3,4,5,14일)
+            1107 -> true           // 🔥 NEW: 코디 7번 (16일) ✅
             else -> false
         }
     }

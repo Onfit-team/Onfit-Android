@@ -690,14 +690,53 @@ class AddItemFragment : Fragment() {
     }
 
     /**
+     * 🔥 NEW: 현재 등록/수정 중인 아이템의 카테고리 가져오기
+     */
+    private fun getCurrentRegistrationCategory(): Int {
+        val categorySpinner = view?.findViewById<Spinner>(R.id.spinner_category)
+        val categoryIndex = categorySpinner?.selectedItemPosition ?: 0
+
+        return when (categoryIndex) {
+            0 -> 1 // 상의
+            1 -> 2 // 하의
+            2 -> 3 // 원피스
+            3 -> 4 // 아우터
+            4 -> 5 // 신발
+            5 -> 6 // 액세서리
+            else -> 1
+        }
+    }
+
+    /**
+     * 🔥 NEW: 로그용 카테고리 이름 반환
+     */
+    private fun getCategoryNameForLog(categoryId: Int): String {
+        return when (categoryId) {
+            1 -> "상의"
+            2 -> "하의"
+            3 -> "원피스"
+            4 -> "아우터"
+            5 -> "신발"
+            6 -> "액세서리"
+            else -> "기타"
+        }
+    }
+
+
+    /**
      * 🔥 MODIFIED: 등록 결과를 부모 Fragment들에게 전달 (업데이트 여부 추가)
      */
     private fun notifyRegistrationComplete(isSuccess: Boolean, purchaseDate: String?, isUpdate: Boolean = false) {
+        // 현재 등록/수정 중인 아이템의 카테고리 정보 가져오기
+        val currentCategory = getCurrentRegistrationCategory()
+
         val bundle = Bundle().apply {
             putBoolean("success", isSuccess)
             putString("registered_date", purchaseDate ?: getCurrentDate())
             putBoolean("edit_mode", isEditMode)
             putLong("timestamp", System.currentTimeMillis())
+            putInt("registered_category", currentCategory) // 🔥 등록된 카테고리 정보 추가
+            putBoolean("from_new_registration", !isEditMode && isSuccess) // 🔥 새로운 등록인지 표시
         }
 
         // RegisterItemBottomSheet에 알림
@@ -708,7 +747,9 @@ class AddItemFragment : Fragment() {
             putBoolean("success", isSuccess)
             putString("action", if (isEditMode) "updated" else "added")
             putString("registered_date", purchaseDate ?: getCurrentDate())
-            putBoolean("force_refresh", isUpdate) // 🔥 NEW: 수정 시 강제 새로고침
+            putBoolean("force_refresh", isUpdate)
+            putInt("registered_category", currentCategory) // 🔥 카테고리 정보 추가
+            putBoolean("from_new_registration", !isEditMode && isSuccess) // 🔥 새로운 등록 표시
         }
 
         val resultKey = if (isEditMode) "wardrobe_item_updated" else "item_registered"
@@ -719,8 +760,9 @@ class AddItemFragment : Fragment() {
             parentFragmentManager.setFragmentResult("outfit_registered", bundle)
         }
 
-        Log.d("AddItemFragment", "등록 결과 전달: success=$isSuccess, date=$purchaseDate, editMode=$isEditMode, isUpdate=$isUpdate")
+        Log.d("AddItemFragment", "✅ 등록 결과 전달: success=$isSuccess, category=$currentCategory, editMode=$isEditMode, newReg=${!isEditMode}")
     }
+
 
     /**
      * 로딩 상태 표시
