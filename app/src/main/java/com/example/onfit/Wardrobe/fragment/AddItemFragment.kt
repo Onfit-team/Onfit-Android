@@ -511,12 +511,22 @@ class AddItemFragment : Fragment() {
 
     private fun loadImageIntoView(imageUrl: String) {
         when {
-            // 🔥 NEW: Assets 이미지 처리
+            // 🔥 NEW: drawable:// 처리 추가
+            imageUrl.startsWith("drawable://") -> {
+                val imageName = imageUrl.removePrefix("drawable://")
+                val drawableResId = getDrawableResourceId(imageName)
+                if (drawableResId != 0) {
+                    ivClothes.setImageResource(drawableResId)
+                    Log.d("AddItemFragment", "✅ Drawable 리소스 설정: $imageName -> $drawableResId")
+                } else {
+                    ivClothes.setImageResource(defaultImageResId)
+                }
+            }
+            // 🔥 기존 코드 그대로 유지
             imageUrl.startsWith("file:///android_asset/") -> {
                 loadAssetsImage(imageUrl)
                 btnChangeToDefault.visibility = View.VISIBLE
             }
-            // 네트워크 이미지
             imageUrl.startsWith("http") -> {
                 Glide.with(this)
                     .load(imageUrl)
@@ -525,7 +535,6 @@ class AddItemFragment : Fragment() {
                     .into(ivClothes)
                 btnChangeToDefault.visibility = View.GONE
             }
-            // 로컬 이미지나 URI
             else -> {
                 try {
                     val uri = Uri.parse(imageUrl)
@@ -1085,5 +1094,25 @@ class AddItemFragment : Fragment() {
         }
 
         Log.d("AddItemFragment", "편집 모드 - 기존 태그 복원: $existingTagTexts")
+    }
+
+    private fun getDrawableResourceId(imageName: String): Int {
+        return when (imageName) {
+            "shirts1" -> R.drawable.shirts1
+            "pants1" -> R.drawable.pants1
+            "shoes1" -> R.drawable.shoes1
+            "shirts2" -> R.drawable.shirts2
+            "pants2" -> R.drawable.pants2
+            "shoes2" -> R.drawable.shoes2
+            "shirts3" -> R.drawable.shirts3
+            "shoes3" -> R.drawable.shoes3
+            "pants3" -> R.drawable.pants3
+            "acc3" -> R.drawable.acc3
+            "shirts4" -> R.drawable.shirts4
+            "pants4" -> R.drawable.pants4
+            "bag4" -> R.drawable.bag4
+            "shoes4" -> R.drawable.shoes4
+            else -> 0
+        }
     }
 }

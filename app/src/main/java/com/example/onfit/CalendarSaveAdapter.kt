@@ -19,25 +19,24 @@ class CalendarSaveAdapter(private val itemList: List<CalendarSaveItem>) :
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val item = itemList[position]
+        val imageView = holder.binding.calendarSaveClothIv
 
         when {
-            // drawable 리소스 이미지인 경우 (기존 방식)
-            item.isDrawableResource() -> {
-                holder.binding.calendarSaveClothIv.setImageResource(item.imageResId!!)
-            }
-
-            // URL 이미지인 경우 (새로운 방식)
-            item.isUrlImage() -> {
-                Glide.with(holder.binding.root.context)
+            // URL이 존재하면 Glide로 로드
+            !item.imageUrl.isNullOrBlank() -> {
+                Glide.with(imageView.context)
                     .load(item.imageUrl)
-                    .placeholder(R.drawable.ic_launcher_background) // 로딩 중 이미지 (실제 placeholder로 변경)
-                    .error(R.drawable.ic_launcher_background) // 에러 시 이미지 (실제 error 이미지로 변경)
-                    .into(holder.binding.calendarSaveClothIv)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .into(imageView)
             }
-
-            // 이미지가 없는 경우
+            // 리소스 ID가 있으면 setImageResource
+            item.imageResId != null -> {
+                imageView.setImageResource(item.imageResId)
+            }
+            // 기본 이미지
             else -> {
-                holder.binding.calendarSaveClothIv.setImageResource(R.drawable.ic_launcher_background) // 기본 이미지
+                imageView.setImageResource(R.drawable.ic_launcher_background)
             }
         }
     }

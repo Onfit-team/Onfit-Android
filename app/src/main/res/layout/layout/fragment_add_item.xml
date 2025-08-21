@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- 스크롤 가능한 내용 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 뒤로가기 + 타이틀 -->
+            <ImageButton
+                android:id="@+id/ic_back"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="33dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="뒤로가기"
+                android:src="@drawable/leftarrow" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI가 이미지를\n깔끔하게 만들었어요!"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/robotosemibold"/>
+            </LinearLayout>
+
+            <!-- 옷 이미지 -->
+            <ImageView
+                android:id="@+id/iv_clothes"
+                android:layout_width="match_parent"
+                android:layout_height="372dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/rounded_image_background"
+                android:contentDescription="옷 이미지" />
+
+            <!-- 기존 이미지로 바꾸기 버튼 -->
+            <android.widget.Button
+                android:id="@+id/btn_change_to_default"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="46dp"
+                android:minWidth="372dp"
+                android:textSize="16sp"
+                android:background="@drawable/rounded_button_gray"
+                android:textColor="@color/black"
+                android:text="기존 이미지로 변경"
+                android:visibility="visible"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pretendardmedium"/>
+
+            <View
+                android:id="@+id/grayLine"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="카테고리"
+                android:textSize="15sp"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="13sp"
+                android:fontFamily="@font/pretendardsemibold"/>
+
+            <!-- 카테고리 / 세부 카테고리 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="2"
+                android:layout_marginBottom="12dp">
+
+                <!-- 카테고리 스피너 컨테이너 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="49dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/spinner_background"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:fontFamily="@font/intermedium">
+
+                    <Spinner
+                        android:id="@+id/spinner_category"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
+                        android:popupBackground="@drawable/spinner_background" />
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/arrow_down"
+                        android:layout_marginLeft="8dp" />
+                </LinearLayout>
+
+                <!-- 세부 카테고리 스피너 컨테이너 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="49dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/spinner_background"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingRight="16dp">
+
+                    <Spinner
+                        android:id="@+id/spinner_detail_category"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:paddingLeft="16dp"
+                        android:background="@android:color/transparent"
+                        android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
+                        android:popupBackground="@drawable/spinner_background" />
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/arrow_down"
+                        android:layout_marginLeft="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="계절"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/pretendardsemibold"
+                    android:layout_marginEnd="4dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="색"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/pretendardsemibold"
+                    android:layout_marginStart="4dp" />
+
+            </LinearLayout>
+
+            <!-- 계절 / 색 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="2"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/intermedium">
+
+                <!-- 계절 스피너 컨테이너 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="49dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/spinner_background"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp">
+
+                    <Spinner
+                        android:id="@+id/spinner_season"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
+                        android:popupBackground="@drawable/spinner_background" />
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/arrow_down"
+                        android:layout_marginLeft="8dp" />
+                </LinearLayout>
+
+                <!-- 색 스피너 컨테이너 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="49dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/spinner_background"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:fontFamily="@font/intermedium">
+
+                    <Spinner
+                        android:id="@+id/spinner_color"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:spinnerMode="dropdown"
+                        android:dropDownWidth="match_parent"
+                        android:popupBackground="@drawable/spinner_background" />
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/arrow_down"
+                        android:layout_marginLeft="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 스타일 태그 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스타일 태그"
+                android:fontFamily="@font/pretendardsemibold"
+                android:textSize="18sp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="분위기"
+                android:fontFamily="@font/pretendardbold"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                android:layout_marginBottom="9dp"
+                android:fontFamily="@font/pretendardmedium">
+
+                <!-- 더미 버튼들 -->
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#캐주얼"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#스트릿"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#미니멀" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#클래식" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:text="#빈티지" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="@font/pretendardmedium">
+
+                <!-- 더미 버튼들 -->
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#러블리" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#페미닌"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="62dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#보이시" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="58dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#모던" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 용도 태그 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="용도"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pretendardsemibold"/>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                android:layout_marginBottom="9dp"
+                android:fontFamily="@font/pretendardmedium">
+
+                <!-- 더미 버튼들 -->
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#데일리" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#출근룩"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="76dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#데이트룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="76dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#나들이룩" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/topCategoryLayout4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start"
+                app:alignItems="flex_start"
+                android:layout_marginBottom="24dp">
+
+                <!-- 더미 버튼들 -->
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#여행룩" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#운동복" />
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#하객룩"/>
+
+                <android.widget.Button
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:minWidth="65dp"
+                    android:textSize="14sp"
+                    android:background="@drawable/rounded_button_selector"
+                    android:textColor="@color/rounded_button_text_selector"
+                    android:layout_marginRight="10dp"
+                    android:text="#파티룩" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <!-- 구매 정보 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="구매 정보"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_brand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="브랜드를 입력해주세요"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="가격을 입력해주세요"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:inputType="number"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="사이즈를 입력해주세요"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_site"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="구매사이트"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="24dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 하단 고정 버튼 -->
+    <android.widget.Button
+        android:id="@+id/btn_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="저장하기"
+        android:background="@drawable/rounded_button"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:layout_margin="24dp"
+        style="?android:attr/borderlessButtonStyle"/>
+
+</LinearLayout>
