@@ -355,16 +355,17 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
 
     private fun fetchTop3BestOutfits() {
         val token = TokenProvider.getToken(requireContext())
-        val nickname = TokenProvider.getNickname(requireContext()).ifBlank { "사용자" }
+        val myNick = TokenProvider.getNickname(requireContext()).ifBlank { "사용자" }
 
+        // 1) 토큰 없음 → 더미만 (더미 닉네임=게스트)
         if (token.isBlank()) {
             if (USE_DUMMY_TOP3_WHEN_EMPTY) {
                 val dummies = loadTop3DummyFromAssetsByTemp(3, todayAvgTemp)
                 if (dummies.isNotEmpty()) {
                     applyEmptyState(false)
-                    bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, nickname)
-                    bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, nickname)
-                    bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, nickname)
+                    bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, null) // 게스트
+                    bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, null) // 게스트
+                    bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, null) // 게스트
                 } else applyEmptyState(true)
             } else {
                 Toast.makeText(requireContext(), "인증 토큰이 없습니다.", Toast.LENGTH_SHORT).show()
@@ -373,34 +374,44 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             return
         }
 
+        // 2) 토큰 있음 → 서버 + (필요시) 더미 보충
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val response = RetrofitInstance.api.getTop3BestOutfits("Bearer $token")
                 if (response.isSuccessful) {
-                    val results = response.body()?.result.orEmpty()
-                    val valid = results.mapNotNull { it.mainImage }.filter { it.isNotBlank() }
+                    // rank 오름차순(홈과 동일)
+                    val ranked = response.body()?.result.orEmpty().sortedBy { it.rank }
 
-                    val need = (3 - valid.size).coerceAtLeast(0)
-                    val dummies = if (USE_DUMMY_TOP3_WHEN_EMPTY && need > 0)
-                        loadTop3DummyFromAssetsByTemp(need, todayAvgTemp) else emptyList()
+                    // (url, nickname) 페어 (실데이터는 nickname 유지)
+                    val serverPairs: List<Pair<String, String?>> = ranked.mapNotNull { item ->
+                        val url = item.mainImage?.takeIf { it.isNotBlank() }
+                        url?.let { it to item.nickname?.takeIf { nk -> nk.isNotBlank() } }
+                    }
 
-                    val filled = (valid + dummies).take(3)
+                    // 부족분은 더미로 보충 (더미는 nickname=null → bindOneOrSkip에서 "게스트")
+                    val need = (3 - serverPairs.size).coerceAtLeast(0)
+                    val dummyPairs: List<Pair<String, String?>> =
+                        if (USE_DUMMY_TOP3_WHEN_EMPTY && need > 0)
+                            loadTop3DummyFromAssetsByTemp(need, todayAvgTemp).map { it to null }
+                        else emptyList()
+
+                    val filled: List<Pair<String, String?>> = (serverPairs + dummyPairs).take(3)
 
                     if (filled.isEmpty()) { applyEmptyState(true); return@launch }
 
                     applyEmptyState(false)
-                    bindOneOrSkip(filled.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, nickname)
-                    bindOneOrSkip(filled.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, nickname)
-                    bindOneOrSkip(filled.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, nickname)
+                    bindOneOrSkip(filled.getOrNull(0)?.first, binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, filled.getOrNull(0)?.second)
+                    bindOneOrSkip(filled.getOrNull(1)?.first, binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, filled.getOrNull(1)?.second)
+                    bindOneOrSkip(filled.getOrNull(2)?.first, binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, filled.getOrNull(2)?.second)
                 } else {
                     Toast.makeText(requireContext(), "어제의 BEST 조회 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
                     if (USE_DUMMY_TOP3_WHEN_EMPTY) {
                         val dummies = loadTop3DummyFromAssetsByTemp(3, todayAvgTemp)
                         if (dummies.isNotEmpty()) {
                             applyEmptyState(false)
-                            bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, nickname)
-                            bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, nickname)
-                            bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, nickname)
+                            bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, null) // 게스트
+                            bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, null) // 게스트
+                            bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, null) // 게스트
                         } else applyEmptyState(true)
                     } else applyEmptyState(true)
                 }
@@ -410,35 +421,47 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     val dummies = loadTop3DummyFromAssetsByTemp(3, todayAvgTemp)
                     if (dummies.isNotEmpty()) {
                         applyEmptyState(false)
-                        bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, nickname)
-                        bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, nickname)
-                        bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, nickname)
+                        bindOneOrSkip(dummies.getOrNull(0), binding.yesterdayBest1Iv, binding.yesterdayBest1NameTv, null) // 게스트
+                        bindOneOrSkip(dummies.getOrNull(1), binding.yesterdayBest2Iv, binding.yesterdayBest2NameTv, null) // 게스트
+                        bindOneOrSkip(dummies.getOrNull(2), binding.yesterdayBest3Iv, binding.yesterdayBest3NameTv, null) // 게스트
                     } else applyEmptyState(true)
                 } else applyEmptyState(true)
             }
         }
     }
 
-    private fun bindOneOrSkip(imageUrl: String?, imageView: ImageView, nameView: TextView, nickname: String) {
+
+
+
+    // 교체본
+    private fun bindOneOrSkip(
+        imageUrl: String?,
+        imageView: ImageView,
+        nameView: TextView,
+        displayName: String? // ← nullable: null 이면 더미 → "게스트"
+    ) {
         if (!imageUrl.isNullOrBlank()) {
             Glide.with(this).load(imageUrl).into(imageView)
-            nameView.text = nickname
         } else {
-            nameView.text = ""
+            imageView.setImageDrawable(null)
         }
+
+        // 실데이터: 서버 닉네임, 더미: "게스트"
+        val name = displayName?.takeIf { it.isNotBlank() } ?: "게스트"
+        nameView.text = name
+        nameView.visibility = View.VISIBLE
     }
+
+
+
 
     private fun applyEmptyState(isEmpty: Boolean) {
         _binding?.let { b ->
             b.yesterdayBestLinearlayout.visibility = if (isEmpty) View.GONE else View.VISIBLE
             b.yesterdayBestEmptyTv.visibility = if (isEmpty) View.VISIBLE else View.GONE
-            if (!isEmpty) {
-                b.yesterdayBest1NameTv.text = ""
-                b.yesterdayBest2NameTv.text = ""
-                b.yesterdayBest3NameTv.text = ""
-            }
         }
     }
+
 
     private fun checkTodayCanShare(onChecked: ((canShare: Boolean, reason: String?) -> Unit)? = null) {
         val token = TokenProvider.getToken(requireContext())
