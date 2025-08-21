@@ -256,17 +256,17 @@ class ClothesDetailFragment : Fragment() {
             6 to 1,
             7 to 1,
             8 to 2,
-            9 to 6,  // shirts1 - color = 2 (화이트)
-            10 to 6,  // pants1 - color = 6 (베이지)
+            9 to 5,  // shirts1 - color = 2 (화이트)
+            10 to 5,  // pants1 - color = 6 (베이지)
             11 to 1,  // shoes1 - color = 6 (베이지)
-            12 to 6,  // shirts2 - color = 1 (블랙)
+            12 to 5,  // shirts2 - color = 1 (블랙)
             13 to 1,  // pants2 - color = 6 (베이지)
             14 to 1,  // shoes2 - color = 1 (블랙)
             15 to 2,  // shirts3 - color = 1 (블랙)
             16 to 1,  // shoes3 - color = 2 (화이트)
             17 to 1,  // pants3 - color = 1 (블랙)
-            18 to 1,  // acc3 - color = 1 (블랙)
-            19 to 3, // shirts4 - color = 3 (그레이) ← 수정
+            18 to 3,  // acc3 - color = 1 (블랙)
+            19 to 1, // shirts4 - color = 3 (그레이) ← 수정
             20 to 1, // pants4 - color = 1 (블랙) ← 수정
             21 to 1, // bag4 - color = 1 (블랙)
             22 to 1
@@ -691,8 +691,8 @@ class ClothesDetailFragment : Fragment() {
             listOf("white", "화이트", "흰색", "하얀", "흰") to 2, // 화이트
             listOf("gray", "grey", "그레이", "회색") to 3, // 그레이
             listOf("navy", "네이비", "남색") to 4, // 네이비
-            listOf("beige", "베이지", "베이지색") to 6, // 베이지
-            listOf("brown", "브라운", "갈색", "브라운색") to 5, // 브라운
+            listOf("beige", "베이지", "베이지색") to 5, // 베이지
+            listOf("brown", "브라운", "갈색", "브라운색") to 6, // 브라운
             listOf("red", "빨강", "레드", "빨간") to 7, // 레드
             listOf("pink", "핑크", "분홍") to 8, // 핑크
             listOf("yellow", "노랑", "옐로우", "노란") to 10, // 옐로우

@@ -1766,7 +1766,7 @@ open class WardrobeFragment : Fragment() {
                 ),
                 HardcodedWardrobeItem(
                     imageName = "pants5",
-                    category = 2, subcategory = 12,
+                    category = 2, subcategory = 11,
                     brand = "무신사", season = 2, color = 1,
                     tag1 = 2, tag2 = 8, tag3 = null,
                     purchasePlace = "무신사 온라인",
@@ -1841,7 +1841,7 @@ open class WardrobeFragment : Fragment() {
                 HardcodedWardrobeItem(
                     imageName = "pants1",
                     category = 2, subcategory = 10,
-                    brand = "유니클로", season = 1, color = 6,
+                    brand = "유니클로", season = 1, color = 5,
                     tag1 = 1, tag2 = 4, tag3 = null, // 예: 미니멀, 데일리 (2개만)
                     purchasePlace = "유니클로 온라인",
                     purchasePrice = "29,900원",
@@ -1850,7 +1850,7 @@ open class WardrobeFragment : Fragment() {
                 HardcodedWardrobeItem(
                     imageName = "shoes1",
                     category = 5, subcategory = 29,
-                    brand = "나이키", season = 2, color = 6,
+                    brand = "나이키", season = 2, color = 5,
                     tag1 = 2, tag2 = 4, tag3 = null, // 예: 스포티, 액티브, 편안함
                     purchasePlace = "나이키 공식몰",
                     purchasePrice = "139,000원",
@@ -1859,7 +1859,7 @@ open class WardrobeFragment : Fragment() {
                 HardcodedWardrobeItem(
                     imageName = "shirts2",
                     category = 1, subcategory = 1,
-                    brand = "자라", season = 2, color = 2,
+                    brand = "자라", season = 2, color = 1,
                     tag1 = 10, tag2 = null, tag3 = null, // 예: 미니멀, 심플
                     purchasePlace = "자라 홍대점",
                     purchasePrice = "19,900원",
@@ -1868,7 +1868,7 @@ open class WardrobeFragment : Fragment() {
                 HardcodedWardrobeItem(
                     imageName = "pants2",
                     category = 2, subcategory = 9,
-                    brand = "리바이스", season = 2, color = 6,
+                    brand = "리바이스", season = 2, color =5,
                     tag1 = null, tag2 = null, tag3 = null, // 예: 빈티지, 캐주얼, 데님
                     purchasePlace = "리바이스 매장",
                     purchasePrice = "89,000원",
@@ -1876,7 +1876,7 @@ open class WardrobeFragment : Fragment() {
                 ),
                 HardcodedWardrobeItem(
                     imageName = "shoes2",
-                    category = 4, subcategory = 29,
+                    category = 5, subcategory = 29,
                     brand = "아디다스", season = 1, color = 1,
                     tag1 = 2, tag2 = 13, tag3 = null, // 예: 스포티, 스트릿
                     purchasePlace = "아디다스 온라인",
