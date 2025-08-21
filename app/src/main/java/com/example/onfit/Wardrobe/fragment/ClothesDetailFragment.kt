@@ -1639,12 +1639,16 @@ class ClothesDetailFragment : Fragment() {
         if (isDummyItemId(imageResId)) {
             Log.d("ClothesDetailFragment", "더미 아이템임 - 코디 기록 표시")
             displayHardcodedOutfitRecords()
+        } else if (isApiItemId(imageResId)) {
+            Log.d("ClothesDetailFragment", "API 아이템임 - 코디 기록 표시") // 🔥 수정된 로그
+            // 🔥 MODIFIED: API 아이템도 코디 기록 표시
+            displayHardcodedOutfitRecords()
         } else {
-            Log.d("ClothesDetailFragment", "API 아이템임 - 코디 기록 없음")
+            Log.d("ClothesDetailFragment", "기타 아이템 - 코디 기록 없음")
             displayNoOutfitRecordsWithStyle()
         }
 
-        // 🔥 NEW: 추천 아이템 섹션 추가
+        // 추천 아이템 섹션 추가
         setupRecommendationItems()
     }
 
@@ -1965,6 +1969,7 @@ class ClothesDetailFragment : Fragment() {
             "shirts4" -> R.drawable.shirts4
             "shirts5" -> R.drawable.shirts5
             "shirts6" -> R.drawable.shirts6
+            "shirts7" -> R.drawable.shirts7
             "pants1" -> R.drawable.pants1
             "pants2" -> R.drawable.pants2
             "pants3" -> R.drawable.pants3
@@ -2078,7 +2083,7 @@ class ClothesDetailFragment : Fragment() {
      * 🔥 RESTORED: 원래대로 - 해당 아이템의 코디 하나만 표시
      */
     private fun displayHardcodedOutfitRecords() {
-        Log.d("ClothesDetailFragment", "🎭 displayHardcodedOutfitRecords 시작")
+        Log.d("ClothesDetailFragment", "🎭 코디 기록 표시 시작")
 
         val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
 
@@ -2094,18 +2099,189 @@ class ClothesDetailFragment : Fragment() {
             setPadding(dpToPx(0), dpToPx(8), dpToPx(16), dpToPx(8))
         }
 
-        // 🔥 원래대로: 현재 아이템의 코디 그룹만 가져오기
-        val currentOutfitNumber = getCurrentItemOutfitGroup()
+        // 🔥 SIMPLE: 무조건 코디 7번만 표시
+        val outfitCard = createNaturalOutfitCard(7)
+        outfitContainer.addView(outfitCard)
 
-        if (currentOutfitNumber != null) {
-            val outfitCard = createHardcodedOutfitCard(currentOutfitNumber)
-            outfitContainer.addView(outfitCard)
+        view?.findViewById<TextView>(R.id.tv_no_outfit_history)?.visibility = View.GONE
 
-            view?.findViewById<TextView>(R.id.tv_no_outfit_history)?.visibility = View.GONE
+        Log.d("ClothesDetailFragment", "✅ 코디 7번만 표시 완료")
+    }
 
-            Log.d("ClothesDetailFragment", "✅ 코디 ${currentOutfitNumber}번 기록 표시 완료")
-        } else {
-            displayNoOutfitRecordsWithStyle()
+    // 🔥 NEW: API 아이템을 위한 코디 추천 함수
+    private fun getOutfitsForApiItem(): List<Int> {
+        Log.d("ClothesDetailFragment", "🎯 API 아이템 - 코디 7번만 표시")
+
+        // 🔥 코디 7번만 반환
+        return listOf(7) // 8월 16일 캐주얼 코디만
+    }
+
+    // 🔥 ALTERNATIVE: API 아이템의 실제 카테고리를 알고 있다면
+    private fun getOutfitsForApiItemWithCategory(apiCategory: Int): List<Int> {
+        return when (apiCategory) {
+            1 -> listOf(7, 1, 5) // 상의 -> 코디 7번 우선
+            2 -> listOf(7, 2, 3) // 하의 -> 코디 7번 우선
+            5 -> listOf(7, 1, 2) // 신발 -> 코디 7번 우선
+            6 -> listOf(7, 3, 5) // 액세서리 -> 코디 7번 우선
+            else -> listOf(7, 1, 2, 3) // 기본값 -> 코디 7번 포함
+        }
+    }
+
+    /**
+     * 🔥 NEW: 새로 등록된 아이템에 어울리는 코디들 (코디 7번 자연스럽게 포함)
+     */
+    private fun getSuggestedOutfitsForNewItem(registeredCategory: Int): List<Int> {
+        Log.d("ClothesDetailFragment", "🎯 새로운 ${getCategoryName(registeredCategory)} 등록 -> 코디 7번만 표시")
+
+        // 🔥 카테고리 상관없이 코디 7번만 반환
+        return listOf(7) // 8월 16일 캐주얼 코디만
+    }
+
+    /**
+     * 🔥 NEW: 자연스러운 코디 카드 생성 (특별한 표시 없이)
+     */
+    private fun createNaturalOutfitCard(outfitNumber: Int): View {
+        val context = requireContext()
+        val imageWidth = dpToPx(117)
+        val imageHeight = dpToPx(147)
+
+        val cardLayout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                rightMargin = dpToPx(12)
+            }
+            gravity = android.view.Gravity.START
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+
+        val imageView = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth,
+                imageHeight
+            ).apply {
+                gravity = android.view.Gravity.START
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = createRoundedDrawable(10f, android.graphics.Color.TRANSPARENT)
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, dpToPx(12).toFloat())
+                }
+            }
+
+            // 🔥 자연스럽게 이미지 설정 (코디 7번도 동일하게)
+            setImageResource(
+                when (outfitNumber) {
+                    7 -> R.drawable.cody7  // 🔥 코디 7번 (임시로 cody1 사용, 실제로는 새로운 캐주얼 코디 이미지)
+                    5 -> R.drawable.cody5
+                    6 -> R.drawable.cody6
+                    1 -> R.drawable.cody1
+                    2 -> R.drawable.cody2
+                    3 -> R.drawable.cody3
+                    4 -> R.drawable.cody4
+                    else -> R.drawable.cody1
+                }
+            )
+        }
+
+        // 🔥 자연스러운 날짜 텍스트 (특별한 표시 없이)
+        val dateMap = mapOf(
+            7 to "8월 16일",  // 🔥 그냥 날짜만 표시
+            5 to "8월 5일",
+            6 to "8월 14일",
+            1 to "8월 13일",
+            2 to "8월 12일",
+            3 to "8월 11일",
+            4 to "8월 10일"
+        )
+
+        val dateText = TextView(context).apply {
+            text = dateMap[outfitNumber] ?: "코디 $outfitNumber"
+            textSize = 13f
+            setTextColor(android.graphics.Color.parseColor("#333333")) // 🔥 모든 코디 동일한 색상
+            gravity = android.view.Gravity.CENTER
+            background = createRoundedDrawable(
+                radiusDp = 12f,
+                color = android.graphics.Color.parseColor("#F1F2F4") // 🔥 모든 코디 동일한 배경
+            )
+            setPadding(dpToPx(14), dpToPx(3), dpToPx(14), dpToPx(3))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = android.view.Gravity.START
+                topMargin = dpToPx(10)
+                bottomMargin = dpToPx(10)
+            }
+        }
+
+        cardLayout.addView(imageView)
+        cardLayout.addView(dateText)
+
+        cardLayout.setOnClickListener {
+            // 🔥 자연스럽게 캘린더로 이동 (특별한 메시지 없이)
+            navigateToCalendarWithOutfit(outfitNumber)
+        }
+
+        return cardLayout
+    }
+
+    /**
+     * 🔥 MODIFIED: 캘린더 이동 시 코디 7번도 자연스럽게 처리
+     */
+    private fun navigateToCalendarWithOutfit(outfitNumber: Int) {
+        try {
+            val calendar = JavaCalendar.getInstance()
+            val currentYear = calendar.get(JavaCalendar.YEAR)
+            val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+
+            val outfitDateMap = mapOf(
+                7 to "$currentYear-${String.format("%02d", currentMonth)}-16", // 🔥 8월 16일
+                5 to "$currentYear-${String.format("%02d", currentMonth)}-05",
+                6 to "$currentYear-${String.format("%02d", currentMonth)}-14",
+                1 to "$currentYear-${String.format("%02d", currentMonth)}-13",
+                2 to "$currentYear-${String.format("%02d", currentMonth)}-12",
+                3 to "$currentYear-${String.format("%02d", currentMonth)}-11",
+                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"
+            )
+
+            val targetDate = outfitDateMap[outfitNumber]
+
+            if (targetDate != null) {
+                Log.d("ClothesDetailFragment", "🗓️ 코디 ${outfitNumber}번 클릭 -> ${targetDate}")
+
+                val bundle = Bundle().apply {
+                    putString("selected_date", targetDate)
+                    putInt("outfit_number", outfitNumber)
+                    putBoolean("from_outfit_record", true)
+
+                    // 🔥 코디 7번의 경우 캐주얼 스타일 정보 포함 (자연스럽게)
+                    if (outfitNumber == 7) {
+                        putString("outfit_style", "캐주얼")
+                        putString("outfit_description", "체크 셔츠 + 청바지 + 컨버스")
+                        putBoolean("is_suggested_outfit", true) // 🔥 제안된 코디임을 표시 (내부 처리용)
+                    }
+                }
+
+                try {
+                    findNavController().navigate(R.id.calendarSaveFragment, bundle)
+                } catch (e: Exception) {
+                    // 🔥 자연스러운 토스트 메시지
+                    val dateStr = when (outfitNumber) {
+                        7 -> "8월 16일 캐주얼 코디"
+                        else -> "${targetDate} 코디"
+                    }
+                    Toast.makeText(context, dateStr, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("ClothesDetailFragment", "💥 캘린더 이동 실패", e)
+            Toast.makeText(context, "코디 기록을 확인할 수 없습니다", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -2160,7 +2336,12 @@ class ClothesDetailFragment : Fragment() {
     }
 
     /**
-     * 🔥 FIXED: 561234 순서에 맞춘 코디 카드 생성
+     * 🔥 코디 카드 생성
+     */
+    // 🔥 ClothesDetailFragment에 추가할 새로운 코디 7번 (8월 16일)
+
+    /**
+     * 🔥 MODIFIED: 새로운 코디 7번 추가된 코디 카드 생성
      */
     private fun createHardcodedOutfitCard(outfitNumber: Int): View {
         val context = requireContext()
@@ -2194,28 +2375,30 @@ class ClothesDetailFragment : Fragment() {
                 }
             }
 
-            // 🔥 FIXED: 561234 순서에 맞춘 이미지 매핑
+            // 🔥 NEW: 코디 7번 추가된 이미지 매핑
             setImageResource(
                 when (outfitNumber) {
-                    5 -> R.drawable.cody5  // 🔥 첫 번째: cody5
-                    6 -> R.drawable.cody6  // 🔥 두 번째: cody6 (14일)
-                    1 -> R.drawable.cody1  // 🔥 세 번째: cody1 (13일)
-                    2 -> R.drawable.cody2  // 🔥 네 번째: cody2 (12일)
-                    3 -> R.drawable.cody3  // 🔥 다섯 번째: cody3 (11일)
-                    4 -> R.drawable.cody4  // 🔥 여섯 번째: cody4 (10일)
+                    7 -> R.drawable.cody7  // 🔥 NEW: 8월 16일 캐주얼 코디
+                    5 -> R.drawable.cody5  // 8월 5일
+                    6 -> R.drawable.cody6  // 8월 14일
+                    1 -> R.drawable.cody1  // 8월 13일
+                    2 -> R.drawable.cody2  // 8월 12일
+                    3 -> R.drawable.cody3  // 8월 11일
+                    4 -> R.drawable.cody4  // 8월 10일
                     else -> R.drawable.cody1
                 }
             )
         }
 
-        // 🔥 FIXED: 561234 순서에 맞춘 날짜 매핑
+        // 🔥 NEW: 코디 7번 추가된 날짜 매핑
         val dateMap = mapOf(
-            5 to "8월 5일",   // 🔥 첫 번째: cody5 (5시리즈 위치)
-            6 to "8월 14일",  // 🔥 두 번째: cody6 -> 14일
-            1 to "8월 13일",  // 🔥 세 번째: cody1 -> 13일
-            2 to "8월 12일",  // 🔥 네 번째: cody2 -> 12일
-            3 to "8월 11일",  // 🔥 다섯 번째: cody3 -> 11일
-            4 to "8월 10일"   // 🔥 여섯 번째: cody4 -> 10일
+            7 to "8월 16일",  // 🔥 NEW: 새로운 캐주얼 코디
+            5 to "8월 5일",
+            6 to "8월 14일",
+            1 to "8월 13일",
+            2 to "8월 12일",
+            3 to "8월 11일",
+            4 to "8월 10일"
         )
 
         val dateText = TextView(context).apply {
@@ -2246,6 +2429,7 @@ class ClothesDetailFragment : Fragment() {
         }
         return cardLayout
     }
+
 
     /**
      * 🔥 스타일이 개선된 "코디 기록 없음" 표시
@@ -2311,46 +2495,75 @@ class ClothesDetailFragment : Fragment() {
             .start()
     }
 
-    private fun navigateToCalendarWithOutfit(outfitNumber: Int) {
-        try {
-            val calendar = JavaCalendar.getInstance()
-            val currentYear = calendar.get(JavaCalendar.YEAR)
-            val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+    private fun getOutfitNumbersByCategory(): List<Int> {
+        val currentCategory = getCurrentItemCategory()
 
-            // 🔥 FIXED: 정확한 날짜 매핑
-            val outfitDateMap = mapOf(
-                5 to "$currentYear-${String.format("%02d", currentMonth)}-05", // cody5 -> 8월 5일
-                6 to "$currentYear-${String.format("%02d", currentMonth)}-14", // cody6 -> 8월 14일
-                1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // cody1 -> 8월 13일
-                2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // cody2 -> 8월 12일
-                3 to "$currentYear-${String.format("%02d", currentMonth)}-11", // cody3 -> 8월 11일
-                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"  // cody4 -> 8월 10일
-            )
-
-            val targetDate = outfitDateMap[outfitNumber]
-
-            if (targetDate != null) {
-                Log.d("ClothesDetailFragment", "🗓️ 코디 ${outfitNumber}번 클릭 -> ${targetDate}")
-
-                val bundle = Bundle().apply {
-                    putString("selected_date", targetDate)
-                    putInt("outfit_number", outfitNumber)
-                    putBoolean("from_outfit_record", true)
-                }
-
-                try {
-                    findNavController().navigate(R.id.calendarSaveFragment, bundle)
-                } catch (e: Exception) {
-                    Toast.makeText(context, "코디 ${outfitNumber}번 (${targetDate})", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                Log.e("ClothesDetailFragment", "❌ 코디 ${outfitNumber}번의 날짜 매핑을 찾을 수 없음")
-                Toast.makeText(context, "해당 코디의 날짜 정보를 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
+        return when (currentCategory) {
+            1 -> { // 상의 등록 시 -> 캐주얼 코디 7번을 우선 표시
+                Log.d("ClothesDetailFragment", "🎯 상의 아이템 -> 캐주얼 코디 우선 표시")
+                listOf(7, 5, 6, 1) // 🔥 NEW: 코디 7번을 첫 번째로 표시
             }
-
-        } catch (e: Exception) {
-            Log.e("ClothesDetailFragment", "💥 캘린더 이동 실패", e)
-            Toast.makeText(context, "오류: ${e.message}", Toast.LENGTH_SHORT).show()
+            2 -> { // 하의 등록 시 -> 청바지 코디인 7번 우선 표시
+                Log.d("ClothesDetailFragment", "🎯 하의 아이템 -> 청바지 코디 우선 표시")
+                listOf(7, 2, 5, 3) // 🔥 NEW: 청바지 코디 7번 우선
+            }
+            5 -> { // 신발 등록 시 -> 컨버스 코디인 7번 포함
+                Log.d("ClothesDetailFragment", "🎯 신발 아이템 -> 컨버스 포함 코디 표시")
+                listOf(7, 1, 2, 3) // 🔥 NEW: 컨버스 코디 7번 포함
+            }
+            6 -> { // 액세서리 등록 시 -> 백팩 코디인 7번 포함
+                Log.d("ClothesDetailFragment", "🎯 액세서리 아이템 -> 백팩 포함 코디 표시")
+                listOf(7, 3, 5, 6) // 🔥 NEW: 백팩 코디 7번 포함
+            }
+            3 -> { // 원피스 등록 시
+                Log.d("ClothesDetailFragment", "🎯 원피스 아이템 -> 원피스 코디 표시")
+                listOf(6, 4) // 원피스 전용
+            }
+            4 -> { // 아우터 등록 시 -> 체크 셔츠(가벼운 아우터)로 7번 포함
+                Log.d("ClothesDetailFragment", "🎯 아우터 아이템 -> 레이어링 코디 표시")
+                listOf(7, 1, 4, 3) // 🔥 NEW: 체크 셔츠 레이어링 7번 포함
+            }
+            else -> {
+                Log.d("ClothesDetailFragment", "🎯 기본 카테고리 -> 최신 코디 우선 표시")
+                listOf(7, 6, 5) // 🔥 NEW: 최신 코디 7번을 첫 번째로
+            }
         }
+    }
+
+    /**
+     * 🔥 NEW: 코디 7번 구성 아이템 정보 (참고용)
+     *
+     * 코디 7번 (8월 16일 - 캐주얼):
+     * - 상의: 체크 셔츠 (그레이/브라운 체크 패턴)
+     * - 이너: 화이트 기본 티셔츠
+     * - 하의: 네이비 청바지 (와이드 핏)
+     * - 신발: 블랙 컨버스 올스타 (클래식)
+     * - 액세서리: 블랙 백팩
+     * - 스타일: 캐주얼, 데일리
+     * - 계절: 봄ㆍ가을
+     * - 분위기: 편안하고 자연스러운 일상룩
+     *
+     * 매칭 가능한 등록 아이템:
+     * - 체크 셔츠 등록 → 코디 7번 우선 표시
+     * - 청바지 등록 → 코디 7번 우선 표시
+     * - 컨버스/운동화 등록 → 코디 7번 포함
+     * - 백팩 등록 → 코디 7번 포함
+     */
+
+    private fun forceShowCody7() {
+        val outfitContainer = view?.findViewById<LinearLayout>(R.id.rv_outfit_history)
+        outfitContainer?.apply {
+            visibility = View.VISIBLE
+            removeAllViews()
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dpToPx(0), dpToPx(8), dpToPx(16), dpToPx(8))
+
+            val outfitCard = createNaturalOutfitCard(7)
+            addView(outfitCard)
+
+            Log.d("ClothesDetailFragment", "🔥 강제: 코디 7번만 표시")
+        }
+
+        view?.findViewById<TextView>(R.id.tv_no_outfit_history)?.visibility = View.GONE
     }
 }
