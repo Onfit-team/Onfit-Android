@@ -47,6 +47,8 @@ class CalendarSaveFragment : Fragment() {
 
     // CalendarSaveFragment.kt - onViewCreated 함수 전체 코드
 
+    // 🔥 CalendarSaveFragment의 onViewCreated 수정 - 실제 이미지 URL 우선 처리
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -74,59 +76,70 @@ class CalendarSaveFragment : Fragment() {
         // ⭐ 날짜 표시
         binding.calendarSaveDateTv.text = selectedDate ?: "날짜 없음"
 
-        // 🔥 더미 코디 판별 (코디 7번 추가)
-        val isStyleOutfitsDummy = outfitId in 1101..1106  // 🔥 수정: 1105 -> 1106 (코디 6번까지)
+        // 🔥 더미 코디 판별
+        val isStyleOutfitsDummy = outfitId in 1101..1107  // StyleOutfits + cody7
         val isCalendarDummy = outfitId in 1001..1004
-        val isCody7Dummy = outfitId == 1107 || outfitNumber == 7  // 🔥 NEW: 코디 7번 판별
+        val isCody7Dummy = outfitId == 1107 || outfitNumber == 7
 
         when {
-            // 🔥 NEW: 코디 7번 처리 (최우선)
+            // 🔥 NEW: 실제 이미지 URL이 있으면 최우선 처리 ✅
+            !mainImageUrl.isNullOrBlank() && mainImageUrl.startsWith("http") -> {
+                Log.d("CalendarSaveFragment", "🌟 실제 업로드 이미지 처리: $mainImageUrl")
+                setupRealUploadedImage(mainImageUrl, memo)
+            }
+
+            // 코디 7번 처리
             isCody7Dummy -> {
                 Log.d("CalendarSaveFragment", "🎯 코디 7번 처리: ID=$outfitId, Number=$outfitNumber")
-                setupDummyOutfitData(7)  // 코디 7번으로 설정
+                setupDummyOutfitData(7)
             }
 
-            // 1. StyleOutfits 더미 코디 (1101~1106)
+            // StyleOutfits 더미 코디 (1101~1107)
             isStyleOutfitsDummy -> {
                 Log.d("CalendarSaveFragment", "🎨 StyleOutfits 더미 코디 처리: ID=$outfitId")
-                val actualOutfitNumber = outfitId - 1100  // 1101->1, 1102->2, ..., 1106->6
+                val actualOutfitNumber = outfitId - 1100
                 setupDummyOutfitData(actualOutfitNumber)
             }
 
-            // 2. Calendar 더미 코디 (1001~1004)
+            // Calendar 더미 코디 (1001~1004)
             isCalendarDummy -> {
                 Log.d("CalendarSaveFragment", "📅 Calendar 더미 코디 처리: ID=$outfitId")
-                val actualOutfitNumber = outfitId - 1000  // 1001->1, 1002->2, 1003->3, 1004->4
+                val actualOutfitNumber = outfitId - 1000
                 setupDummyOutfitData(actualOutfitNumber)
             }
 
-            // 3. 🔥 수정: 코디 기록에서 온 더미 처리 (outfitNumber 5, 6, 7번)
+            // 코디 기록에서 온 더미 처리 (outfitNumber 5, 6, 7번)
             (fromOutfitRecord && outfitNumber in 5..7) -> {
                 Log.d("CalendarSaveFragment", "🎯 코디 기록 더미 처리: outfitNumber=$outfitNumber")
                 setupDummyOutfitData(outfitNumber)
             }
 
-            // 4. 기존 더미 처리 방식 (from_outfit_record)
+            // 기존 더미 처리 방식
             isDummyOutfit || (fromOutfitRecord && outfitNumber != -1) -> {
                 Log.d("CalendarSaveFragment", "🎭 기존 더미 코디 처리: outfitNumber=$outfitNumber")
                 setupDummyOutfitData(outfitNumber)
             }
 
-            // 5. 실제 API 코디
+            // isRealOutfit 플래그가 true인 경우
             isRealOutfit && !mainImageUrl.isNullOrBlank() -> {
                 Log.d("CalendarSaveFragment", "🌐 실제 API 코디 처리")
                 setupRealApiOutfitData(normalizeServerUrl(mainImageUrl), memo)
             }
 
-            // 나머지는 기존과 동일...
+            // 🔥 fallback을 더미가 아닌 기본 처리로 변경
             else -> {
-                Log.d("CalendarSaveFragment", "🔄 폴백: 더미 데이터 사용")
-                setupDummyRecyclerView()
+                Log.d("CalendarSaveFragment", "⚠️ 조건 미일치 - 기본 이미지 처리 시도")
+                if (!mainImageUrl.isNullOrBlank()) {
+                    setupRealUploadedImage(mainImageUrl, memo)
+                } else {
+                    Log.d("CalendarSaveFragment", "🔄 최후 폴백: 더미 데이터 사용")
+                    setupDummyRecyclerView()
+                }
             }
         }
 
-        // ✅ 🔥 더미 코디는 서버 API 호출하지 않도록 수정 (코디 7번 포함)
-        if (outfitId > 0 && !isStyleOutfitsDummy && !isCalendarDummy && !isDummyOutfit && !isCody7Dummy) {
+        // 🔥 실제 업로드는 서버 API 호출하지 않음
+        if (outfitId > 0 && !isStyleOutfitsDummy && !isCalendarDummy && !isDummyOutfit && !isCody7Dummy && mainImageUrl.isNullOrBlank()) {
             val token = TokenProvider.getToken(requireContext())
             if (token.isNotBlank()) {
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -135,13 +148,11 @@ class CalendarSaveFragment : Fragment() {
                         if (!res.isSuccessful) return@runCatching
                         val d = res.body()?.result ?: return@runCatching
 
-                        // 메인 이미지 보정 및 덮어쓰기
                         val serverMain = d.mainImage?.trim()
                         if (!serverMain.isNullOrBlank()) {
                             setupMainImage(normalizeServerUrl(serverMain))
                         }
 
-                        // 아이템 이미지 목록 보정 및 덮어쓰기
                         val urls = d.items
                             .mapNotNull { it.image }
                             .filter { it.isNotBlank() }
@@ -154,14 +165,12 @@ class CalendarSaveFragment : Fragment() {
                         Log.d("CalendarSaveFragment", "상세 재조회 실패: ${it.message}")
                     }
                 }
-            } else {
-                Log.d("CalendarSaveFragment", "토큰 없음: 상세 재조회 생략")
             }
         } else {
-            Log.d("CalendarSaveFragment", "더미 코디이므로 서버 API 호출 생략")
+            Log.d("CalendarSaveFragment", "실제 이미지 URL 있음 - 서버 API 호출 생략")
         }
 
-        // 🔥 버튼 리스너들 (코디 7번 포함)
+        // 버튼 리스너들
         binding.calendarSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
@@ -182,6 +191,26 @@ class CalendarSaveFragment : Fragment() {
             }
         }
     }
+
+    // 🔥 NEW: 실제 업로드된 이미지 처리 함수
+    private fun setupRealUploadedImage(imageUrl: String, memo: String?) {
+        Log.d("CalendarSaveFragment", "🌟 실제 업로드 이미지 설정: $imageUrl")
+
+        // 메인 이미지 표시
+        setupMainImage(imageUrl)
+
+        // RecyclerView는 숨김 (개별 아이템 없음)
+        binding.calendarSaveRv.visibility = View.GONE
+
+        // 메모가 있다면 표시 (선택사항)
+        if (!memo.isNullOrBlank()) {
+            Log.d("CalendarSaveFragment", "업로드 메모: $memo")
+            // 필요시 메모 표시 로직 추가
+        }
+
+        Log.d("CalendarSaveFragment", "✅ 실제 업로드 이미지 설정 완료")
+    }
+
 
     /**
      * ⭐ 서버 경로 보정:
