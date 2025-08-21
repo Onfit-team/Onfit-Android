@@ -230,7 +230,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         if (all.isEmpty()) { setRandomImages(); return }
 
         // Similar에서 쓰는 5개 제외
-        val excludePrefixes = listOf("1번8.13(", "2번.8.12(", "3번8.11(", "4번8.10(", "5번.8.9(")
+        val excludePrefixes = listOf("1번8.13(", "2번.8.12(", "3번8.11(", "4번8.10(", "5번.8.9(", "6번8.14(")
         val filtered = all.filter { raw -> excludePrefixes.none { raw.replace(" ", "").startsWith(it) } }
         if (filtered.isEmpty()) { setRandomImages(); return }
 
@@ -702,6 +702,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             "Sun" -> { binding.sunIv.setImageResource(R.drawable.weather_sun); binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg) }
             else -> { binding.sunIv.setImageResource(R.drawable.weather_sun); binding.sunnyIv.setImageResource(R.drawable.weather_sun_bg) }
         }
+        binding.sunIv.alpha = 0.5f
     }
 
     private fun updateDailyRangeMessage(maxTemp: Number?, minTemp: Number?) {
