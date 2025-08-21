@@ -211,7 +211,7 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시
+     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시 (더미 데이터도 처리)
      */
     private fun showOutfitWithImageUrl(dateString: String) {
         Log.d("OutfitDebug", "=== 코디 상세 찾기 ===")
@@ -234,7 +234,15 @@ class CalendarFragment : Fragment() {
             navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
         } else {
             Log.d("OutfitDebug", "❌ 매칭 실패: $dateString")
-            Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+
+            // 🔥 HomeViewModel에서 찾지 못했을 때 더미 데이터 확인
+            val storedOutfitId = dateToOutfitIdMap[dateString]
+            if (storedOutfitId != null && isDummyOutfitId(storedOutfitId)) {
+                Log.d("OutfitDebug", "🎭 더미 데이터로 fallback: ID=$storedOutfitId")
+                navigateToDummyOutfitDetail(dateString, storedOutfitId)
+            } else {
+                Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -441,11 +449,33 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ 이미지 URL 기반으로 코디 상세 표시 (API 호출 없음)
-     */
+    * ⭐ 날짜 클릭 이벤트 처리 - 더미 우선, 실제 데이터 fallback
+    */
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
         if (hasOutfit) {
-            showOutfitWithImageUrl(dateString)
+            val storedOutfitId = dateToOutfitIdMap[dateString]
+            Log.d("CalendarFragment", "날짜 클릭: $dateString, 저장된 ID: $storedOutfitId")
+
+            // 🔥 1순위: 더미 데이터 확인
+            if (storedOutfitId != null && isDummyOutfitId(storedOutfitId)) {
+                Log.d("CalendarFragment", "🎭 더미 코디로 이동")
+                navigateToDummyOutfitDetail(dateString, storedOutfitId)
+                return
+            }
+
+            // 🔥 2순위: HomeViewModel에서 실제 데이터 찾기
+            val allOutfits = homeViewModel.recentOutfits.value
+            val matchingOutfit = allOutfits?.find {
+                it.date.substring(0, 10) == dateString
+            }
+
+            if (matchingOutfit != null) {
+                Log.d("CalendarFragment", "📱 실제 코디로 이동: ${matchingOutfit.image}")
+                navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+            } else {
+                Log.d("CalendarFragment", "❌ 해당 날짜의 코디를 찾을 수 없음")
+                Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
         } else {
             Log.d("CalendarFragment", "등록되지 않은 날짜 클릭: $dateString")
             showBottomSheet()
