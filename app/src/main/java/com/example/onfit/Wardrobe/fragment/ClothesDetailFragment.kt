@@ -140,10 +140,10 @@ class ClothesDetailFragment : Fragment() {
 
         // 🔥 WardrobeFragment와 완전히 동일한 하드코딩된 더미 아이템 리스트
         val hardcodedItems = listOf(
-            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 1),
+            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 2),
             HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2),
             HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1),
-            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 1),
+            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 2),
 
 
                     // 코디 1 관련 아이템들
@@ -233,20 +233,24 @@ class ClothesDetailFragment : Fragment() {
     private fun generateHardcodedColor(index: Int): Int {
         // WardrobeFragment의 하드코딩된 아이템별 컬러 매핑
         val colorMapping = mapOf(
-            0 to 2,  // shirts1 - color = 2 (화이트)
-            1 to 6,  // pants1 - color = 6 (베이지)
-            2 to 6,  // shoes1 - color = 6 (베이지)
-            3 to 1,  // shirts2 - color = 1 (블랙)
-            4 to 6,  // pants2 - color = 6 (베이지)
-            5 to 1,  // shoes2 - color = 1 (블랙)
-            6 to 1,  // shirts3 - color = 1 (블랙)
-            7 to 2,  // shoes3 - color = 2 (화이트)
-            8 to 1,  // pants3 - color = 1 (블랙)
-            9 to 1,  // acc3 - color = 1 (블랙)
-            10 to 3, // shirts4 - color = 3 (그레이) ← 수정
-            11 to 1, // pants4 - color = 1 (블랙) ← 수정
-            12 to 1, // bag4 - color = 1 (블랙)
-            13 to 1  // shoes4 - color = 1 (블랙)
+            0 to 1,
+            1 to 2,
+            3 to 1,
+            4 to 1,
+            5 to 2,  // shirts1 - color = 2 (화이트)
+            6 to 6,  // pants1 - color = 6 (베이지)
+            7 to 6,  // shoes1 - color = 6 (베이지)
+            8 to 1,  // shirts2 - color = 1 (블랙)
+            9 to 6,  // pants2 - color = 6 (베이지)
+            10 to 1,  // shoes2 - color = 1 (블랙)
+            11 to 1,  // shirts3 - color = 1 (블랙)
+            12 to 2,  // shoes3 - color = 2 (화이트)
+            13 to 1,  // pants3 - color = 1 (블랙)
+            14 to 1,  // acc3 - color = 1 (블랙)
+            15 to 3, // shirts4 - color = 3 (그레이) ← 수정
+            16 to 1, // pants4 - color = 1 (블랙) ← 수정
+            17 to 1, // bag4 - color = 1 (블랙)
+            18 to 1  // shoes4 - color = 1 (블랙)
         )
 
         return colorMapping[index % colorMapping.size] ?: 1 // 기본값: 블랙
@@ -259,20 +263,24 @@ class ClothesDetailFragment : Fragment() {
     private fun generateHardcodedTags(category: Int, index: Int): List<String> {
         // WardrobeFragment와 동일한 태그 ID 매핑 사용
         val tagMapping = mapOf(
-            0 to listOf(1, 10), // 캐주얼, 데일리
-            1 to listOf(1, 4),  // 캐주얼, 클래식
-            2 to listOf(2, 13), // 스트릿, 나들이룩
-            3 to listOf(3, 11), // 미니멀, 출근룩
-            4 to listOf(3, 17), // 미니멀, 여행룩
-            5 to listOf(2, 13), // 스트릿, 나들이룩
-            6 to listOf(3, 11), // 미니멀, 출근룩
-            7 to listOf(3, 17), // 미니멀, 여행룩
-            8 to listOf(9, 11), // 모던, 출근룩
-            9 to listOf(9, 10), // 모던, 데일리
-            10 to listOf(4, 11), // 클래식, 출근룩
-            11 to listOf(4, 15), // 클래식, 하객룩
-            12 to listOf(4, 10), // 클래식, 데일리
-            13 to listOf(13, 10) // 나들이룩, 데일리
+            0 to listOf(1, 10),
+            1 to listOf(3, 11),
+            2 to listOf(4, 11),
+            3 to listOf(4),
+            4 to listOf(1, 10), // 캐주얼, 데일리
+            5 to listOf(1, 4),  // 캐주얼, 클래식
+            6 to listOf(2, 13), // 스트릿, 나들이룩
+            7 to listOf(3, 11), // 미니멀, 출근룩
+            8 to listOf(3, 17), // 미니멀, 여행룩
+            9 to listOf(2, 13), // 스트릿, 나들이룩
+            10 to listOf(3, 11), // 미니멀, 출근룩
+            11 to listOf(3, 17), // 미니멀, 여행룩
+            12 to listOf(9, 11), // 모던, 출근룩
+            13 to listOf(9, 10), // 모던, 데일리
+            14 to listOf(4, 11), // 클래식, 출근룩
+            15 to listOf(4, 15), // 클래식, 하객룩
+            16 to listOf(4, 10), // 클래식, 데일리
+            17 to listOf(13, 10) // 나들이룩, 데일리
         )
 
         val tagIds = tagMapping[index % tagMapping.size] ?: listOf(1, 10)
