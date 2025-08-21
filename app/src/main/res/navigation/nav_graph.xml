@@ -305,7 +305,7 @@
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
-        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:name="com.example.onfit.calendar.fragment.StyleOutfitsFragment"
         android:label="스타일별 Outfit"
         tools:layout="@layout/fragment_style_outfits" />
 
