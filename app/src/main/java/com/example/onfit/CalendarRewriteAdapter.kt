@@ -24,7 +24,7 @@ class CalendarRewriteAdapter(private val items: MutableList<CalendarRewriteItem>
 
     override fun onBindViewHolder(holder: CalendarRewriteViewHolder, position: Int) {
         val item = items[position]
-        holder.outfitImage.setImageResource(item.imageResId)
+        holder.outfitImage.setImageResource(item.imageResId ?: R.drawable.outfit_image1)
 
         // 삭제 버튼 클릭 시 아이템 제거
         holder.removeButton.setOnClickListener {
