@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- 전체 내용을 스크롤 가능하게 만들기 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 뒤로가기 + 삭제 + 수정하기 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="33dp"
+                android:gravity="center_vertical">
+
+                <!-- 뒤로가기 (왼쪽) -->
+                <ImageButton
+                    android:id="@+id/ic_back"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="뒤로가기"
+                    android:src="@drawable/leftarrow" />
+
+                <!-- 중간 공간 -->
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <!-- 삭제 버튼 (오른쪽) -->
+                <ImageButton
+                    android:id="@+id/ic_delete"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="삭제하기"
+                    android:src="@drawable/delete" />
+
+                <!-- 수정 버튼 (오른쪽) -->
+                <ImageButton
+                    android:id="@+id/edit_black"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="@android:color/transparent"
+                    android:contentDescription="수정하기"
+                    android:src="@drawable/edit_gray" />
+            </LinearLayout>
+
+            <!-- 옷 이미지 + 정보 -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="top">
+
+                <!-- 옷 이미지 -->
+                <ImageView
+                    android:id="@+id/clothes_image"
+                    android:layout_width="238dp"
+                    android:layout_height="238dp"
+                    android:layout_marginEnd="16dp"
+                    android:src="@drawable/clothes8"
+                    android:scaleType="centerCrop" />
+
+                <!-- 정보 영역 -->
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:fontFamily="@font/pretendardsemibold">
+
+                    <!-- 카테고리 정보에 ID 추가 -->
+                    <TextView
+                        android:id="@+id/tv_category"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="상의"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp" />
+
+                    <TextView
+                        android:id="@+id/tv_subcategory"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="맨투맨"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="20dp" />
+
+                    <TextView
+                        android:id="@+id/tv_season"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="봄"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="20dp" />
+
+                    <TextView
+                        android:id="@+id/tv_color"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="검은색"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- 동적 태그 컨테이너 -->
+                    <LinearLayout
+                        android:id="@+id/tags_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <View
+                android:id="@+id/grayLine"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="20dp"/>
+
+            <!-- 구매 정보 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="구매 정보"
+                android:fontFamily="@font/pretendardsemibold"
+                android:textSize="17sp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:weightSum="2"
+                android:layout_marginBottom="8dp">
+
+                <EditText
+                    android:id="@+id/et_brand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:hint="브랜드"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="12dp" />
+
+                <EditText
+                    android:id="@+id/et_price"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:hint="가격"
+                    android:background="@drawable/edittext_bg"
+                    android:padding="12dp"
+                    android:inputType="number" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/et_size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="사이즈"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_site"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="구매사이트"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- 코디 기록 섹션 -->
+            <LinearLayout
+                android:id="@+id/outfit_history_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이 아이템이 포함된 코디 기록"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/pretendardsemibold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 코디 기록이 없을 때 표시할 텍스트 -->
+                <TextView
+                    android:id="@+id/tv_no_outfit_history"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="이 아이템이 포함된 코디가 없습니다"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- 코디 기록 리사이클러뷰 -->
+                <LinearLayout
+                    android:id="@+id/rv_outfit_history"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- 함께 코디하면 좋을 아이템 섹션 -->
+
+            <LinearLayout
+                android:id="@+id/recommended_items_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="함께 코디하면 좋을 옷장 아이템"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/pretendardsemibold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 추천 아이템이 없을 때 표시할 텍스트 -->
+                <TextView
+                    android:id="@+id/tv_no_recommendations"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="추천할 수 있는 아이템이 없습니다"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- 추천 아이템 리사이클러뷰 -->
+                <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:visibility="visible"
+                        android:id="@+id/hsv_recommended_items">
+
+                    <LinearLayout
+                            android:id="@+id/rv_recommended_items"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingStart="0dp"
+                            android:paddingEnd="16dp" />
+
+                </HorizontalScrollView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

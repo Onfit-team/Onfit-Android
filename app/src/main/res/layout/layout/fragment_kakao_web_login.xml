@@ -1,0 +1,22 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- ✅ WebView 추가 -->
+        <WebView
+            android:id="@+id/kakaoWebView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- 🔄 로딩 표시용 ProgressBar -->
+        <ProgressBar
+            android:id="@+id/loadingSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
+</layout>

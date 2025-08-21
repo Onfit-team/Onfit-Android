@@ -92,7 +92,7 @@ class LoginFragment : Fragment() {
         }
 
         // 로그인 페이지 로딩 (개발용 HTTP; manifest의 networkSecurityConfig로 허용되어 있어야 함)
-        binding.webView.loadUrl("http://15.164.35.198:3000/user/auth/kakao")
+        binding.webView.loadUrl("http://3.36.113.173/user/auth/kakao")
     }
 
     private fun showErrorDialog(message: String) {

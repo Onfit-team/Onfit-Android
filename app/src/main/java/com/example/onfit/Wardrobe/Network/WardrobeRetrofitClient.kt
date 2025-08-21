@@ -53,7 +53,8 @@ object WardrobeRetrofitClient {
  */
 object RetrofitClient {
 
-    private const val BASE_URL = "http://15.164.35.198:3001/"
+    // 🔥 FIXED: URL을 WardrobeRetrofitClient와 동일하게 수정
+    private const val BASE_URL = "http://3.36.113.173/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(
