@@ -160,10 +160,8 @@ class CalendarFragment : Fragment() {
 
     }
 
-    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
-
-    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
-
+    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수 수정
+    // CalendarFragment.kt의 addDummyDataToCalendar() 수정
     private fun addDummyDataToCalendar() {
         Log.d("CalendarFragment", "🎭 더미 데이터를 캘린더에 추가")
 
@@ -171,64 +169,153 @@ class CalendarFragment : Fragment() {
         val currentYear = calendar.get(JavaCalendar.YEAR)
         val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
 
-        // 🔥 기존 캘린더 더미 데이터 (1001~1005) - 10,11,12,13,14일
-        val calendarDummyOutfits = mapOf(
-            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1001, // 이번 달 13일 - cody1
-            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1002, // 이번 달 12일 - cody2
-            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1003, // 이번 달 11일 - cody3
-            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1004, // 이번 달 10일 - cody4
-            "$currentYear-${String.format("%02d", currentMonth)}-14" to 1005  // 이번 달 14일 - cody6
+        // 🔥 StyleOutfitsFragment와 정확히 일치하는 매핑
+        val styleDummyOutfits = mapOf(
+            "$currentYear-${String.format("%02d", currentMonth)}-01" to 1101, // ccody1 (id=1)
+            "$currentYear-${String.format("%02d", currentMonth)}-02" to 1102, // ccody2 (id=2)
+            "$currentYear-${String.format("%02d", currentMonth)}-03" to 1103, // ccody3 (id=3)
+            "$currentYear-${String.format("%02d", currentMonth)}-04" to 1104, // ccody4 (id=4)
+            "$currentYear-${String.format("%02d", currentMonth)}-05" to 1105, // cody5 (id=5) ✅
+            "$currentYear-${String.format("%02d", currentMonth)}-14" to 1106  // cody6 (id=6) ✅
         )
 
-        // 🔥 StyleOutfits용 더미 데이터 (1101~1104) - 1,2,3,4일 (StyleOutfitsFragment와 매칭)
-        val styleOutfitsDummyOutfits = mapOf(
-            "$currentYear-${String.format("%02d", currentMonth)}-01" to 1101, // 8월 1일 - ccody1 (스트릿)
-            "$currentYear-${String.format("%02d", currentMonth)}-02" to 1102, // 8월 2일 - ccody2 (스트릿)
-            "$currentYear-${String.format("%02d", currentMonth)}-03" to 1103, // 8월 3일 - ccody3 (캐주얼)
-            "$currentYear-${String.format("%02d", currentMonth)}-04" to 1104  // 8월 4일 - ccody4 (캐주얼)
+        // 🔥 기존 캘린더 더미 데이터 (10,11,12,13일)
+        val calendarDummyOutfits = mapOf(
+            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1010, // cody4
+            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1011, // cody3
+            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1012, // cody2
+            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1013  // cody1
         )
+
+        // 기존 데이터 초기화
+        registeredDates.clear()
+        dateToOutfitIdMap.clear()
 
         // 🔥 모든 더미 데이터 통합
-        val allDummyOutfits = calendarDummyOutfits + styleOutfitsDummyOutfits
+        val allDummyOutfits = styleDummyOutfits + calendarDummyOutfits
 
         allDummyOutfits.forEach { (date, outfitId) ->
-            // 등록된 날짜에 추가
             registeredDates.add(date)
             dateToOutfitIdMap[date] = outfitId
-
-            // SharedPreferences에 저장
             saveOutfitRegistration(date, outfitId)
 
             Log.d("CalendarFragment", "더미 코디 추가: $date -> ID: $outfitId")
         }
 
-        // 어댑터 업데이트
         if (::calendarAdapter.isInitialized) {
             calendarAdapter.updateRegisteredDates(registeredDates)
         }
 
-        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료: ${allDummyOutfits.size}개")
+        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료")
+        Log.d("CalendarFragment", "📅 이제 StyleOutfits와 정확히 매칭:")
+        Log.d("CalendarFragment", "   5일(1105-cody5) ✅, 14일(1106-cody6) ✅")
     }
 
-    // 🔥 더미 코디 상세 화면 이동 함수에서 날짜 매핑 수정
-    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
+    /**
+     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시 (더미 데이터도 처리)
+     */
+    private fun showOutfitWithImageUrl(dateString: String) {
+        Log.d("OutfitDebug", "=== 코디 상세 찾기 ===")
+        Log.d("OutfitDebug", "찾는 날짜: $dateString")
+
+        val allOutfits = homeViewModel.recentOutfits.value
+        Log.d("OutfitDebug", "HomeViewModel 데이터 개수: ${allOutfits?.size}")
+
+        allOutfits?.forEachIndexed { index, outfit ->
+            val outfitDate = outfit.date.substring(0, 10)
+            Log.d("OutfitDebug", "[$index] 날짜: $outfitDate, 이미지: ${outfit.image}")
+        }
+
+        val matchingOutfit = allOutfits?.find {
+            it.date.substring(0, 10) == dateString
+        }
+
+        if (matchingOutfit != null) {
+            Log.d("OutfitDebug", "✅ 매칭 성공: $dateString -> ${matchingOutfit.image}")
+            navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+        } else {
+            Log.d("OutfitDebug", "❌ 매칭 실패: $dateString")
+
+            // 🔥 HomeViewModel에서 찾지 못했을 때 더미 데이터 확인
+            val storedOutfitId = dateToOutfitIdMap[dateString]
+            if (storedOutfitId != null && isDummyOutfitId(storedOutfitId)) {
+                Log.d("OutfitDebug", "🎭 더미 데이터로 fallback: ID=$storedOutfitId")
+                navigateToDummyOutfitDetail(dateString, storedOutfitId)
+            } else {
+                Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
+     */
+    private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
         try {
-            // ID 범위에 따라 outfit 번호 계산
-            val outfitNumber = when (dummyOutfitId) {
-                in 1001..1005 -> dummyOutfitId - 1000  // CalendarFragment 더미: 1,2,3,4
-                in 1101..1104 -> dummyOutfitId - 1100  // StyleOutfitsFragment 더미: 1,2,3,4
-                else -> 1
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putString("main_image_url", imageUrl)  // ⭐ 변경: image_url -> main_image_url
+
+                // ⭐ 개별 아이템 이미지들이 있다면 추가 (현재는 메인 이미지만)
+                // putStringArrayList("item_image_urls", arrayListOf(...))
+
+                // outfit_id는 전달하지 않음 (현재 -1로 설정됨)
             }
 
-            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, ID=$dummyOutfitId, 번호=$outfitNumber")
+            val navController = findNavController()
+
+            runCatching {
+                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+            }.onFailure {
+                runCatching {
+                    navController.navigate(R.id.calendarSaveFragment, bundle)
+                }.onFailure {
+                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
+                    // 이미지 URL 표시 (테스트용)
+                    Toast.makeText(context, "$dateString 코디\n이미지: $imageUrl", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 🔥 더미 코디 상세 화면 이동 함수 최종 수정
+    // 🔥 더미 코디 상세 화면 이동 함수 - description 수정
+    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
+        try {
+            // StyleOutfitsFragment 더미 데이터와 정확히 일치하는 매핑
+            val (outfitNumber, imageResName, description) = when (dummyOutfitId) {
+                // StyleOutfitsFragment 더미 데이터 (정확한 매핑)
+                1101 -> Triple(1, "ccody1", "캐주얼 스타일 코디 1")  // 1일
+                1102 -> Triple(2, "ccody2", "캐주얼 스타일 코디 2")  // 2일
+                1103 -> Triple(3, "ccody3", "캐주얼 스타일 코디 3")  // 3일
+                1104 -> Triple(4, "ccody4", "캐주얼 스타일 코디 4")  // 4일
+                1105 -> Triple(5, "cody5", "캐주얼 스타일 코디 5")   // 🔥 5일 - cody5 ✅
+                1106 -> Triple(6, "cody6", "캐주얼 스타일 코디 6")   // 🔥 14일 - cody6 ✅ (설명 수정)
+
+                // 기존 캘린더 더미 데이터 (1010~1013으로 수정)
+                1013 -> Triple(1, "cody1", "화이트 셔츠와 베이지 팬츠로 깔끔한 오피스 룩")   // 13일
+                1012 -> Triple(2, "cody2", "블랙 반팔과 베이지 반바지로 시원한 여름 코디")   // 12일
+                1011 -> Triple(3, "cody3", "블랙 셔츠와 화이트 신발로 모던하고 세련된 스타일")   // 11일
+                1010 -> Triple(4, "cody4", "그레이 셔츠와 블랙 팬츠로 미니멀한 데일리 코디")   // 10일
+
+                else -> Triple(1, "cody1", "스타일리시한 데일리 코디")
+            }
+
+            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, ID=$dummyOutfitId")
+            Log.d("CalendarFragment", "   → 번호=$outfitNumber, 이미지=$imageResName, 설명=$description")
 
             val bundle = Bundle().apply {
                 putString("selected_date", dateString)
                 putInt("outfit_id", dummyOutfitId)
                 putInt("outfit_number", outfitNumber)
+                putString("outfit_image_res", imageResName)
                 putBoolean("from_outfit_record", true)
                 putBoolean("is_dummy_outfit", true)
-                putString("memo", getDummyMemoForOutfit(outfitNumber))
+                putString("memo", description)
             }
 
             val navController = findNavController()
@@ -239,8 +326,7 @@ class CalendarFragment : Fragment() {
                     navController.navigate(R.id.calendarSaveFragment, bundle)
                 }.onFailure {
                     Log.e("CalendarFragment", "더미 코디 navigation 실패")
-                    val fallbackDescription = getDummyMemoForOutfit(outfitNumber)
-                    Toast.makeText(context, "더미 코디 $outfitNumber 번 ($dateString)\n$fallbackDescription", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "$imageResName ($dateString)\n$description", Toast.LENGTH_LONG).show()
                 }
             }
 
@@ -378,46 +464,32 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ 날짜 클릭 이벤트 처리 - outfit_id로 코디 상세 데이터 확인 후 상세 화면으로 이동
-     */
-    // 🔥 CalendarFragment에서 실제 ID 찾는 방법 추가
-
-    /**
-     * 날짜 클릭 시 처리 - 실제 ID 찾기 로직 추가
-     */
+    * ⭐ 날짜 클릭 이벤트 처리 - 더미 우선, 실제 데이터 fallback
+    */
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
         if (hasOutfit) {
             val storedOutfitId = dateToOutfitIdMap[dateString]
             Log.d("CalendarFragment", "날짜 클릭: $dateString, 저장된 ID: $storedOutfitId")
 
-            when {
-                // 1. 더미 코디 (1001~1004)
-                storedOutfitId != null && isDummyOutfitId(storedOutfitId) -> {
-                    Log.d("CalendarFragment", "🎭 더미 코디 감지")
-                    navigateToDummyOutfitDetail(dateString, storedOutfitId)
-                }
+            // 🔥 1순위: 더미 데이터 확인
+            if (storedOutfitId != null && isDummyOutfitId(storedOutfitId)) {
+                Log.d("CalendarFragment", "🎭 더미 코디로 이동")
+                navigateToDummyOutfitDetail(dateString, storedOutfitId)
+                return
+            }
 
-                // 2. 실제 코디 - 하지만 임시 ID일 수 있음
-                storedOutfitId != null -> {
-                    Log.d("CalendarFragment", "📱 실제 코디 감지 - ID 유효성 확인")
+            // 🔥 2순위: HomeViewModel에서 실제 데이터 찾기
+            val allOutfits = homeViewModel.recentOutfits.value
+            val matchingOutfit = allOutfits?.find {
+                it.date.substring(0, 10) == dateString
+            }
 
-                    // 🔥 먼저 API 호출해서 유효한지 확인
-                    fetchOutfitDetails(storedOutfitId) { fetchedDate, memo ->
-                        if (!fetchedDate.isNullOrBlank()) {
-                            // 유효한 ID - 바로 이동
-                            navigateToOutfitDetail(fetchedDate, storedOutfitId, memo ?: "등록된 코디입니다.")
-                        } else {
-                            // 404 오류 - 실제 ID 찾기 시도
-                            Log.w("CalendarFragment", "⚠️ 저장된 ID가 유효하지 않음. 실제 ID 검색 시작")
-                            findRealOutfitIdForDate(dateString)
-                        }
-                    }
-                }
-
-                else -> {
-                    Log.w("CalendarFragment", "⚠️ 저장된 ID가 없음")
-                    Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                }
+            if (matchingOutfit != null) {
+                Log.d("CalendarFragment", "📱 실제 코디로 이동: ${matchingOutfit.image}")
+                navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+            } else {
+                Log.d("CalendarFragment", "❌ 해당 날짜의 코디를 찾을 수 없음")
+                Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
             }
         } else {
             Log.d("CalendarFragment", "등록되지 않은 날짜 클릭: $dateString")
@@ -425,9 +497,6 @@ class CalendarFragment : Fragment() {
         }
     }
 
-    /**
-     * 🔥 NEW: HomeViewModel 데이터로 실제 ID 찾기
-     */
     /**
      * 🔥 실제 ID 찾기 로직 개선 - HomeViewModel 데이터 사용
      */
@@ -649,23 +718,17 @@ class CalendarFragment : Fragment() {
 
             Log.d("RealOutfits", "받은 코디 개수: ${top7.size}")
 
-            top7.forEachIndexed { index, outfit ->
-                val fullDate = outfit.date
+            // 중복 제거: 날짜별로 그룹핑해서 하나씩만 처리
+            val uniqueOutfits = top7.groupBy { it.date.substring(0, 10) }
+                .mapValues { it.value.first() }
 
-                if (!fullDate.isNullOrBlank() && fullDate.length >= 10) {
-                    val date = fullDate.substring(0, 10) // "2025-08-18T..." -> "2025-08-18"
+            uniqueOutfits.forEach { (date, outfit) ->
+                Log.d("RealOutfits", "실제 코디: $date -> 이미지: ${outfit.image}")
 
-                    // 🔥 음수 임시 ID 생성 (실제 코디 구분용)
-                    val tempOutfitId = -(System.currentTimeMillis().toInt() + index)
-
-                    Log.d("RealOutfits", "실제 코디: $date -> 임시 ID: $tempOutfitId")
-
-                    addRegisteredDate(date, tempOutfitId)
-                    saveOutfitRegistration(date, tempOutfitId)
-                }
+                // outfit_id는 필요 없으므로 임시 ID 사용
+                addRegisteredDate(date, date.hashCode())
             }
         }
-
     }
 
     /**
@@ -1198,37 +1261,46 @@ class CalendarFragment : Fragment() {
     }
 
     // 🔥 NEW: ClothesDetailFragment에서 호출되는 함수 - CalendarFragment에 추가
-    fun navigateToCalendarWithOutfit(outfitNumber: Int) {
+    private fun navigateToCalendarWithOutfit(outfitNumber: Int) {
         try {
-            // 🔥 하드코딩된 코디별 등록 날짜
+            val calendar = JavaCalendar.getInstance()
+            val currentYear = calendar.get(JavaCalendar.YEAR)
+            val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+
+            // 🔥 CalendarFragment의 더미 데이터와 정확히 일치하는 날짜 매핑
             val outfitDateMap = mapOf(
-                1 to "2024-08-13", // cody1 -> 8/13
-                2 to "2024-08-12", // cody2 -> 8/12
-                3 to "2024-08-11", // cody3 -> 8/11
-                4 to "2024-08-10"  // cody4 -> 8/10
+                5 to "$currentYear-${String.format("%02d", currentMonth)}-05", // 🔥 cody5 -> 5일 (StyleOutfits)
+                6 to "$currentYear-${String.format("%02d", currentMonth)}-14", // 🔥 cody6 -> 14일
+                1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // cody1 -> 13일
+                2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // cody2 -> 12일
+                3 to "$currentYear-${String.format("%02d", currentMonth)}-11", // cody3 -> 11일
+                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"  // cody4 -> 10일
             )
 
             val targetDate = outfitDateMap[outfitNumber]
 
             if (targetDate != null) {
-                Log.d("CalendarFragment", "🗓️ 외부에서 코디 ${outfitNumber}번 요청 -> ${targetDate}로 이동")
+                Log.d("ClothesDetailFragment", "🗓️ 코디 ${outfitNumber}번 클릭 -> ${targetDate}")
 
-                // 🔥 더미 데이터 추가 (실제 캘린더에 표시되도록)
-                addDummyOutfitData(targetDate, outfitNumber)
+                val bundle = Bundle().apply {
+                    putString("selected_date", targetDate)
+                    putInt("outfit_number", outfitNumber)
+                    putBoolean("from_outfit_record", true)
+                }
 
-                // 🔥 해당 날짜로 캘린더 스크롤
-                scrollToSpecificDate(targetDate)
-
-                Toast.makeText(requireContext(), "코디 ${outfitNumber}번이 등록된 ${targetDate}로 이동합니다", Toast.LENGTH_SHORT).show()
-
+                try {
+                    findNavController().navigate(R.id.calendarSaveFragment, bundle)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "코디 ${outfitNumber}번 (${targetDate})", Toast.LENGTH_LONG).show()
+                }
             } else {
-                Log.e("CalendarFragment", "❌ 코디 ${outfitNumber}번의 날짜 정보 없음")
-                Toast.makeText(requireContext(), "해당 코디의 등록 날짜를 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
+                Log.e("ClothesDetailFragment", "❌ 코디 ${outfitNumber}번의 날짜 매핑을 찾을 수 없음")
+                Toast.makeText(context, "해당 코디의 날짜 정보를 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
             }
 
         } catch (e: Exception) {
-            Log.e("CalendarFragment", "💥 캘린더 이동 실패", e)
-            Toast.makeText(requireContext(), "캘린더로 이동할 수 없습니다: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("ClothesDetailFragment", "💥 캘린더 이동 실패", e)
+            Toast.makeText(context, "오류: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1306,8 +1378,8 @@ class CalendarFragment : Fragment() {
      */
     private fun isDummyOutfitId(outfitId: Int): Boolean {
         return when (outfitId) {
-            in 1001..1005 -> true  // CalendarFragment 더미 코디
-            in 1101..1104 -> true  // StyleOutfitsFragment 더미 코디
+            in 1010..1013 -> true  // 기존 캘린더 더미 코디 (새로운 ID 체계)
+            in 1101..1106 -> true  // StyleOutfitsFragment 더미 코디 (ccody1~4, cody5, cody6) ✅
             else -> false
         }
     }
