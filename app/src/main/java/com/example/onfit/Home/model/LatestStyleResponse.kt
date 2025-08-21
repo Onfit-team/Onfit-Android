@@ -16,6 +16,7 @@ data class LatestStyleResult(
 
 data class OutfitItem(
     val date: String,
-    val image: String
+    val image: String,
+    val outfitId: Int
 )
 

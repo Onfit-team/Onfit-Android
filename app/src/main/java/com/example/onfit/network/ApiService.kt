@@ -15,6 +15,7 @@ import com.example.onfit.Home.model.WeatherResponse
 import com.example.onfit.model.CurrentWeatherResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -22,6 +23,7 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 interface ApiService {
     @GET("/common/date")
@@ -47,65 +49,55 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<BestOutfitResponse>
 
-    // 온도 구간별 추천
     @GET("home/recommend-items")
     suspend fun getRecommendItems(
         @Header("Authorization") token: String,
         @Query("temp_avg") tempAvg: Double
     ): Response<RecommendItemsResponse>
 
-    // 비슷한 온도의 날 사용자 outfit
     @GET("home/similar-weather")
     suspend fun getSimilarWeather(
         @Header("Authorization") token: String,
         @Query("temp_avg") tempAvg: Double
     ): Response<SimilarWeatherResponse>
 
-    // 오늘 outfits 등록 확인(공유 버튼 활성/비활성 판단)
     @GET("community/outfits/today/check")
     suspend fun checkTodayOutfitCanBeShared(
         @Header("Authorization") token: String
     ): Response<TodayOutfitCheckResponse>
 
-    // Outfit 게시하기
     @PATCH("community/publish-today-outfit")
     suspend fun publishTodayOutfit(
         @Header("Authorization") token: String
     ): Response<PublishTodayOutfitResponse>
 
-    // 커뮤니티 목록
     @GET("community/outfits")
     suspend fun getCommunityOutfits(
         @Header("Authorization") token: String,
-        @Query("order") order: String,           // "latest" | "popular"
-        @Query("page") page: Int? = null,        // 기본 1
-        @Query("limit") limit: Int? = null,      // 기본 20
-        @Query("tag_ids") tagIds: String? = null // 예: "1,2,3"
+        @Query("order") order: String,
+        @Query("page") page: Int? = null,
+        @Query("limit") limit: Int? = null,
+        @Query("tag_ids") tagIds: String? = null
     ): Response<CommunityOutfitsResponse>
 
-    // 좋아요 토글
     @POST("community/outfits/{outfit_id}/like")
     suspend fun toggleOutfitLike(
         @Header("Authorization") token: String,
         @Path("outfit_id") outfitId: Int
     ): Response<ToggleLikeResponse>
 
-    // 상세
     @GET("community/outfits/{outfit_id}")
     suspend fun getOutfitDetail(
         @Header("Authorization") token: String?,
         @Path("outfit_id") outfitId: Int
     ): Response<OutfitDetailResponse>
 
-    // 삭제
     @DELETE("community/outfits/{outfit_id}")
     suspend fun deleteOutfit(
         @Header("Authorization") token: String,
         @Path("outfit_id") outfitId: Int
     ): Response<ResponseBody>
 
-    // ★ 태그 목록
-    // ApiService.kt
     @GET("/community/tags")
     suspend fun getTagList(
         @Header("Authorization") token: String

@@ -5,5 +5,5 @@ import androidx.annotation.DrawableRes
 
 data class DisplayImage(
     val uri: Uri? = null,
-    @DrawableRes val resId: Int? = null
+    @androidx.annotation.DrawableRes val resId: Int? = null
 )

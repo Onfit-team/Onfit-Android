@@ -7,7 +7,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://15.164.35.198:3000/"
+    private const val BASE_URL = "http://3.36.113.173/"
 
     // 요청/응답 로깅 위한 인터셉터, 헤더만 출력
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
