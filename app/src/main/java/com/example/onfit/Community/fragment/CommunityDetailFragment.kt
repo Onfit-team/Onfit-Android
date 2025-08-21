@@ -52,6 +52,7 @@ class CommunityDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // 단일 ChipGroup 간격
         binding.styleChips.chipSpacingHorizontal = dpF(2).toInt()
         binding.styleChips.chipSpacingVertical = dpF(2).toInt()
 
@@ -81,7 +82,7 @@ class CommunityDetailFragment : Fragment() {
         binding.likesTv.setOnClickListener { toggleLike() }
 
         if (args.outfitId <= 0) {
-            // 등록 직후 서버 id 없을 때의 임시 표시(원래 더미 로직 유지)
+            // 등록 직후 서버 id 없을 때의 임시 표시(더미 로직 유지)
             binding.dateTv.text = "8월 22일"
 
             Log.d("DetailDummy", "main dummy url=${args.imageUrl}")
@@ -209,9 +210,6 @@ class CommunityDetailFragment : Fragment() {
     }
 
     private fun loadDetail() {
-        binding.styleChips.chipSpacingHorizontal = 0
-        binding.styleChips.chipSpacingVertical = 0
-
         val raw = TokenProvider.getToken(requireContext())
         val token: String? = raw.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
 
@@ -220,7 +218,6 @@ class CommunityDetailFragment : Fragment() {
         binding.styleChips.visibility = View.GONE
 
         viewLifecycleOwner.lifecycleScope.launch {
-            // 1) 네트워크 호출만 try-catch로 감싸서 “네트워크 오류” 오남발 방지
             val res = try {
                 RetrofitInstance.api.getOutfitDetail(token, outfitId)
             } catch (_: Exception) {
@@ -241,10 +238,10 @@ class CommunityDetailFragment : Fragment() {
 
             Log.d("DetailCheck", "items.size=${d.items.size}, first=${d.items.firstOrNull()}")
 
-            // 2) 날짜(안전 파싱)
+            // 1) 날짜
             binding.dateTv.text = formatDateSafely(d.date)
 
-            // 3) 메인 이미지
+            // 2) 메인 이미지
             if (d.mainImage.isNotBlank()) {
                 currentMainImageUrl = d.mainImage
                 val mainUrl = toAbsoluteUrlForServer(d.mainImage)
@@ -252,35 +249,28 @@ class CommunityDetailFragment : Fragment() {
                 Glide.with(this@CommunityDetailFragment).load(mainUrl).into(binding.mainIv)
             }
 
-            // 4) 설명/기온
+            // 3) 설명/기온(평균만)
             binding.descTv.text = d.memo.orEmpty()
-            binding.tempTv.text = d.weatherTempAvg?.let { "${it}°" } ?: "-"
+            val avg = d.weatherTempAvg?.let { "${it}°" } ?: "-"
+            binding.tempTv.text = avg
 
-            // 5) 태그
-            binding.styleChips.removeAllViews()
-            val allTags = (d.tags.moodTags + d.tags.purposeTags)
-            val seen = LinkedHashSet<String>()
-            val uniqueByName = allTags.filter { tag ->
-                val key = tag.name?.trim()?.lowercase().orEmpty()
-                key.isNotEmpty() && seen.add(key)
-            }
-            if (uniqueByName.isNotEmpty()) {
-                uniqueByName.forEach { tag ->
-                    val name = tag.name?.trim().orEmpty()
-                    if (name.isNotEmpty()) binding.styleChips.addView(createTagChip("#$name"))
-                }
+            // 4) 스타일 태그(단일 ChipGroup) - 이름 기준 중복 제거 후 표기
+            val all = d.tags.moodTags + d.tags.purposeTags
+            val unique = distinctByName(all)
+            if (unique.isNotEmpty()) {
+                unique.forEach { tag -> binding.styleChips.addView(createTagChip("#${tag.name}")) }
                 binding.styleChips.visibility = View.VISIBLE
             } else {
                 binding.styleChips.visibility = View.GONE
             }
 
-            // 6) 좋아요/삭제 UI
+            // 5) 좋아요/삭제 UI
             isLiked = d.likes.isLikedByCurrentUser
             likeCount = d.likes.count
             renderLike()
             binding.deleteIv.visibility = if (d.isMyPost) View.VISIBLE else View.GONE
 
-            // 7) 아이템 리스트
+            // 6) 아이템 리스트
             val itemUrls = d.items.mapNotNull { it.image?.takeIf { s -> s.isNotBlank() } }
             if (itemUrls.isEmpty()) {
                 binding.clothRecyclerview.visibility = View.GONE
@@ -291,6 +281,12 @@ class CommunityDetailFragment : Fragment() {
         }
     }
 
+    /** 이름 기준(공백/대소문자 무시) 중복 제거 */
+    private fun distinctByName(list: List<OutfitDetailResponse.Tag>): List<OutfitDetailResponse.Tag> {
+        return list
+            .filter { !it.name.isNullOrBlank() }
+            .distinctBy { it.name.trim().lowercase() }
+    }
 
     private fun toAbsoluteUrlForServer(input: String?): String? {
         val s = input?.trim().orEmpty()
@@ -380,7 +376,6 @@ class CommunityDetailFragment : Fragment() {
                 }
             } catch (_: Exception) {
                 rollbackLike()
-
             }
         }
     }
@@ -400,31 +395,24 @@ class CommunityDetailFragment : Fragment() {
         val outFmt = DateTimeFormatter.ofPattern("M월 d일")
         if (raw.isNullOrBlank()) return "-"
 
-        // 1) ISO_INSTANT (예: 2025-08-21T10:05:00Z)
         runCatching {
             return Instant.parse(raw)
                 .atZone(ZoneId.of("Asia/Seoul"))
                 .toLocalDate()
                 .format(outFmt)
         }
-
-        // 2) ISO_OFFSET_DATE_TIME (예: 2025-08-21T10:05:00+00:00)
         runCatching {
             return java.time.OffsetDateTime.parse(raw)
                 .atZoneSameInstant(ZoneId.of("Asia/Seoul"))
                 .toLocalDate()
                 .format(outFmt)
         }
-
-        // 3) ISO_LOCAL_DATE_TIME (예: 2025-08-21T10:05:00) → 서버가 KST 로컬시간을 주는 경우로 가정
         runCatching {
             val ldt = java.time.LocalDateTime.parse(raw, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
             return ldt.atZone(ZoneId.of("Asia/Seoul"))
                 .toLocalDate()
                 .format(outFmt)
         }
-
-        // 4) 공백형 (예: 2025-08-21 10:05:00)
         runCatching {
             val dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             val ldt = java.time.LocalDateTime.parse(raw, dtf)
@@ -432,17 +420,13 @@ class CommunityDetailFragment : Fragment() {
                 .toLocalDate()
                 .format(outFmt)
         }
-
-        // 5) 날짜만 온 경우 (예: 2025-08-21)
         runCatching {
             return java.time.LocalDate.parse(raw).format(outFmt)
         }
 
-        // 실패 시
-        android.util.Log.w("CommDetail", "date parse failed: $raw")
+        Log.w("CommDetail", "date parse failed: $raw")
         return "-"
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
