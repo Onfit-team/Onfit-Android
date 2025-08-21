@@ -132,6 +132,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
+    private fun openCalendarSave(outfitId: Int?, imageUrl: String?) {
+        val b = Bundle().apply {
+            putInt("outfit_id", outfitId ?: -1)    // ★ 키 수정
+            imageUrl?.let { putString("image_url", it) }  // ★ 키 수정
+        }
+        findNavController().navigate(R.id.calendarSaveFragment, b)
+    }
+
+
+
     // 이미지 서버에 업로드하고 Url 반환받기
     private fun uploadImageToServer(file: File) {
         val token = TokenProvider.getToken(requireContext())
@@ -320,16 +330,23 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         val includePrefixes = listOf("1번8.13(", "2번.8.12(", "3번8.11(", "4번8.10(", "5번.8.9(")
         val targets = all.filter { raw -> includePrefixes.any { raw.replace(" ", "").startsWith(it) } }
+
+        // HomeFragment.kt - loadSimilarFromExcludedAssets() 안
+
         if (targets.isEmpty()) {
             binding.similarStyleRecyclerView.apply {
-                adapter = SimiliarStyleAdapter(similiarClothList)
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                adapter = SimiliarStyleAdapter(similiarClothList) { _ ->
+                    // 에셋/더미 → outfitId 없음(null), url도 없음(null)
+                    openCalendarSave(null, null)
+                }
                 visibility = View.VISIBLE
             }
             binding.similarEmptyTv.visibility = View.GONE
             return
         }
 
+// targets 이 있는 정상 케이스
         val items = targets.map { f ->
             val ref = extractTempFromName(f)
             val label =
@@ -337,18 +354,36 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 else ref?.let { "${it}°" } ?: ""
             SimItem(
                 imageResId = null,
-                imageUrl    = "file:///android_asset/dummy_recommend/$f",
-                date        = label
+                imageUrl   = "file:///android_asset/dummy_recommend/$f",
+                date       = label,
+                outfitId   = null // 에셋은 아이디 없음
             )
         }
 
         binding.similarStyleRecyclerView.apply {
-            adapter = SimiliarStyleAdapter(items)
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = SimiliarStyleAdapter(items) { sim ->
+                val url = sim.imageUrl?.let { normalizeUrl(it) }
+                openCalendarSave(sim.outfitId, url)  // outfitId=null → CalendarSave에서 -1 처리됨
+            }
             visibility = View.VISIBLE
         }
         binding.similarEmptyTv.visibility = View.GONE
+
     }
+
+
+
+    private fun normalizeUrl(raw: String): String {
+        val s = raw.trim()
+        return when {
+            s.startsWith("http://") || s.startsWith("https://") -> s
+            s.startsWith("file://") || s.startsWith("content://") -> s
+            s.startsWith("/") -> "http://15.164.35.198:3000$s"
+            else -> "http://15.164.35.198:3000/$s"
+        }
+    }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -372,14 +407,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
 
         // Similar: 서버 대신 assets 사용(초기엔 숫자 라벨로 1차 표기)
+        // HomeFragment.kt - onViewCreated() 안
         if (USE_SIMILAR_FROM_ASSETS) {
             loadSimilarFromExcludedAssets(currentTemp = null)
         } else {
             binding.similarStyleRecyclerView.apply {
-                adapter = SimiliarStyleAdapter(similiarClothList)
                 layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                adapter = SimiliarStyleAdapter(similiarClothList) { _ ->
+                    openCalendarSave(null, null)
+                }
             }
         }
+
 
         // 최근 7일
         viewModel.fetchRecentOutfits(token)
@@ -392,11 +431,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 binding.latestStyleEmptyTv.visibility = View.GONE
                 binding.latestStyleRecyclerView.visibility = View.VISIBLE
                 binding.latestStyleRecyclerView.apply {
-                    adapter = LatestStyleAdapter(top7)
                     layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+                    adapter = LatestStyleAdapter(top7) { item ->
+                        val url = if (item.image.startsWith("http")) item.image
+                        else "http://15.164.35.198:3000/${item.image}"
+                        openCalendarSave(item.outfitId, url)
+                    }
                 }
             }
         }
+
+
+
+
 
         // 베스트
         viewModel.fetchBestOutfits(token)

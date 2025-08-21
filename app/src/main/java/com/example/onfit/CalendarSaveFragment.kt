@@ -86,7 +86,6 @@ class CalendarSaveFragment : Fragment() {
             findNavController().popBackStack()
         }
 
-        // ⭐ 수정 아이콘 클릭: 현재 값들을 Safe Args로 전달
         binding.calendarSaveEditIv.setOnClickListener {
             // 혹시 화면에서 사용자가 방금 수정했을 수도 있으니 다시 읽어서 최신화
             val selectedDateText = binding.calendarSaveDateTv.text?.toString()
