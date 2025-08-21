@@ -65,7 +65,6 @@ class OutfitRegisterFragment : Fragment() {
     private val processedDetectPaths = mutableSetOf<String>()
     // 이미 추가한 crop Uri를 기억
     private val addedCropUriStrings = mutableSetOf<String>()
-
     // SaveFragment로부터 전달받은 이미지 path 기억
     private var originalImagePath: String? = null
 

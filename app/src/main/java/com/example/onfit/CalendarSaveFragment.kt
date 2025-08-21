@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,37 +40,30 @@ class CalendarSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ⭐ 전달받은 데이터 확인
-        val selectedDate = arguments?.getString("selected_date") ?: arguments?.getString("selectedDate")
+        //  하나의 키로만 읽기 (selected_date)
+        val selectedDate = arguments?.getString("selected_date")
         val mainImageUrl = arguments?.getString("main_image_url")
         val itemImageUrls = arguments?.getStringArrayList("item_image_urls")
-        val outfitId = arguments?.getInt("outfit_id", -1)
+        val outfitId = arguments?.getInt("outfit_id", -1) ?: -1
 
-        Log.d("CalendarSaveFragment", "받은 데이터:")
-        Log.d("CalendarSaveFragment", "날짜: $selectedDate")
-        Log.d("CalendarSaveFragment", "메인 이미지 URL: $mainImageUrl")
-        Log.d("CalendarSaveFragment", "아이템 이미지 URLs: $itemImageUrls")
-        Log.d("CalendarSaveFragment", "Outfit ID: $outfitId")
+        Log.d("CalendarSaveFragment", "받은 데이터: date=$selectedDate, main=$mainImageUrl, items=$itemImageUrls, outfitId=$outfitId")
 
-        // ⭐ 날짜 표시
         binding.calendarSaveDateTv.text = selectedDate ?: "날짜 없음"
 
-        // ⭐ 메인 이미지 표시 (큰 영역)
+        // 큰 이미지
         if (!mainImageUrl.isNullOrBlank()) {
-            setupMainImage(mainImageUrl)
-        } else {
-            Log.d("CalendarSaveFragment", "메인 이미지 URL이 없음 - 기본 이미지 유지")
+            setupMainImage(mainImageUrl)  // ← 기존 함수 그대로 사용
         }
 
-        // ⭐ 개별 아이템들 표시 (작은 RecyclerView)
+        // 아이템 리스트
         if (!itemImageUrls.isNullOrEmpty()) {
-            setupItemRecyclerView(itemImageUrls)
+            setupItemRecyclerView(itemImageUrls) // ← 기존 함수 그대로 사용
         } else {
-            // 아이템 이미지들이 없으면 더미 데이터 사용
-            setupDummyRecyclerView()
+            setupDummyRecyclerView()             // ← 그대로
         }
 
-        // 버튼 리스너들
+
+    // 버튼 리스너들
         binding.calendarSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
