@@ -52,7 +52,7 @@
 
                 <!-- 수정 버튼 (오른쪽) -->
                 <ImageButton
-                    android:id="@+id/ic_edit"
+                    android:id="@+id/edit_black"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:background="@android:color/transparent"
@@ -199,47 +199,6 @@
                 android:padding="12dp"
                 android:layout_marginBottom="20dp"/>
 
-            <!-- 함께 코디하면 좋을 아이템 섹션 -->
-            <LinearLayout
-                android:id="@+id/recommended_items_section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingStart="0dp"
-                android:paddingEnd="0dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="함께 코디하면 좋을 옷장 아이템"
-                    android:textSize="16sp"
-                    android:textColor="#000000"
-                    android:fontFamily="@font/pretendardsemibold"
-                    android:layout_marginBottom="12dp" />
-
-                <!-- 추천 아이템이 없을 때 표시할 텍스트 -->
-                <TextView
-                    android:id="@+id/tv_no_recommendations"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="추천할 수 있는 아이템이 없습니다"
-                    android:textSize="14sp"
-                    android:textColor="#666666"
-                    android:layout_marginBottom="12dp"
-                    android:visibility="gone" />
-
-                <!-- 추천 아이템 리사이클러뷰 -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rv_recommended_items"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:visibility="gone" />
-
-            </LinearLayout>
-
             <!-- 코디 기록 섹션 -->
             <LinearLayout
                 android:id="@+id/outfit_history_section"
@@ -272,12 +231,63 @@
                     android:visibility="gone" />
 
                 <!-- 코디 기록 리사이클러뷰 -->
-                <androidx.recyclerview.widget.RecyclerView
+                <LinearLayout
                     android:id="@+id/rv_outfit_history"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- 함께 코디하면 좋을 아이템 섹션 -->
+            <LinearLayout
+                android:id="@+id/recommended_items_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="함께 코디하면 좋을 옷장 아이템"
+                    android:textSize="16sp"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/pretendardsemibold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- 추천 아이템이 없을 때 표시할 텍스트 -->
+                <TextView
+                    android:id="@+id/tv_no_recommendations"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="추천할 수 있는 아이템이 없습니다"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- 추천 아이템 리사이클러뷰 -->
+                <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none"
+                        android:visibility="gone"
+                        android:id="@+id/hsv_recommended_items">
+
+                    <LinearLayout
+                            android:id="@+id/rv_recommended_items"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingStart="0dp"
+                            android:paddingEnd="16dp" />
+
+                </HorizontalScrollView>
 
             </LinearLayout>
 

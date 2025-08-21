@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="294dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/rounded_white_bg"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/post_dialog_outfit_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5월 5일 Outfit을 게시하겠습니까?"
+        android:textSize="17sp"
+        android:fontFamily="@font/pretendardsemibold"
+        android:layout_marginBottom="16dp" />
+
+    <ImageView
+        android:id="@+id/post_dialog_outfit_image"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/rounded_gray_bg"
+        android:clipToOutline="true"
+        android:outlineProvider="background"
+        android:layout_marginBottom="16dp" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="2">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/post_dialog_yes_btn"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="47dp"
+            android:text="예"
+            android:textSize="16.17sp"
+            android:fontFamily="@font/pretendardsemibold"
+            android:background="@drawable/rounded_button"
+            android:textColor="@android:color/white"/>
+
+        <Space
+            android:layout_width="10dp"
+            android:layout_height="0dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/post_dialog_no_btn"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="47dp"
+            android:text="아니오"
+            android:textSize="16.17sp"
+            android:fontFamily="@font/pretendardsemibold"
+            android:background="@drawable/rounded_button"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+</LinearLayout>

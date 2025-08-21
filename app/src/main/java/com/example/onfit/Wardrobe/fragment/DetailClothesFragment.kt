@@ -25,7 +25,7 @@ class DetailClothesFragment : Fragment() {
             showDeleteConfirmationDialog()
         }
 
-        val editButton = view.findViewById<ImageButton>(R.id.ic_edit)
+        val editButton = view.findViewById<ImageButton>(R.id.edit_black)
         editButton.setOnClickListener {
             enterEditMode()
         }
