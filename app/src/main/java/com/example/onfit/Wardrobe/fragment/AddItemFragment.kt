@@ -1112,6 +1112,14 @@ class AddItemFragment : Fragment() {
             "pants4" -> R.drawable.pants4
             "bag4" -> R.drawable.bag4
             "shoes4" -> R.drawable.shoes4
+            "shirts5" -> R.drawable.shirts5
+            "shirts6" -> R.drawable.shirts6
+            "pants5" -> R.drawable.pants5
+            "acc5" -> R.drawable.acc5
+            "pants6" -> R.drawable.pants6
+            "shoes5" -> R.drawable.shoes5
+            "shoes6" -> R.drawable.shoes6
+            "acc6" -> R.drawable.acc6
             else -> 0
         }
     }
