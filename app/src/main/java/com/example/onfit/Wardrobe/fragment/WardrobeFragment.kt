@@ -707,8 +707,8 @@ open class WardrobeFragment : Fragment() {
                 2 to Pair(R.id.btnTopCategory3, "하의"),
                 3 to Pair(R.id.btnTopCategory4, "원피스"),
                 4 to Pair(R.id.btnTopCategory5, "아우터"),
-                5 to Pair(R.id.btnTopCategory6, "신발")
-                // 6 to Pair(R.id.btnTopCategory7, "액세서리") // 레이아웃 추가 후 활성화
+                5 to Pair(R.id.btnTopCategory6, "신발"),
+                6 to Pair(R.id.btnTopCategory7, "액세서리") // 레이아웃 추가 후 활성화
             )
 
             categoryMapping.forEach { (categoryId, buttonInfo) ->
@@ -1754,6 +1754,43 @@ open class WardrobeFragment : Fragment() {
             Log.d("WardrobeFragment", "🎭 하드코딩된 더미 옷장 아이템 생성 시작")
 
             val hardcodedItems = listOf(
+                // 새로 추가한 더미데이터
+                HardcodedWardrobeItem(
+                    imageName = "shirts6",
+                    category = 1, subcategory = 4,
+                    brand = "무지", season = 2, color = 1,
+                    tag1 = 1, tag2 = 10, tag3 = null, // 캐주얼, 데일리
+                    purchasePlace = "무지 온라인",
+                    purchasePrice = "69,900원",
+                    purchaseDate = "2025-07-10"
+                ),
+                HardcodedWardrobeItem(
+                    imageName = "pants6",
+                    category = 2, subcategory = 10,
+                    brand = "무신사", season = 2, color = 2,
+                    tag1 = 3, tag2 = 11, tag3 = null, // 미니멀, 출근룩
+                    purchasePlace = "무신사",
+                    purchasePrice = "49,900원",
+                    purchaseDate = "2024-03-08"
+                ),
+                HardcodedWardrobeItem(
+                    imageName = "shoes6",
+                    category = 5, subcategory = 34,
+                    brand = "무지", season = 1, color = 1,
+                    tag1 = 11, tag2 = 16, tag3 = null, // 출근룩, 하객룩
+                    purchasePlace = "무지 온라인",
+                    purchasePrice = "29,900원",
+                    purchaseDate = "2024-07-10"
+                ),
+                HardcodedWardrobeItem(
+                    imageName = "acc6",
+                    category = 6, subcategory = 43,
+                    brand = "H&M", season = 2, color = 1,
+                    tag1 = 4, tag2 = null, tag3 = null, // 클래식
+                    purchasePlace = "H&M",
+                    purchasePrice = "39,900원",
+                    purchaseDate = "2024-07-12"
+                ),
                 // 코디 1 관련 아이템들
                 HardcodedWardrobeItem(
                     imageName = "shirts1",
@@ -1856,7 +1893,7 @@ open class WardrobeFragment : Fragment() {
                 ),
                 HardcodedWardrobeItem(
                     imageName = "pants4",
-                    category = 2, subcategory = 14,
+                    category = 2, subcategory = 10,
                     brand = "자라", season = 1, color = 1,
                     tag1 = 4, tag2 = 15, tag3 = null, // 예: 페미닌, 로맨틱
                     purchasePlace = "자라 온라인",
