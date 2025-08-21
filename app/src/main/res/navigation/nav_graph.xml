@@ -259,9 +259,17 @@
         tools:layout="@layout/fragment_calendar_save">
 
         <argument
-            android:name="outfit_id"
+            android:name="selectedDate"
+            app:argType="string" />
+        <argument android:name="mainImageUrl" app:argType="string" app:nullable="true" />
+        <argument
+            android:name="outfitId"
             app:argType="integer"
             android:defaultValue="-1" />
+        <argument
+            android:name="memo"
+            app:argType="string"
+            app:nullable="true" />
 
         <argument
             android:name="image_url"
@@ -269,10 +277,8 @@
             android:defaultValue="" />
         <action
             android:id="@+id/action_calendarSaveFragment_to_calendarRewriteFragment"
-            app:destination="@id/calendarRewriteFragment" />
-
+            app:destination="@id/calendarRewriteFragment"/>
     </fragment>
-
 
     <fragment
         android:id="@+id/calendarRewriteFragment"
@@ -299,7 +305,7 @@
 
     <fragment
         android:id="@+id/styleOutfitsFragment"
-        android:name="com.example.onfit.StyleOutfitsFragment"
+        android:name="com.example.onfit.calendar.fragment.StyleOutfitsFragment"
         android:label="스타일별 Outfit"
         tools:layout="@layout/fragment_style_outfits" />
 

@@ -625,19 +625,20 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                 }
 
                 val body: com.example.onfit.Community.model.PublishTodayOutfitResponse? = response.body()
+                // CommunityFragment.publishTodayOutfit()
                 if (body?.isSuccess == true) {
-                    android.widget.Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", Toast.LENGTH_SHORT).show()
                     setShareButtonEnabled(false)
-                    onSuccess?.invoke(body.result?.id)
+                    onSuccess?.invoke(body.result?.id)   // ✅ 성공일 때만
                 } else {
                     val code = body?.code ?: "FAIL"
                     when (code) {
-                        "NO_TODAY_OUTFIT"   -> android.widget.Toast.makeText(requireContext(), "오늘 등록한 아웃핏이 없습니다.", android.widget.Toast.LENGTH_SHORT).show()
-                        "ALREADY_PUBLISHED" -> android.widget.Toast.makeText(requireContext(), "오늘의 아웃핏이 이미 공개되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
-                        else                -> android.widget.Toast.makeText(requireContext(), body?.message ?: "게시 실패", android.widget.Toast.LENGTH_SHORT).show()
+                        "NO_TODAY_OUTFIT"   -> Toast.makeText(requireContext(), "오늘 등록한 아웃핏이 없습니다.", Toast.LENGTH_SHORT).show()
+                        "ALREADY_PUBLISHED" -> Toast.makeText(requireContext(), "오늘의 아웃핏이 이미 공개되었습니다.", Toast.LENGTH_SHORT).show()
+                        else                -> Toast.makeText(requireContext(), body?.message ?: "게시 실패", Toast.LENGTH_SHORT).show()
                     }
-                    onSuccess?.invoke(body?.result?.id)
                 }
+
             } catch (_: Exception) {
                 android.widget.Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", android.widget.Toast.LENGTH_SHORT).show()
             } finally {
@@ -693,9 +694,8 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     val id = item.outfitId ?: continue
                     val detailRes = RetrofitInstance.api.getOutfitDetail("Bearer $token", id)
                     if (detailRes.isSuccessful) {
-                        val tInt = detailRes.body()?.result?.weatherTempAvg // Int?
-                        val t = tInt?.toDouble()
-                        if (t != null && abs(t - base) <= 2.0) {
+                        val t = detailRes.body()?.result?.weatherTempAvg // Double?
+                        if (t != null && kotlin.math.abs(t - base) <= 2.0) {
                             gridItems.add(item)
                             gridAdapter.notifyItemInserted(gridItems.size - 1)
                         }

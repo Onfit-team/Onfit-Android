@@ -241,6 +241,7 @@
             </LinearLayout>
 
             <!-- 함께 코디하면 좋을 아이템 섹션 -->
+
             <LinearLayout
                 android:id="@+id/recommended_items_section"
                 android:layout_width="match_parent"
@@ -276,7 +277,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:scrollbars="none"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         android:id="@+id/hsv_recommended_items">
 
                     <LinearLayout

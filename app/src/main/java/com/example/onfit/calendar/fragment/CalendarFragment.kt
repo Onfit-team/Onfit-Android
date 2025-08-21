@@ -160,23 +160,38 @@ class CalendarFragment : Fragment() {
 
     }
 
+    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
+
+    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
+
     private fun addDummyDataToCalendar() {
         Log.d("CalendarFragment", "🎭 더미 데이터를 캘린더에 추가")
 
-        // 🔥 JavaCalendar로 변경
         val calendar = JavaCalendar.getInstance()
         val currentYear = calendar.get(JavaCalendar.YEAR)
         val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
 
-        // 하드코딩된 더미 코디 데이터 (현재 월 기준)
-        val dummyOutfits = mapOf(
-            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1001, // 이번 달 20일
-            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1002, // 이번 달 19일
-            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1003,  // 이번 달 18일
-            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1004,
-            )
+        // 🔥 기존 캘린더 더미 데이터 (1001~1005) - 10,11,12,13,14일
+        val calendarDummyOutfits = mapOf(
+            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1001, // 이번 달 13일 - cody1
+            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1002, // 이번 달 12일 - cody2
+            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1003, // 이번 달 11일 - cody3
+            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1004, // 이번 달 10일 - cody4
+            "$currentYear-${String.format("%02d", currentMonth)}-14" to 1005  // 이번 달 14일 - cody6
+        )
 
-        dummyOutfits.forEach { (date, outfitId) ->
+        // 🔥 StyleOutfits용 더미 데이터 (1101~1104) - 1,2,3,4일 (StyleOutfitsFragment와 매칭)
+        val styleOutfitsDummyOutfits = mapOf(
+            "$currentYear-${String.format("%02d", currentMonth)}-01" to 1101, // 8월 1일 - ccody1 (스트릿)
+            "$currentYear-${String.format("%02d", currentMonth)}-02" to 1102, // 8월 2일 - ccody2 (스트릿)
+            "$currentYear-${String.format("%02d", currentMonth)}-03" to 1103, // 8월 3일 - ccody3 (캐주얼)
+            "$currentYear-${String.format("%02d", currentMonth)}-04" to 1104  // 8월 4일 - ccody4 (캐주얼)
+        )
+
+        // 🔥 모든 더미 데이터 통합
+        val allDummyOutfits = calendarDummyOutfits + styleOutfitsDummyOutfits
+
+        allDummyOutfits.forEach { (date, outfitId) ->
             // 등록된 날짜에 추가
             registeredDates.add(date)
             dateToOutfitIdMap[date] = outfitId
@@ -192,7 +207,47 @@ class CalendarFragment : Fragment() {
             calendarAdapter.updateRegisteredDates(registeredDates)
         }
 
-        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료: ${dummyOutfits.size}개")
+        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료: ${allDummyOutfits.size}개")
+    }
+
+    // 🔥 더미 코디 상세 화면 이동 함수에서 날짜 매핑 수정
+    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
+        try {
+            // ID 범위에 따라 outfit 번호 계산
+            val outfitNumber = when (dummyOutfitId) {
+                in 1001..1005 -> dummyOutfitId - 1000  // CalendarFragment 더미: 1,2,3,4
+                in 1101..1104 -> dummyOutfitId - 1100  // StyleOutfitsFragment 더미: 1,2,3,4
+                else -> 1
+            }
+
+            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, ID=$dummyOutfitId, 번호=$outfitNumber")
+
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putInt("outfit_id", dummyOutfitId)
+                putInt("outfit_number", outfitNumber)
+                putBoolean("from_outfit_record", true)
+                putBoolean("is_dummy_outfit", true)
+                putString("memo", getDummyMemoForOutfit(outfitNumber))
+            }
+
+            val navController = findNavController()
+            runCatching {
+                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+            }.onFailure {
+                runCatching {
+                    navController.navigate(R.id.calendarSaveFragment, bundle)
+                }.onFailure {
+                    Log.e("CalendarFragment", "더미 코디 navigation 실패")
+                    val fallbackDescription = getDummyMemoForOutfit(outfitNumber)
+                    Toast.makeText(context, "더미 코디 $outfitNumber 번 ($dateString)\n$fallbackDescription", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("CalendarFragment", "더미 코디 이동 실패", e)
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun handleNavigationArguments() {
@@ -876,7 +931,7 @@ class CalendarFragment : Fragment() {
         rvCalendar = view.findViewById(R.id.rvCalendar)
         tvMostUsedStyle = view.findViewById(R.id.tvMostUsedStyle)
 
-        tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+        tvMostUsedStyle.text = "#캐주얼 스타일이 가장 많았어요!"
 
         view.findViewById<View>(R.id.btnStyleOutfits)?.setOnClickListener {
             navigateToStyleOutfits()
@@ -936,12 +991,12 @@ class CalendarFragment : Fragment() {
             }
 
             state.tagErrorMessage != null -> {
-                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+                tvMostUsedStyle.text = "#캐주얼 스타일이 가장 많았어요!"
                 viewModel.clearTagError()
             }
 
             else -> {
-                tvMostUsedStyle.text = "#포멀 스타일이 가장 많았어요!"
+                tvMostUsedStyle.text = "#캐주얼 스타일이 가장 많았어요!"
             }
         }
     }
@@ -1250,43 +1305,10 @@ class CalendarFragment : Fragment() {
      * 🔥 더미 코디 판별 (1001~1004만 더미로 인식)
      */
     private fun isDummyOutfitId(outfitId: Int): Boolean {
-        return outfitId in 1001..1004
-    }
-
-    /**
-     * 🔥 더미 코디 상세 화면으로 이동 (기존 코드 유지)
-     */
-    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
-        try {
-            val outfitNumber = dummyOutfitId - 1000
-
-            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, 번호=$outfitNumber")
-
-            val bundle = Bundle().apply {
-                putString("selected_date", dateString)
-                putInt("outfit_id", dummyOutfitId)
-                putInt("outfit_number", outfitNumber)
-                putBoolean("from_outfit_record", true)
-                putBoolean("is_dummy_outfit", true)
-                putString("memo", getDummyMemoForOutfit(outfitNumber))
-            }
-
-            val navController = findNavController()
-            runCatching {
-                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
-            }.onFailure {
-                runCatching {
-                    navController.navigate(R.id.calendarSaveFragment, bundle)
-                }.onFailure {
-                    Log.e("CalendarFragment", "더미 코디 navigation 실패")
-                    val fallbackDescription = getDummyMemoForOutfit(outfitNumber)
-                    Toast.makeText(context, "더미 코디 $outfitNumber 번 ($dateString)\n$fallbackDescription", Toast.LENGTH_LONG).show()
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("CalendarFragment", "더미 코디 이동 실패", e)
-            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+        return when (outfitId) {
+            in 1001..1005 -> true  // CalendarFragment 더미 코디
+            in 1101..1104 -> true  // StyleOutfitsFragment 더미 코디
+            else -> false
         }
     }
 
@@ -1642,10 +1664,10 @@ class CalendarFragment : Fragment() {
      */
     private fun getDummyMemoForOutfit(outfitNumber: Int): String {
         return when (outfitNumber) {
-            1 -> "화이트 셔츠와 베이지 팬츠로 깔끔한 오피스 룩 (8월 13일)"
-            2 -> "블랙 반팔과 베이지 반바지로 시원한 여름 코디 (8월 12일)"
-            3 -> "블랙 셔츠와 화이트 신발로 모던하고 세련된 스타일 (8월 11일)"
-            4 -> "그레이 셔츠와 블랙 팬츠로 미니멀한 데일리 코디 (8월 10일)"
+            1 -> "화이트 셔츠와 베이지 팬츠로 깔끔한 오피스 룩 (8월 1일)"
+            2 -> "블랙 반팔과 베이지 반바지로 시원한 여름 코디 (8월 2일)"
+            3 -> "블랙 셔츠와 화이트 신발로 모던하고 세련된 스타일 (8월 3일)"
+            4 -> "그레이 셔츠와 블랙 팬츠로 미니멀한 데일리 코디 (8월 4일)"
             else -> "스타일리시한 데일리 코디"
         }
     }

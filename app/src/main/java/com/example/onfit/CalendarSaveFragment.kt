@@ -45,6 +45,8 @@ class CalendarSaveFragment : Fragment() {
         return binding.root
     }
 
+    // CalendarSaveFragment.kt - onViewCreated 함수 전체 코드
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -72,43 +74,58 @@ class CalendarSaveFragment : Fragment() {
         // ⭐ 날짜 표시
         binding.calendarSaveDateTv.text = selectedDate ?: "날짜 없음"
 
-        // 🔥 코디 타입별 초기 표시 (main 분기 유지) + URL 보정 추가
+        // 🔥 더미 코디 판별 (1001~1004 또는 1101~1104)
+        val isStyleOutfitsDummy = outfitId in 1101..1104
+        val isCalendarDummy = outfitId in 1001..1004
+
         when {
-            // 1. 더미 코디 (ClothesDetailFragment에서 온 경우 또는 더미 플래그)
+            // 1. StyleOutfits 더미 코디 (1101~1104)
+            isStyleOutfitsDummy -> {
+                Log.d("CalendarSaveFragment", "🎨 StyleOutfits 더미 코디 처리: ID=$outfitId")
+                val actualOutfitNumber = outfitId - 1100  // 1101->1, 1102->2, 1103->3, 1104->4
+                setupDummyOutfitData(actualOutfitNumber)
+            }
+
+            // 2. Calendar 더미 코디 (1001~1004)
+            isCalendarDummy -> {
+                Log.d("CalendarSaveFragment", "📅 Calendar 더미 코디 처리: ID=$outfitId")
+                val actualOutfitNumber = outfitId - 1000  // 1001->1, 1002->2, 1003->3, 1004->4
+                setupDummyOutfitData(actualOutfitNumber)
+            }
+
+            // 3. 기존 더미 처리 방식 (from_outfit_record)
             isDummyOutfit || (fromOutfitRecord && outfitNumber != -1) -> {
-                Log.d("CalendarSaveFragment", "🎭 더미 코디 데이터 설정")
+                Log.d("CalendarSaveFragment", "🎭 기존 더미 코디 처리: outfitNumber=$outfitNumber")
                 setupDummyOutfitData(outfitNumber)
             }
 
-            // 2. 실제 API 코디 (HomeViewModel에서 온 경우)
+            // 4. 실제 API 코디
             isRealOutfit && !mainImageUrl.isNullOrBlank() -> {
-                Log.d("CalendarSaveFragment", "🌐 실제 API 코디 데이터 설정")
+                Log.d("CalendarSaveFragment", "🌐 실제 API 코디 처리")
                 setupRealApiOutfitData(normalizeServerUrl(mainImageUrl), memo)
             }
 
-            // 3. 기존 서버 코디 (개별 아이템들이 있는 경우)
+            // 5. 기타 처리 (기존 로직)
             !mainImageUrl.isNullOrBlank() && !itemImageUrls.isNullOrEmpty() -> {
-                Log.d("CalendarSaveFragment", "📦 기존 서버 코디 데이터 설정")
+                Log.d("CalendarSaveFragment", "📦 기존 서버 코디 처리")
                 setupMainImage(normalizeServerUrl(mainImageUrl))
                 setupItemRecyclerView(itemImageUrls.map { normalizeServerUrl(it) })
             }
 
-            // 4. 메인 이미지만 있는 경우
             !mainImageUrl.isNullOrBlank() -> {
-                Log.d("CalendarSaveFragment", "🖼️ 메인 이미지만 설정")
+                Log.d("CalendarSaveFragment", "🖼️ 메인 이미지만 처리")
                 setupMainImage(normalizeServerUrl(mainImageUrl))
                 setupDummyRecyclerView()
             }
 
-            // 5. 폴백: 더미 데이터
             else -> {
                 Log.d("CalendarSaveFragment", "🔄 폴백: 더미 데이터 사용")
                 setupDummyRecyclerView()
             }
         }
 
-        // ✅ outfitId가 유효하면 상세 API로 '정답' 데이터로 덮어쓰기 (fix/KakaoHomeCommunity 기능 유지)
-        if (outfitId > 0) {
+        // ✅ 🔥 더미 코디는 서버 API 호출하지 않도록 수정
+        if (outfitId > 0 && !isStyleOutfitsDummy && !isCalendarDummy && !isDummyOutfit) {
             val token = TokenProvider.getToken(requireContext())
             if (token.isNotBlank()) {
                 viewLifecycleOwner.lifecycleScope.launch {
@@ -139,15 +156,17 @@ class CalendarSaveFragment : Fragment() {
             } else {
                 Log.d("CalendarSaveFragment", "토큰 없음: 상세 재조회 생략")
             }
+        } else {
+            Log.d("CalendarSaveFragment", "더미 코디이므로 서버 API 호출 생략")
         }
 
-        // 버튼 리스너들
+        // 🔥 버튼 리스너들
         binding.calendarSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
 
         binding.calendarSaveEditIv.setOnClickListener {
-            if (isDummyOutfit) {
+            if (isStyleOutfitsDummy || isCalendarDummy || isDummyOutfit) {
                 Toast.makeText(requireContext(), "더미 코디는 편집할 수 없습니다", Toast.LENGTH_SHORT).show()
             } else {
                 findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
@@ -155,7 +174,7 @@ class CalendarSaveFragment : Fragment() {
         }
 
         binding.calendarSaveSendIv.setOnClickListener {
-            if (isDummyOutfit) {
+            if (isStyleOutfitsDummy || isCalendarDummy || isDummyOutfit) {
                 showDummyDeleteDialog()
             } else {
                 showDeleteDialog()
@@ -327,32 +346,46 @@ class CalendarSaveFragment : Fragment() {
     }
 
     // 🔥 더미 코디 데이터 설정
+    // CalendarSaveFragment.kt의 setupDummyOutfitData 함수를 수정하세요:
+
     private fun setupDummyOutfitData(outfitNumber: Int) {
         Log.d("CalendarSaveFragment", "🎭 더미 코디 ${outfitNumber}번 데이터 설정")
 
-        val calendar = JavaCalendar.getInstance()
-        val currentYear = calendar.get(JavaCalendar.YEAR)
-        val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+        // 🔥 날짜는 arguments에서 받은 selected_date 사용 (계산하지 않음)
+        val selectedDate = arguments?.getString("selected_date") ?: arguments?.getString("selectedDate")
+        if (!selectedDate.isNullOrBlank()) {
+            binding.calendarSaveDateTv.text = selectedDate
+            Log.d("CalendarSaveFragment", "전달받은 날짜 사용: $selectedDate")
+        } else {
+            binding.calendarSaveDateTv.text = "날짜 없음"
+            Log.w("CalendarSaveFragment", "날짜 정보가 없음")
+        }
 
-        val dateMap = mapOf(
-            1 to "$currentYear-${String.format("%02d", currentMonth)}-13",
-            2 to "$currentYear-${String.format("%02d", currentMonth)}-12",
-            3 to "$currentYear-${String.format("%02d", currentMonth)}-11",
-            4 to "$currentYear-${String.format("%02d", currentMonth)}-10"
-        )
-
-        val targetDate = dateMap[outfitNumber] ?: "날짜 없음"
-        binding.calendarSaveDateTv.text = targetDate
-
+        // 🔥 더미 코디별 이미지 리소스 매핑 (ccody1~ccody4)
         val mainImageRes = when (outfitNumber) {
-            1 -> R.drawable.cody1
-            2 -> R.drawable.cody2
-            3 -> R.drawable.cody3
+            1 -> {
+                // ccody1이 없으면 cody1 사용
+                val ccody1Id = resources.getIdentifier("ccody1", "drawable", requireContext().packageName)
+                if (ccody1Id != 0) ccody1Id else R.drawable.cody1
+            }
+            2 -> {
+                val ccody2Id = resources.getIdentifier("ccody2", "drawable", requireContext().packageName)
+                if (ccody2Id != 0) ccody2Id else R.drawable.cody2
+            }
+            3 -> {
+                val ccody3Id = resources.getIdentifier("ccody3", "drawable", requireContext().packageName)
+                if (ccody3Id != 0) ccody3Id else R.drawable.cody3
+            }
+            4 -> {
+                val ccody4Id = resources.getIdentifier("ccody4", "drawable", requireContext().packageName)
+                if (ccody4Id != 0) ccody4Id else R.drawable.clothes8
+            }
             else -> R.drawable.clothes8
         }
 
         setupMainImageFromDrawable(mainImageRes)
 
+        // 🔥 더미 코디별 개별 아이템 이미지 설정
         val itemList = when (outfitNumber) {
             1 -> listOf(
                 CalendarSaveItem(imageResId = R.drawable.shirts1),
@@ -369,13 +402,17 @@ class CalendarSaveFragment : Fragment() {
                 CalendarSaveItem(imageResId = R.drawable.shoes3),
                 CalendarSaveItem(imageResId = R.drawable.pants3)
             )
+            4 -> listOf(
+                CalendarSaveItem(imageResId = R.drawable.shirts1), // 임시로 shirts1 사용
+                CalendarSaveItem(imageResId = R.drawable.pants1),  // 임시로 pants1 사용
+                CalendarSaveItem(imageResId = R.drawable.shoes1)   // 임시로 shoes1 사용
+            )
             else -> calendarSaveList
         }
 
-        // 레이아웃/가시성까지 한 번에 처리
         setupDummyItemRecyclerView(itemList)
 
-        Log.d("CalendarSaveFragment", "✅ 코디 ${outfitNumber}번 설정 완료: 날짜=$targetDate")
+        Log.d("CalendarSaveFragment", "✅ 코디 ${outfitNumber}번 설정 완료: 날짜=$selectedDate, 메인이미지=${mainImageRes}")
     }
 
     // 🔥 Drawable 리소스로 메인 이미지 설정

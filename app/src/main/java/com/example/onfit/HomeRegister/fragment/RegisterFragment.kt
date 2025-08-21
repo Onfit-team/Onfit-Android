@@ -214,7 +214,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         val outfitIdText = body.result?.id?.toString().orEmpty()
                         val registeredDate = formattedDateForAPI // "2025-08-06"
 
-                        Log.d("RegisterFragment", "등록 성공 - 날짜: $registeredDate, outfit_id: $outfitIdText, 이미지: $imageUrl")
+                        Log.d("RegisterFragment", "등록 성공 - 날짜: $registeredDate, outfitId: $outfitIdText, 이미지: $imageUrl")
 
                         // ⭐ outfit_id, 날짜, 이미지 URL을 모두 저장 (형식: "날짜:outfit_id:이미지URL")
                         val historyPrefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
@@ -242,7 +242,7 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         val bundle = Bundle().apply {
                             putString("save_date", formattedDate)
                             putString("outfit_image_path", imagePath)
-                            putString("outfit_id", outfitIdText)
+                            putString("outfitId", outfitIdText)
                         }
                         if (!isAdded) return@launch
                         findNavController().navigate(

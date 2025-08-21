@@ -107,6 +107,11 @@ class WardrobeAdapter(
     private fun getDrawableResourceId(imageName: String): Int {
         return when (imageName) {
             // 🔥 실제 drawable 파일명과 동일하게 매핑
+
+            "shirts6" -> R.drawable.shirts6
+            "pants6" -> R.drawable.pants6
+            "shoes6" -> R.drawable.shoes6
+            "acc6" -> R.drawable.acc6
             "shirts1" -> R.drawable.shirts1
             "pants1" -> R.drawable.pants1
             "shoes1" -> R.drawable.shoes1
