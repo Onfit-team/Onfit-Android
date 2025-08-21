@@ -359,7 +359,7 @@ class CalendarSaveFragment : Fragment() {
         val isCalendarDummy = outfitId in 1001..1005      // 8월 10~14일: cody 시리즈
 
         val mainImageRes = when {
-            // StyleOutfits 더미 (8월 1~5일): ccody1~ccody4, cody6
+            // StyleOutfits 더미 (8월 1~5일): ccody1~ccody4, cody5
             isStyleOutfitsDummy -> {
                 when (outfitNumber) {
                     1 -> {
@@ -378,7 +378,7 @@ class CalendarSaveFragment : Fragment() {
                         val ccody4Id = resources.getIdentifier("ccody4", "drawable", requireContext().packageName)
                         if (ccody4Id != 0) ccody4Id else R.drawable.clothes8
                     }
-                    5 -> R.drawable.cody6  // 🔥 8월 5일 - cody6
+                    5 -> R.drawable.cody5  // 🔥 수정: 8월 5일 - cody5 (cody6이 아님!)
                     else -> R.drawable.clothes8
                 }
             }

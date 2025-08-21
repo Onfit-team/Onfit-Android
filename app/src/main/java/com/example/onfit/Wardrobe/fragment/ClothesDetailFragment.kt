@@ -134,46 +134,59 @@ class ClothesDetailFragment : Fragment() {
 
         Log.d("ClothesDetailFragment", "🎭 하드코딩된 더미 아이템 생성: dummyId=$dummyId, index=$index")
 
-        // 🔥 WardrobeFragment와 완전히 동일한 하드코딩된 더미 아이템 리스트
+        // 🔥 FIXED: HardcodedItem 데이터 클래스 정의 추가
+        data class HardcodedItem(
+            val imageName: String,
+            val category: Int,
+            val subcategory: Int,
+            val categoryName: String,
+            val subcategoryName: String,
+            val brand: String,
+            val size: String,
+            val price: Int,
+            val purchaseSite: String,
+            val outfitGroup: Int,
+            val season: Int = 1
+        )
+
         val hardcodedItems = listOf(
-            // 🔥 shirts5, pants5, shoes5, acc5 (5시리즈) - 새로운 정보로 업데이트
-            HardcodedItem("shirts5", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 69800, "H&M 온라인", 5),
-            HardcodedItem("pants5", 2, 12, "하의", "청바지", "무신사", "M", 39900, "무신사 온라인", 5),
-            HardcodedItem("shoes5", 5, 32, "신발", "슬리퍼", "무지", "260", 29900, "무지 온라인", 5),
-            HardcodedItem("acc5", 6, 41, "액세서리", "가방", "아디다스", "FREE", 86900, "아디다스 온라인", 5),
+            // 🔥 shirts5, pants5, shoes5, acc5 (5시리즈) - WardrobeFragment와 동일한 season
+            HardcodedItem("shirts5", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 69800, "H&M 온라인", 5, season = 2), // 여름
+            HardcodedItem("pants5", 2, 11, "하의", "청바지", "무신사", "M", 39900, "무신사 온라인", 5, season = 2), // 여름
+            HardcodedItem("shoes5", 5, 32, "신발", "슬리퍼", "무지", "260", 29900, "무지 온라인", 5, season = 2), // 여름
+            HardcodedItem("acc5", 6, 41, "액세서리", "가방", "아디다스", "FREE", 86900, "아디다스 온라인", 5, season = 2), // 여름
 
+            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 2, season = 2), // 여름
+            HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2, season = 2), // 여름
+            HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 2, season = 2), // 여름
 
-            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 2),
-            HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2),
-            HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1),
-            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 2),
-
-
-                    // 코디 1 관련 아이템들
-            HardcodedItem("shirts1", 1, 4, "상의", "셔츠/블라우스", "자라", "M", 59000, "자라 강남점", 1),
-            HardcodedItem("pants1", 2, 10, "하의", "긴바지", "유니클로", "30", 29900, "유니클로 온라인", 1),
-            HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1),
-            HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2),
-            HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2),
-            HardcodedItem("shoes2", 4, 29, "아우터", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2),
-            HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3),
-            HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3),
-            HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3),
-            HardcodedItem("acc3", 6, 40, "액세서리", "안경/선글라스", "무지", "FREE", 39000, "무지 매장", 3),
-            HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1),
-            HardcodedItem("pants4", 2, 14, "하의", "스커트", "자라", "S", 39900, "자라 온라인", 1),
-            HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1),
-            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1)
+            // 코디 1 관련 아이템들
+            HardcodedItem("shirts1", 1, 4, "상의", "셔츠/블라우스", "자라", "M", 59000, "자라 강남점", 1, season = 2), // 여름
+            HardcodedItem("pants1", 2, 10, "하의", "긴바지", "유니클로", "30", 29900, "유니클로 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1, season = 2), // 여름
+            HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2, season = 2), // 여름
+            HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2, season = 2), // 여름
+            HardcodedItem("shoes2", 4, 29, "아우터", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2, season = 1), // 봄가을
+            HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3, season = 2), // 여름
+            HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3, season = 1), // 봄가을
+            HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3, season = 1), // 봄가을
+            HardcodedItem("acc3", 6, 40, "액세서리", "안경/선글라스", "무지", "FREE", 39000, "무지 매장", 3, season = 2), // 여름
+            HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1, season = 2), // 여름
+            HardcodedItem("pants4", 2, 10, "하의", "긴바지", "자라", "S", 39900, "자라 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1, season = 2), // 여름
+            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1, season = 2) // 여름
         )
 
         val selectedItem = hardcodedItems[index % hardcodedItems.size]
 
+        // 🔥 FIXED: DummyItemInfo 생성 부분 수정
         val itemInfo = DummyItemInfo(
             id = dummyId,
             imagePath = "drawable://${selectedItem.imageName}",
             category = selectedItem.category,
             subcategory = selectedItem.subcategory,
-            season = 1, // 봄가을로 고정
+            season = selectedItem.season, // 🔥 HardcodedItem의 season 직접 사용
             color = generateHardcodedColor(index),
             brand = selectedItem.brand,
             size = selectedItem.size,
@@ -193,7 +206,7 @@ class ClothesDetailFragment : Fragment() {
         return itemInfo
     }
 
-    // 🔥 FIXED: WardrobeFragment와 동일한 하드코딩된 아이템 데이터 클래스
+    // HardcodedItem 데이터 클래스에 season 필드 추가
     data class HardcodedItem(
         val imageName: String,
         val category: Int,
@@ -204,7 +217,8 @@ class ClothesDetailFragment : Fragment() {
         val size: String,
         val price: Int,
         val purchaseSite: String,
-        val outfitGroup: Int // 어떤 코디에 속하는지 (1, 2, 3)
+        val outfitGroup: Int, // 어떤 코디에 속하는지 (1, 2, 3)
+        val season: Int = 1 // 🔥 추가: 계절 정보 (1=봄가을, 2=여름, 4=겨울)
     )
 
     fun getTagNameById(tagId: Int): String {
