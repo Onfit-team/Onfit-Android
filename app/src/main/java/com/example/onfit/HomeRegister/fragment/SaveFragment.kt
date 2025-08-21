@@ -32,7 +32,7 @@ class SaveFragment : Fragment() {
             receivedDate = it.getString("save_date") ?: "날짜 없음"
             // RegisterFragment로부터 이미지 경로 받기
             imagePath  = it.getString("outfit_image_path")
-            outfitIdText = it.getString("outfit_id") // 아웃핏 id 추출
+            outfitIdText = it.getString("outfitId") // 아웃핏 id 추출
         }
     }
 

@@ -257,6 +257,15 @@
         <argument
             android:name="selectedDate"
             app:argType="string" />
+        <argument android:name="mainImageUrl" app:argType="string" app:nullable="true" />
+        <argument
+            android:name="outfitId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+        <argument
+            android:name="memo"
+            app:argType="string"
+            app:nullable="true" />
         <action
             android:id="@+id/action_calendarSaveFragment_to_calendarRewriteFragment"
             app:destination="@id/calendarRewriteFragment"/>

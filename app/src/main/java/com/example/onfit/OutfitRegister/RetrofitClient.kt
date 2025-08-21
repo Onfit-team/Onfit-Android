@@ -23,6 +23,30 @@ object RetrofitClient {
         redactHeader("Cookie")
     }
 
+    // 요청-응답 한 싸이클을 요약(코드/시간/에러바디 일부)으로 남기는 타이밍 인터셉터 ★추가
+    private val timingLogger = Interceptor { chain ->
+        val req = chain.request()
+        val startNs = System.nanoTime()
+        Log.d("HTTP-TIMING", "--> ${req.method} ${req.url}")
+
+        val resp = try {
+            chain.proceed(req)
+        } catch (e: Exception) {
+            Log.e("HTTP-TIMING", "!! ${req.method} ${req.url} failed: ${e.message}", e)
+            throw e
+        }
+
+        val tookMs = (System.nanoTime() - startNs) / 1_000_000.0
+        Log.d("HTTP-TIMING", "<-- ${resp.code} ${req.method} ${req.url} (${String.format("%.1f", tookMs)}ms)")
+
+        // 에러일 때만 바디 일부 미리보기(최대 8KB)
+        if (!resp.isSuccessful) {
+            val peek = resp.peekBody(8 * 1024).string()
+            Log.e("HTTP-ERROR", "code=${resp.code} url=${req.url}\nbody=${peek}")
+        }
+        resp
+    }
+
     // 멀티파트 상세 로깅 (파트 이름, MIME, 파일 크기)
     private val multipartLogger = Interceptor { chain ->
         val req = chain.request()
@@ -54,6 +78,9 @@ object RetrofitClient {
     private val client = OkHttpClient.Builder()
         .addInterceptor(multipartLogger)
         .addInterceptor(httpLogger)
+        .addInterceptor(timingLogger)
+        .callTimeout(12, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .connectTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
