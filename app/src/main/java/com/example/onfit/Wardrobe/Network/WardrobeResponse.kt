@@ -98,3 +98,29 @@ data class ErrorData(
     val reason: String,
     val data: Any?
 )
+
+data class RecommendationItem(
+    val id: Int,
+    val category: Int,
+    val subcategory: Int,
+    val brand: String?,
+    val color: Int,
+    val size: String?,
+    val season: Int,
+    val image: String?,
+    val tags: List<Tag>?,
+    val matchingScore: Int,
+    val scoreBreakdown: ScoreBreakdown?
+)
+
+data class Tag(
+    val id: Int,
+    val name: String,
+    val type: String
+)
+
+data class ScoreBreakdown(
+    val season: Int,
+    val color: Int,
+    val tag: Int
+)
