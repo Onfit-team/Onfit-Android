@@ -71,6 +71,13 @@ class StyleOutfitsFragment : Fragment() {
             style = "캐주얼",
             date = "2025-08-14",
             description = "캐주얼 스타일 코디 6"  // ← "코디 4"에서 "코디 6"으로 변경!
+        ),
+        DummyOutfitItem(
+            id = 7,
+            imageResName = "cody7",
+            style = "캐주얼",
+            date = "2025-08-16",
+            description = "캐주얼 스타일 코디 7"
         )
     )
 
