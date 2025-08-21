@@ -162,6 +162,8 @@ class CalendarFragment : Fragment() {
 
     // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
 
+    // CalendarFragment.kt에서 addDummyDataToCalendar() 함수를 다음과 같이 수정하세요:
+
     private fun addDummyDataToCalendar() {
         Log.d("CalendarFragment", "🎭 더미 데이터를 캘린더에 추가")
 
@@ -169,12 +171,13 @@ class CalendarFragment : Fragment() {
         val currentYear = calendar.get(JavaCalendar.YEAR)
         val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
 
-        // 🔥 기존 캘린더 더미 데이터 (1001~1004) - 10,11,12,13일
+        // 🔥 기존 캘린더 더미 데이터 (1001~1005) - 10,11,12,13,14일
         val calendarDummyOutfits = mapOf(
-            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1001, // 이번 달 13일
-            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1002, // 이번 달 12일
-            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1003, // 이번 달 11일
-            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1004  // 이번 달 10일
+            "$currentYear-${String.format("%02d", currentMonth)}-13" to 1001, // 이번 달 13일 - cody1
+            "$currentYear-${String.format("%02d", currentMonth)}-12" to 1002, // 이번 달 12일 - cody2
+            "$currentYear-${String.format("%02d", currentMonth)}-11" to 1003, // 이번 달 11일 - cody3
+            "$currentYear-${String.format("%02d", currentMonth)}-10" to 1004, // 이번 달 10일 - cody4
+            "$currentYear-${String.format("%02d", currentMonth)}-14" to 1005  // 이번 달 14일 - cody6
         )
 
         // 🔥 StyleOutfits용 더미 데이터 (1101~1104) - 1,2,3,4일 (StyleOutfitsFragment와 매칭)
@@ -185,7 +188,7 @@ class CalendarFragment : Fragment() {
             "$currentYear-${String.format("%02d", currentMonth)}-04" to 1104  // 8월 4일 - ccody4 (캐주얼)
         )
 
-        // 🔥 두 더미 데이터 모두 추가
+        // 🔥 모든 더미 데이터 통합
         val allDummyOutfits = calendarDummyOutfits + styleOutfitsDummyOutfits
 
         allDummyOutfits.forEach { (date, outfitId) ->
@@ -205,6 +208,46 @@ class CalendarFragment : Fragment() {
         }
 
         Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료: ${allDummyOutfits.size}개")
+    }
+
+    // 🔥 더미 코디 상세 화면 이동 함수에서 날짜 매핑 수정
+    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
+        try {
+            // ID 범위에 따라 outfit 번호 계산
+            val outfitNumber = when (dummyOutfitId) {
+                in 1001..1005 -> dummyOutfitId - 1000  // CalendarFragment 더미: 1,2,3,4
+                in 1101..1104 -> dummyOutfitId - 1100  // StyleOutfitsFragment 더미: 1,2,3,4
+                else -> 1
+            }
+
+            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, ID=$dummyOutfitId, 번호=$outfitNumber")
+
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putInt("outfit_id", dummyOutfitId)
+                putInt("outfit_number", outfitNumber)
+                putBoolean("from_outfit_record", true)
+                putBoolean("is_dummy_outfit", true)
+                putString("memo", getDummyMemoForOutfit(outfitNumber))
+            }
+
+            val navController = findNavController()
+            runCatching {
+                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+            }.onFailure {
+                runCatching {
+                    navController.navigate(R.id.calendarSaveFragment, bundle)
+                }.onFailure {
+                    Log.e("CalendarFragment", "더미 코디 navigation 실패")
+                    val fallbackDescription = getDummyMemoForOutfit(outfitNumber)
+                    Toast.makeText(context, "더미 코디 $outfitNumber 번 ($dateString)\n$fallbackDescription", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("CalendarFragment", "더미 코디 이동 실패", e)
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun handleNavigationArguments() {
@@ -1263,51 +1306,9 @@ class CalendarFragment : Fragment() {
      */
     private fun isDummyOutfitId(outfitId: Int): Boolean {
         return when (outfitId) {
-            in 1001..1004 -> true  // CalendarFragment 더미 코디
+            in 1001..1005 -> true  // CalendarFragment 더미 코디
             in 1101..1104 -> true  // StyleOutfitsFragment 더미 코디
             else -> false
-        }
-    }
-
-    /**
-     * 🔥 더미 코디 상세 화면으로 이동 (기존 코드 유지)
-     */
-    private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
-        try {
-            // ID 범위에 따라 outfit 번호 계산
-            val outfitNumber = when (dummyOutfitId) {
-                in 1001..1004 -> dummyOutfitId - 1000  // CalendarFragment 더미: 1,2,3,4
-                in 1101..1104 -> dummyOutfitId - 1100  // StyleOutfitsFragment 더미: 1,2,3,4
-                else -> 1
-            }
-
-            Log.d("CalendarFragment", "🎭 더미 코디 상세 이동: 날짜=$dateString, ID=$dummyOutfitId, 번호=$outfitNumber")
-
-            val bundle = Bundle().apply {
-                putString("selected_date", dateString)
-                putInt("outfit_id", dummyOutfitId)
-                putInt("outfit_number", outfitNumber)
-                putBoolean("from_outfit_record", true)
-                putBoolean("is_dummy_outfit", true)
-                putString("memo", getDummyMemoForOutfit(outfitNumber))
-            }
-
-            val navController = findNavController()
-            runCatching {
-                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
-            }.onFailure {
-                runCatching {
-                    navController.navigate(R.id.calendarSaveFragment, bundle)
-                }.onFailure {
-                    Log.e("CalendarFragment", "더미 코디 navigation 실패")
-                    val fallbackDescription = getDummyMemoForOutfit(outfitNumber)
-                    Toast.makeText(context, "더미 코디 $outfitNumber 번 ($dateString)\n$fallbackDescription", Toast.LENGTH_LONG).show()
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("CalendarFragment", "더미 코디 이동 실패", e)
-            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
