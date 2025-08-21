@@ -1766,7 +1766,7 @@ open class WardrobeFragment : Fragment() {
                 ),
                 HardcodedWardrobeItem(
                     imageName = "pants5",
-                    category = 2, subcategory = 11,
+                    category = 2, subcategory = 12,
                     brand = "무신사", season = 2, color = 1,
                     tag1 = 2, tag2 = 8, tag3 = null,
                     purchasePlace = "무신사 온라인",
@@ -1859,7 +1859,7 @@ open class WardrobeFragment : Fragment() {
                 HardcodedWardrobeItem(
                     imageName = "shirts2",
                     category = 1, subcategory = 1,
-                    brand = "자라", season = 2, color = 1,
+                    brand = "자라", season = 2, color = 2,
                     tag1 = 10, tag2 = null, tag3 = null, // 예: 미니멀, 심플
                     purchasePlace = "자라 홍대점",
                     purchasePrice = "19,900원",
