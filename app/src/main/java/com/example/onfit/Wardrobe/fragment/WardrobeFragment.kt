@@ -1980,6 +1980,22 @@ open class WardrobeFragment : Fragment() {
         }
     }
 
+    private fun getCategoryName(categoryId: Int): String {
+        return when (categoryId) {
+            1 -> "상의"
+            2 -> "하의"
+            3 -> "원피스"
+            4 -> "아우터"
+            5 -> "신발"
+            6 -> "액세서리"
+            else -> "기타"
+        }
+    }
+
+    private fun refreshWardrobe() {
+        // 일단 빈 함수로
+    }
+
     /**
      * 🔥 태그 번호를 태그 이름으로 변환하는 함수
      */
