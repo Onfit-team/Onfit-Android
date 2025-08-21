@@ -154,7 +154,12 @@ class ClothesDetailFragment : Fragment() {
             HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1),
             HardcodedItem("pants4", 2, 14, "하의", "스커트", "자라", "S", 39900, "자라 온라인", 1),
             HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1),
-            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1)
+            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1),
+            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 1),
+            HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2),
+            HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1),
+            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 1)
+
         )
 
         val selectedItem = hardcodedItems[index % hardcodedItems.size]
@@ -338,6 +343,10 @@ class ClothesDetailFragment : Fragment() {
                     "bag4" -> R.drawable.bag4            // ✅ 수정
                     "acc3" -> R.drawable.acc3            // ✅ 수정
                     "pants4" -> R.drawable.pants4        // ✅ 수정
+                    "shirts6" -> R.drawable.shirts6      // ✅ 수정
+                    "pants6" -> R.drawable.pants6        // ✅ 수정
+                    "shoes6" -> R.drawable.shoes6        // ✅ 수정
+                    "acc6" -> R.drawable.acc6            // ✅ 수정
                     else -> R.drawable.clothes8          // 기본값
                 }
 

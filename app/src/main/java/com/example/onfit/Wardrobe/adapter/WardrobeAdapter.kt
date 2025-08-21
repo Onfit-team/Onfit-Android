@@ -121,6 +121,10 @@ class WardrobeAdapter(
             "bag4" -> R.drawable.bag4
             "acc3" -> R.drawable.acc3
             "pants4" -> R.drawable.pants4
+            "shirts6" -> R.drawable.shirts6
+            "pants6" -> R.drawable.pants6
+            "shoes6" -> R.drawable.shoes6
+            "acc6" -> R.drawable.acc6
             else -> R.drawable.clothes8 // 기본값 (없는 이미지일 때)
         }
     }
