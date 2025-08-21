@@ -68,6 +68,9 @@ class OutfitRegisterFragment : Fragment() {
     // SaveFragment로부터 전달받은 이미지 path 기억
     private var originalImagePath: String? = null
 
+    private var passedOutfitId: Int = -1           // 숫자로 쓰고 싶을 때
+    private var passedOutfitIdStr: String? = null  // 문자열로 받는 경우도 커버
+
 
     // 갤러리에서 이미지 선택 결과를 받는 Launcher
     private val galleryLauncher = registerForActivityResult(
@@ -134,6 +137,9 @@ class OutfitRegisterFragment : Fragment() {
 //            )
 //        }
         passedSaveDate = arguments?.getString("save_date")
+        passedOutfitIdStr = arguments?.getString("outfitId") // Register/Save에서 putString 한 경우
+        passedOutfitId = passedOutfitIdStr?.toIntOrNull()
+            ?: arguments?.getInt("outfitId", -1) ?: -1
 
 
         // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
@@ -222,6 +228,10 @@ class OutfitRegisterFragment : Fragment() {
             val bundle = Bundle().apply {
                 // 날짜만 넘기기
                 passedSaveDate?.let { putString("save_date", it) }
+                // 원본 이미지 경로(있으면)
+                originalImagePath?.let { putString("outfit_image_path", it) }
+                // outfitId (Int로 보냄; String으로 가지고 있으면 toIntOrNull)
+                putInt("outfitId", passedOutfitId.takeIf { id -> id > 0 } ?: -1)
             }
             findNavController().navigate(
                 R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
