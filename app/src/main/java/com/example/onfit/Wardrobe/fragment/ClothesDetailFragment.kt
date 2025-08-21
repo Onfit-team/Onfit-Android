@@ -195,14 +195,6 @@ class ClothesDetailFragment : Fragment() {
             tags = generateHardcodedTags(selectedItem.category, index)
         )
 
-        Log.d("ClothesDetailFragment", "✅ 하드코딩된 더미 아이템:")
-        Log.d("ClothesDetailFragment", "  - 이미지: ${selectedItem.imageName}")
-        Log.d("ClothesDetailFragment", "  - 카테고리: ${selectedItem.categoryName}")
-        Log.d("ClothesDetailFragment", "  - 서브카테고리: ${selectedItem.subcategoryName}")
-        Log.d("ClothesDetailFragment", "  - 브랜드: ${selectedItem.brand}")
-        Log.d("ClothesDetailFragment", "  - 가격: ${selectedItem.price}원")
-        Log.d("ClothesDetailFragment", "  - 구매처: ${selectedItem.purchaseSite}")
-
         return itemInfo
     }
 
@@ -768,7 +760,7 @@ class ClothesDetailFragment : Fragment() {
         }
 
         val messageText = TextView(requireContext()).apply {
-            text = "이 더미 아이템을 옷장에서 제거하겠습니까?"
+            text = "이 아이템을 옷장에서 제거하겠습니까?"
             textSize = 17f
             setTextColor(android.graphics.Color.BLACK)
             gravity = android.view.Gravity.CENTER
@@ -865,7 +857,7 @@ class ClothesDetailFragment : Fragment() {
 
     // 🔥 NEW: 더미 아이템 삭제 (옷장에서만 제거)
     private fun deleteDummyItem() {
-        Toast.makeText(requireContext(), "더미 아이템이 옷장에서 제거되었습니다", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "아이템이 옷장에서 제거되었습니다", Toast.LENGTH_SHORT).show()
 
         // WardrobeFragment에 더미 아이템 제거 신호 전송
         val bundle = Bundle().apply {
