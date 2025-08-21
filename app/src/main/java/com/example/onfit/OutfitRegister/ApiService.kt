@@ -24,4 +24,11 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body body: RequestBody
     ): Response<OutfitResponse>
+
+    // 아이템 저장
+    @POST("/items/save")
+    suspend fun saveItems(
+        @Header("Authorization") token: String,
+        @Body body: ItemsSaveRequest
+    ): Response<ItemsSaveResponse>
 }

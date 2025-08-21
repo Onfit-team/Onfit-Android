@@ -31,15 +31,15 @@ import com.example.onfit.ItemRegister.ItemRegisterRequest
 import com.example.onfit.ItemRegister.ItemRegisterRetrofit
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.ImageOnly
+import com.example.onfit.OutfitRegister.ItemsSaveRequest
 import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.TopInfoDialogFragment
-import com.example.onfit.Wardrobe.Network.ImageUploadResponse
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputEditText
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -76,6 +76,10 @@ class OutfitSaveFragment : Fragment() {
     private val drafts = mutableListOf<ItemDraft>()
     private var bindingInProgress = false // 페이지 전환 시 리스너 오발동 방지
 
+    private var receivedDate: String? = null
+    private var imagePath: String? = null
+    private var outfitId: Int = -1 // ✅ 여기서 outfitId 보관
+
     private val categoryMap = mapOf(
         "상의" to listOf("반팔티", "긴팔티", "민소매", "셔츠/블라우스", "맨투맨", "후드티", "니트/스웨터", "기타"),
         "하의" to listOf("반바지", "긴바지", "청바지", "트레이닝 팬츠", "레깅스", "스커트", "기타"),
@@ -87,6 +91,22 @@ class OutfitSaveFragment : Fragment() {
 
     private val seasonList = listOf("봄", "여름", "가을", "겨울")
     private val colorList = listOf("화이트", "블랙", "그레이", "베이지/브라운", "네이비/블루", "레드/핑크", "오렌지/옐로우", "그린", "퍼플", "멀티/패턴")
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let { args ->
+            receivedDate = args.getString("save_date")
+            imagePath    = args.getString("outfit_image_path")
+
+            // Int로 온 경우 우선 사용, 없으면 String으로 온 경우도 대비
+            outfitId     = args.getInt("outfitId", -1)
+            if (outfitId <= 0) {
+                val outfitIdStr = args.getString("outfitId")
+                outfitId = outfitIdStr?.toIntOrNull() ?: -1
+            }
+            Log.d("OutfitSaveFragment", "received: date=$receivedDate, path=$imagePath, outfitId=$outfitId")
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -276,7 +296,7 @@ class OutfitSaveFragment : Fragment() {
 
         // 기록하기 버튼
         binding.outfitSaveSaveBtn.setOnClickListener {
-            postCurrentWardrobeItemAndGoHome()
+            saveAllImagesToOutfit()
         }
         setupChipMaxLimit(3)
     }
@@ -350,83 +370,57 @@ class OutfitSaveFragment : Fragment() {
         }
     }
 
-    private fun postCurrentWardrobeItemAndGoHome() {
-        // 0) 현재 페이지 값 보존
+    private fun saveAllImagesToOutfit() {
+        // 0) 현재 페이지 값 보존(초기 코드 유지)
         saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
 
-        // 2) 날짜
-        val passedSaveDate = requireArguments().getString("save_date")
-        val purchaseDate = normalizePurchaseDate(passedSaveDate)
-        Log.d(TAG, "normalized purchaseDate=$purchaseDate (from '$passedSaveDate')")
+        // 1) outfitId 검증
+        if (outfitId <= 0) {
+            Toast.makeText(requireContext(), "유효한 outfitId가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        // 3) API 준비
+        // 2) 토큰/버튼 상태
         val bearer = "Bearer " + TokenProvider.getToken(requireContext())
-        val api = ItemRegisterRetrofit.api
-
         binding.outfitSaveSaveBtn.isEnabled = false
 
-        viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            val ensured: List<Pair<String, ItemDraft>> =
-                currentImages.mapIndexed { idx, di ->
-                    async {
-                        val url = uploadIfNeededAndGetUrl(di, bearer)
-                        url?.let { it to (drafts.getOrNull(idx) ?: ItemDraft()) }
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // 3) ViewPager 내 이미지들을 URL로 확보 (이미 URL이면 그대로, 아니면 /items/upload로 업로드)
+                val urls = currentImages.map { di ->
+                    async { uploadIfNeededAndGetUrl(di, bearer) }
+                }.awaitAll()
+                    .filterNotNull()
+                    .distinct() // 중복 제거
+
+                if (urls.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        binding.outfitSaveSaveBtn.isEnabled = true
+                        Toast.makeText(requireContext(), "업로드 가능한 이미지가 없어요.", Toast.LENGTH_SHORT).show()
                     }
-                }.awaitAll().filterNotNull()
-
-            if (ensured.isEmpty()) {
-                withContext(Dispatchers.Main) {
-                    binding.outfitSaveSaveBtn.isEnabled = true
-                    Toast.makeText(requireContext(), "업로드 가능한 이미지가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@launch
                 }
-                return@launch
-            }
-            var success = 0
-            var lastError: String? = null
 
-            ensured.forEachIndexed { i, (url, d) ->
-                val req = ItemRegisterRequest(
-                    category = d.categoryId,
-                    subcategory = d.subcategoryId,
-                    season = d.seasonId,
-                    color = d.colorId,
-                    brand = d.brand,
-                    size = d.size,
-                    purchaseDate = purchaseDate,
-                    image = url,              // ✅ 업로드로 얻은 URL 사용
-                    price = d.price,
-                    purchaseSite = d.site,
-                    tagIds = d.tagIds.toList()
+                // 4) /items/save 요청 바디
+                val req = ItemsSaveRequest(
+                    items = urls.map { ImageOnly(it) },
+                    outfitId = outfitId
                 )
-                Log.d(TAG, "[${i + 1}/${ensured.size}] REQ=" + Gson().toJson(req))
 
-                try {
-                    val resp = api.createRegisterItem(bearer, req)
-                    if (resp.isSuccessful && (resp.body()?.ok == true)) {
-                        success++
-                    } else {
-                        val bodyMsg = resp.body()?.message
-                        val errRaw = resp.errorBody()?.string()
-                        Log.e(TAG, "Fail bodyMsg=$bodyMsg, http=${resp.code()}, raw=$errRaw")
-                        lastError = bodyMsg ?: errRaw ?: "HTTP ${resp.code()}"
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Exception while createRegisterItem", e)
-                    lastError = e.message
-                }
-
+                // 5) 호출
+                val resp = imageUploadApi.saveItems(bearer, req)
 
                 withContext(Dispatchers.Main) {
-                    val total = ensured.size
-                    val fail = total - success
-                    val msg = when {
-                        success == 0 -> "등록 실패: ${lastError ?: "알 수 없는 오류"}"
-                        fail == 0 -> "아이템 ${success}개 등록 완료!"
-                        else -> "아이템 ${success}개 등록, ${fail}개 실패"
-                    }
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    if (resp.isSuccessful && resp.body()?.isSuccess == true) {
+                        val result = resp.body()?.result
+                        val saved = result?.savedCount ?: 0
+                        Toast.makeText(
+                            requireContext(),
+                            "아이템 ${saved}개 저장 & 아웃핏 연결 완료!",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
-                    if (success > 0) {
+                        // 성공 시 이동(기존 동작 유지)
                         val nav = findNavController()
                         val opts = NavOptions.Builder()
                             .setLaunchSingleTop(true)
@@ -435,12 +429,30 @@ class OutfitSaveFragment : Fragment() {
                             .build()
                         nav.navigate(R.id.wardrobeFragment, null, opts)
                     } else {
+                        val errRaw = resp.errorBody()?.string()
+                        val msg = parseServerReason(errRaw) ?: resp.body()?.message ?: "저장 실패"
+                        Log.e(TAG, "items/save fail http=${resp.code()} raw=$errRaw")
+                        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
                         binding.outfitSaveSaveBtn.isEnabled = true
                     }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "items/save exception", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "요청 실패(${e::class.java.simpleName})", Toast.LENGTH_SHORT).show()
+                    binding.outfitSaveSaveBtn.isEnabled = true
                 }
             }
         }
     }
+
+    // 서버 에러 본문에서 reason 파싱(있으면)
+    private fun parseServerReason(err: String?): String? =
+        try {
+            if (err.isNullOrBlank()) null
+            else org.json.JSONObject(err).optJSONObject("error")
+                ?.optString("reason")?.takeIf { it.isNotBlank() }
+        } catch (_: Exception) { null }
 
     // 이미지 업로드
     private suspend fun uploadIfNeededAndGetUrl(
@@ -647,6 +659,18 @@ class OutfitSaveFragment : Fragment() {
                 bindingInProgress = false
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 실행 중 bottom navigation view 보이지 않게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 실행 안 할 때 bottom navigation view 다시 보이게
+        activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 
     override fun onDestroyView() {

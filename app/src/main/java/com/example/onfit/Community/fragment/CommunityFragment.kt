@@ -528,9 +528,8 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
 
-        dialogBinding.postDialogOutfitImage.layoutParams = dialogBinding.postDialogOutfitImage.layoutParams.apply {
-            height = dpToPx(330)
-        }
+        dialogBinding.postDialogOutfitImage.layoutParams =
+            dialogBinding.postDialogOutfitImage.layoutParams.apply { height = dpToPx(330) }
         dialogBinding.postDialogOutfitImage.requestLayout()
 
         dialogBinding.postDialogOutfitTv.text = "${binding.dateTv.text} Outfit을 게시하시겠습니까?"
@@ -559,37 +558,50 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                                 .centerCrop()
                                 .into(dialogBinding.postDialogOutfitImage)
                         }
-                    } catch (_: Exception) { }
+                    } catch (_: Exception) { /* no-op */ }
                 }
             }
         }
 
         dialogBinding.postDialogYesBtn.setOnClickListener {
+            // 중복 클릭 방지
+            dialogBinding.postDialogYesBtn.isEnabled = false
+            dialogBinding.postDialogNoBtn.isEnabled = false
+
+            // 서버에 실제 게시
             publishTodayOutfit(
-                onSuccess = { id ->
-                    val action = CommunityFragmentDirections.actionCommunityFragmentToCommunityDetailFragment()
-                    if (id != null) action.outfitId = id
-
-                    // 우선순위: publish 응답의 메인이미지 > check 응답 캐시
-                    val fallbackThumb = lastCheckResult?.mainImage
-                    // 위 publishTodayOutfit() 내부에서 lastCheckResult 갱신이 없다면 check 캐시를 사용
-                    action.imageUrl = fallbackThumb
-
-                    findNavController().navigate(action)
-                    dialog.dismiss()
+                onSuccess = { newId ->
+                    if (newId != null && isAdded) {
+                        val action = CommunityFragmentDirections.actionCommunityFragmentToCommunityDetailFragment()
+                        action.outfitId = newId
+                        action.imageUrl = lastCheckResult?.mainImage // 썸네일 넘김(옵션)
+                        // action.previewMode = false  // 필요하면 명시
+                        findNavController().navigate(action)
+                        dialog.dismiss()
+                    } else {
+                        Toast.makeText(requireContext(), "게시 성공했지만 ID를 받지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    }
                 },
-                onFinally = { }
+                onFinally = {
+                    if (dialog.isShowing) {
+                        dialogBinding.postDialogYesBtn.isEnabled = true
+                        dialogBinding.postDialogNoBtn.isEnabled = true
+                    }
+                }
             )
         }
+
+        // ⬇️ 빠져있던 '아니오' 버튼과 dialog 표시/사이즈 설정 복구
         dialogBinding.postDialogNoBtn.setOnClickListener { dialog.dismiss() }
 
         dialog.show()
-
         val width = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP, 350f, resources.displayMetrics
         ).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
+
+
 
     // 오늘의 OUTFIT 게시 API 호출
     private fun publishTodayOutfit(
@@ -613,23 +625,20 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                 }
 
                 val body: com.example.onfit.Community.model.PublishTodayOutfitResponse? = response.body()
+                // CommunityFragment.publishTodayOutfit()
                 if (body?.isSuccess == true) {
-                    android.widget.Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "오늘의 아웃핏이 공개되었습니다.", Toast.LENGTH_SHORT).show()
                     setShareButtonEnabled(false)
-
-                    // (참고) body.result?.mainImage 가 내려오면 여기서 lastCheckResult 대체 캐시로 보관해도 됨
-                    // lastCheckResult = lastCheckResult?.copy(mainImage = body.result?.mainImage) // 모델 타입상 직접 대입은 생략
-
-                    onSuccess?.invoke(body.result?.id)   // Int?
+                    onSuccess?.invoke(body.result?.id)   // ✅ 성공일 때만
                 } else {
                     val code = body?.code ?: "FAIL"
                     when (code) {
-                        "NO_TODAY_OUTFIT"   -> android.widget.Toast.makeText(requireContext(), "오늘 등록한 아웃핏이 없습니다.", android.widget.Toast.LENGTH_SHORT).show()
-                        "ALREADY_PUBLISHED" -> android.widget.Toast.makeText(requireContext(), "오늘의 아웃핏이 이미 공개되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
-                        else                -> android.widget.Toast.makeText(requireContext(), body?.message ?: "게시 실패", android.widget.Toast.LENGTH_SHORT).show()
+                        "NO_TODAY_OUTFIT"   -> Toast.makeText(requireContext(), "오늘 등록한 아웃핏이 없습니다.", Toast.LENGTH_SHORT).show()
+                        "ALREADY_PUBLISHED" -> Toast.makeText(requireContext(), "오늘의 아웃핏이 이미 공개되었습니다.", Toast.LENGTH_SHORT).show()
+                        else                -> Toast.makeText(requireContext(), body?.message ?: "게시 실패", Toast.LENGTH_SHORT).show()
                     }
-                    onSuccess?.invoke(body?.result?.id)
                 }
+
             } catch (_: Exception) {
                 android.widget.Toast.makeText(requireContext(), "네트워크 오류가 발생했습니다.", android.widget.Toast.LENGTH_SHORT).show()
             } finally {
@@ -637,6 +646,7 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
             }
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -684,9 +694,8 @@ class CommunityFragment : Fragment(R.layout.fragment_community) {
                     val id = item.outfitId ?: continue
                     val detailRes = RetrofitInstance.api.getOutfitDetail("Bearer $token", id)
                     if (detailRes.isSuccessful) {
-                        val tInt = detailRes.body()?.result?.weatherTempAvg // Int?
-                        val t = tInt?.toDouble()
-                        if (t != null && abs(t - base) <= 2.0) {
+                        val t = detailRes.body()?.result?.weatherTempAvg // Double?
+                        if (t != null && kotlin.math.abs(t - base) <= 2.0) {
                             gridItems.add(item)
                             gridAdapter.notifyItemInserted(gridItems.size - 1)
                         }
