@@ -210,6 +210,69 @@ class CalendarFragment : Fragment() {
         Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료: ${allDummyOutfits.size}개")
     }
 
+    /**
+     * ⭐ HomeViewModel에서 받은 이미지 URL로 바로 상세 화면 표시
+     */
+    private fun showOutfitWithImageUrl(dateString: String) {
+        Log.d("OutfitDebug", "=== 코디 상세 찾기 ===")
+        Log.d("OutfitDebug", "찾는 날짜: $dateString")
+
+        val allOutfits = homeViewModel.recentOutfits.value
+        Log.d("OutfitDebug", "HomeViewModel 데이터 개수: ${allOutfits?.size}")
+
+        allOutfits?.forEachIndexed { index, outfit ->
+            val outfitDate = outfit.date.substring(0, 10)
+            Log.d("OutfitDebug", "[$index] 날짜: $outfitDate, 이미지: ${outfit.image}")
+        }
+
+        val matchingOutfit = allOutfits?.find {
+            it.date.substring(0, 10) == dateString
+        }
+
+        if (matchingOutfit != null) {
+            Log.d("OutfitDebug", "✅ 매칭 성공: $dateString -> ${matchingOutfit.image}")
+            navigateToOutfitDetailWithImage(dateString, matchingOutfit.image)
+        } else {
+            Log.d("OutfitDebug", "❌ 매칭 실패: $dateString")
+            Toast.makeText(context, "해당 날짜의 코디 이미지를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
+     */
+    private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
+        try {
+            val bundle = Bundle().apply {
+                putString("selected_date", dateString)
+                putString("main_image_url", imageUrl)  // ⭐ 변경: image_url -> main_image_url
+
+                // ⭐ 개별 아이템 이미지들이 있다면 추가 (현재는 메인 이미지만)
+                // putStringArrayList("item_image_urls", arrayListOf(...))
+
+                // outfit_id는 전달하지 않음 (현재 -1로 설정됨)
+            }
+
+            val navController = findNavController()
+
+            runCatching {
+                navController.navigate(R.id.action_calendarFragment_to_calendarSaveFragment, bundle)
+            }.onFailure {
+                runCatching {
+                    navController.navigate(R.id.calendarSaveFragment, bundle)
+                }.onFailure {
+                    Log.e("CalendarFragment", "코디 상세 화면으로의 navigation이 정의되지 않음")
+                    // 이미지 URL 표시 (테스트용)
+                    Toast.makeText(context, "$dateString 코디\n이미지: $imageUrl", Toast.LENGTH_LONG).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
+            Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // 🔥 더미 코디 상세 화면 이동 함수에서 날짜 매핑 수정
     private fun navigateToDummyOutfitDetail(dateString: String, dummyOutfitId: Int) {
         try {
@@ -378,56 +441,17 @@ class CalendarFragment : Fragment() {
     }
 
     /**
-     * ⭐ 날짜 클릭 이벤트 처리 - outfit_id로 코디 상세 데이터 확인 후 상세 화면으로 이동
-     */
-    // 🔥 CalendarFragment에서 실제 ID 찾는 방법 추가
-
-    /**
-     * 날짜 클릭 시 처리 - 실제 ID 찾기 로직 추가
+     * ⭐ 이미지 URL 기반으로 코디 상세 표시 (API 호출 없음)
      */
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
         if (hasOutfit) {
-            val storedOutfitId = dateToOutfitIdMap[dateString]
-            Log.d("CalendarFragment", "날짜 클릭: $dateString, 저장된 ID: $storedOutfitId")
-
-            when {
-                // 1. 더미 코디 (1001~1004)
-                storedOutfitId != null && isDummyOutfitId(storedOutfitId) -> {
-                    Log.d("CalendarFragment", "🎭 더미 코디 감지")
-                    navigateToDummyOutfitDetail(dateString, storedOutfitId)
-                }
-
-                // 2. 실제 코디 - 하지만 임시 ID일 수 있음
-                storedOutfitId != null -> {
-                    Log.d("CalendarFragment", "📱 실제 코디 감지 - ID 유효성 확인")
-
-                    // 🔥 먼저 API 호출해서 유효한지 확인
-                    fetchOutfitDetails(storedOutfitId) { fetchedDate, memo ->
-                        if (!fetchedDate.isNullOrBlank()) {
-                            // 유효한 ID - 바로 이동
-                            navigateToOutfitDetail(fetchedDate, storedOutfitId, memo ?: "등록된 코디입니다.")
-                        } else {
-                            // 404 오류 - 실제 ID 찾기 시도
-                            Log.w("CalendarFragment", "⚠️ 저장된 ID가 유효하지 않음. 실제 ID 검색 시작")
-                            findRealOutfitIdForDate(dateString)
-                        }
-                    }
-                }
-
-                else -> {
-                    Log.w("CalendarFragment", "⚠️ 저장된 ID가 없음")
-                    Toast.makeText(context, "해당 날짜의 코디 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                }
-            }
+            showOutfitWithImageUrl(dateString)
         } else {
             Log.d("CalendarFragment", "등록되지 않은 날짜 클릭: $dateString")
             showBottomSheet()
         }
     }
 
-    /**
-     * 🔥 NEW: HomeViewModel 데이터로 실제 ID 찾기
-     */
     /**
      * 🔥 실제 ID 찾기 로직 개선 - HomeViewModel 데이터 사용
      */
@@ -649,23 +673,17 @@ class CalendarFragment : Fragment() {
 
             Log.d("RealOutfits", "받은 코디 개수: ${top7.size}")
 
-            top7.forEachIndexed { index, outfit ->
-                val fullDate = outfit.date
+            // 중복 제거: 날짜별로 그룹핑해서 하나씩만 처리
+            val uniqueOutfits = top7.groupBy { it.date.substring(0, 10) }
+                .mapValues { it.value.first() }
 
-                if (!fullDate.isNullOrBlank() && fullDate.length >= 10) {
-                    val date = fullDate.substring(0, 10) // "2025-08-18T..." -> "2025-08-18"
+            uniqueOutfits.forEach { (date, outfit) ->
+                Log.d("RealOutfits", "실제 코디: $date -> 이미지: ${outfit.image}")
 
-                    // 🔥 음수 임시 ID 생성 (실제 코디 구분용)
-                    val tempOutfitId = -(System.currentTimeMillis().toInt() + index)
-
-                    Log.d("RealOutfits", "실제 코디: $date -> 임시 ID: $tempOutfitId")
-
-                    addRegisteredDate(date, tempOutfitId)
-                    saveOutfitRegistration(date, tempOutfitId)
-                }
+                // outfit_id는 필요 없으므로 임시 ID 사용
+                addRegisteredDate(date, date.hashCode())
             }
         }
-
     }
 
     /**

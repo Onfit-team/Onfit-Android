@@ -21,7 +21,6 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.example.onfit.R
-import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
 import com.example.onfit.calendar.fragment.CalendarFragment
@@ -29,6 +28,7 @@ import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.Wardrobe.Network.RecommendationItem
+import com.example.onfit.Wardrobe.Network.RetrofitClient
 
 class ClothesDetailFragment : Fragment() {
 
