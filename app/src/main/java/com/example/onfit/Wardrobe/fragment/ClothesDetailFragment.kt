@@ -167,7 +167,7 @@ class ClothesDetailFragment : Fragment() {
             HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1, season = 2), // 여름
             HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2, season = 2), // 여름
             HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2, season = 2), // 여름
-            HardcodedItem("shoes2", 4, 29, "아우터", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2, season = 1), // 봄가을
+            HardcodedItem("shoes2", 5, 29, "신발", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2, season = 1), // 봄가을
             HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3, season = 2), // 여름
             HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3, season = 1), // 봄가을
             HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3, season = 1), // 봄가을
@@ -1683,27 +1683,158 @@ class ClothesDetailFragment : Fragment() {
         Log.d("ClothesDetailFragment", "✅ 더미 추천 아이템 ${dummyRecommendations.size}개 표시 완료")
     }
 
-    private fun createDummyRecommendations(): List<String> {
-        // 일단 간단하게 문자열 리스트로
-        return listOf("더미1", "더미2", "더미3", "더미4")
+    private fun createDummyRecommendations(): List<RecommendationItemData> {
+        Log.d("ClothesDetailFragment", "🎯 추천 아이템 생성 시작")
+
+        // 현재 아이템의 카테고리 확인
+        val currentCategory = getCurrentItemCategory()
+
+        return when (currentCategory) {
+            1 -> { // 상의인 경우 -> 하의, 신발, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 상의 아이템 -> 하의, 신발, 액세서리 추천")
+                listOf(
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            2 -> { // 하의인 경우 -> 상의, 신발, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 하의 아이템 -> 상의, 신발, 액세서리 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            5 -> { // 신발인 경우 -> 상의, 하의, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 신발 아이템 -> 상의, 하의, 액세서리 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            6 -> { // 액세서리인 경우 -> 상의, 하의, 신발 추천
+                Log.d("ClothesDetailFragment", "✅ 액세서리 아이템 -> 상의, 하의, 신발 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes()      // 신발 하나
+                )
+            }
+            3 -> { // 원피스인 경우 -> 신발, 액세서리, 아우터 추천
+                Log.d("ClothesDetailFragment", "✅ 원피스 아이템 -> 신발, 액세서리, 아우터 추천")
+                listOf(
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory(), // 액세서리 하나
+                    getComplementaryOuter()      // 아우터 하나
+                )
+            }
+            4 -> { // 아우터인 경우 -> 상의, 하의, 신발 추천
+                Log.d("ClothesDetailFragment", "✅ 아우터 아이템 -> 상의, 하의, 신발 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes()      // 신발 하나
+                )
+            }
+            else -> { // 기본값: 다양한 카테고리 추천
+                Log.d("ClothesDetailFragment", "✅ 기본 추천")
+                listOf(
+                    getComplementaryTop(),
+                    getComplementaryBottom(),
+                    getComplementaryShoes()
+                )
+            }
+        }
     }
 
-    /**
-     * 🔥 수정된 추천 아이템 카드 생성 - 간격 조정
-     */
+    // 🔥 NEW: 추천 아이템 데이터 클래스
+    data class RecommendationItemData(
+        val id: Int,
+        val imageName: String,
+        val category: Int,
+        val categoryName: String,
+        val subcategoryName: String,
+        val brand: String,
+        val displayText: String
+    )
+
+    // 🔥 NEW: 현재 아이템의 카테고리 확인
+    private fun getCurrentItemCategory(): Int {
+        if (isDummyItemId(imageResId)) {
+            val dummyInfo = generateDummyItemInfo(imageResId)
+            return dummyInfo.category
+        }
+        // API 아이템의 경우 별도 처리 필요
+        return 1 // 기본값
+    }
+
+    // 🔥 NEW: 보완 아이템 생성 함수들
+    private fun getComplementaryTop(): RecommendationItemData {
+        val topItems = listOf(
+            RecommendationItemData(-2001, "shirts1", 1, "상의", "셔츠/블라우스", "자라", "자라"),
+            RecommendationItemData(-2002, "shirts2", 1, "상의", "반팔티셔츠", "자라", "자라"),
+            RecommendationItemData(-2003, "shirts3", 1, "상의", "셔츠/블라우스", "H&M", "H&M"),
+            RecommendationItemData(-2004, "shirts4", 1, "상의", "셔츠/블라우스", "유니클로", "유니클로")
+        )
+        return topItems.random()
+    }
+
+    private fun getComplementaryBottom(): RecommendationItemData {
+        val bottomItems = listOf(
+            RecommendationItemData(-2011, "pants1", 2, "하의", "긴바지", "유니클로", "유니클로"),
+            RecommendationItemData(-2012, "pants2", 2, "하의", "반바지", "리바이스", "리바이스"),
+            RecommendationItemData(-2013, "pants3", 2, "하의", "긴바지", "MCM", "MCM"),
+            RecommendationItemData(-2014, "pants5", 2, "하의", "청바지", "무신사", "무신사")
+        )
+        return bottomItems.random()
+    }
+
+    private fun getComplementaryShoes(): RecommendationItemData {
+        val shoeItems = listOf(
+            RecommendationItemData(-2021, "shoes1", 5, "신발", "운동화", "나이키", "나이키"),
+            RecommendationItemData(-2022, "shoes2", 5, "신발", "운동화", "아디다스", "아디다스"),
+            RecommendationItemData(-2023, "shoes3", 5, "신발", "운동화", "닥터마틴", "닥터마틴"),
+            RecommendationItemData(-2024, "shoes4", 5, "신발", "샌들", "무지", "무지")
+        )
+        return shoeItems.random()
+    }
+
+    private fun getComplementaryAccessory(): RecommendationItemData {
+        val accessoryItems = listOf(
+            RecommendationItemData(-2031, "acc3", 6, "액세서리", "안경/선글라스", "무지", "무지"),
+            RecommendationItemData(-2032, "bag4", 6, "액세서리", "가방", "무지", "무지"),
+            RecommendationItemData(-2033, "acc5", 6, "액세서리", "가방", "아디다스", "아디다스"),
+            RecommendationItemData(-2034, "acc6", 6, "액세서리", "기타", "H&M", "H&M")
+        )
+        return accessoryItems.random()
+    }
+
+    private fun getComplementaryOuter(): RecommendationItemData {
+        val outerItems = listOf(
+            RecommendationItemData(-2041, "clothes1", 4, "아우터", "자켓", "자라", "자라"),
+            RecommendationItemData(-2042, "clothes2", 4, "아우터", "가디건", "유니클로", "유니클로"),
+            RecommendationItemData(-2043, "clothes3", 4, "아우터", "코트", "H&M", "H&M"),
+            RecommendationItemData(-2044, "clothes4", 4, "아우터", "패딩", "노스페이스", "노스페이스")
+        )
+        return outerItems.random()
+    }
+
+    // 🔥 MODIFIED: 추천 아이템 카드 생성 수정
     private fun createRecommendationItemCard(item: Any, index: Int): View {
         val cardLayout = android.widget.FrameLayout(requireContext()).apply {
             val params = LinearLayout.LayoutParams(
                 dpToPx(117),
                 dpToPx(147)
             ).apply {
-                rightMargin = dpToPx(20) // 🔥 오른쪽 간격 늘림 (12 → 20)
-                leftMargin = dpToPx(0)   // 🔥 왼쪽 잘림 방지
+                rightMargin = dpToPx(20)
+                leftMargin = dpToPx(0)
             }
             layoutParams = params
 
             setOnClickListener {
-                navigateToItemDetail(item)
+                navigateToRecommendationDetail(item)
             }
 
             background = createRippleDrawable()
@@ -1726,17 +1857,16 @@ class ClothesDetailFragment : Fragment() {
                 }
             }
 
-            setItemImage(this, item, index)
+            setRecommendationItemImage(this, item)
             elevation = 4f
         }
 
         val infoText = TextView(requireContext()).apply {
-            text = getItemDisplayText(item, index)
+            text = getRecommendationDisplayText(item)
             textSize = 11f
             setTextColor(android.graphics.Color.parseColor("#333333"))
             gravity = android.view.Gravity.CENTER
 
-            // 🔥 더 진한 배경으로 가시성 향상
             background = createRoundedDrawable(8f, android.graphics.Color.parseColor("#E6FFFFFF"))
 
             setPadding(dpToPx(6), dpToPx(3), dpToPx(6), dpToPx(3))
@@ -1760,6 +1890,56 @@ class ClothesDetailFragment : Fragment() {
         return cardLayout
     }
 
+    // 🔥 NEW: 추천 아이템 이미지 설정
+    private fun setRecommendationItemImage(imageView: ImageView, item: Any) {
+        when (item) {
+            is RecommendationItemData -> {
+                val drawableResId = getDrawableResourceId(item.imageName)
+                imageView.setImageResource(drawableResId)
+                Log.d("ClothesDetailFragment", "✅ 추천 이미지 설정: ${item.imageName} -> $drawableResId")
+            }
+            else -> {
+                imageView.setImageResource(R.drawable.clothes8) // 기본 이미지
+            }
+        }
+    }
+
+    // 🔥 NEW: 추천 아이템 표시 텍스트
+    private fun getRecommendationDisplayText(item: Any): String {
+        return when (item) {
+            is RecommendationItemData -> {
+                "${item.categoryName} · ${item.brand}"
+            }
+            else -> "추천 아이템"
+        }
+    }
+
+    // 🔥 NEW: 추천 아이템 클릭 시 상세 화면으로 이동
+    private fun navigateToRecommendationDetail(item: Any) {
+        when (item) {
+            is RecommendationItemData -> {
+                Log.d("ClothesDetailFragment", "🔗 추천 아이템 클릭: ${item.categoryName} - ${item.brand}")
+
+                val bundle = Bundle().apply {
+                    putInt("image_res_id", item.id) // 음수 ID로 더미 추천 아이템임을 표시
+                    putBoolean("is_recommendation", true)
+                    putString("recommendation_type", item.categoryName)
+                }
+
+                try {
+                    findNavController().navigate(R.id.clothesDetailFragment, bundle)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(),
+                        "${item.categoryName} 추천: ${item.subcategoryName} (${item.brand})",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> {
+                Toast.makeText(requireContext(), "추천 아이템", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     /**
      * 🔥 아이템 이미지 설정 (더미 + 실제 데이터)
      */
@@ -1781,6 +1961,43 @@ class ClothesDetailFragment : Fragment() {
                 // 더미 데이터인 경우
                 imageView.setImageResource(getDummyItemImage(index))
             }
+        }
+    }
+
+    // 🔥 NEW: drawable 리소스 ID 가져오기
+    private fun getDrawableResourceId(imageName: String): Int {
+        return when (imageName) {
+            "shirts1" -> R.drawable.shirts1
+            "shirts2" -> R.drawable.shirts2
+            "shirts3" -> R.drawable.shirts3
+            "shirts4" -> R.drawable.shirts4
+            "shirts5" -> R.drawable.shirts5
+            "shirts6" -> R.drawable.shirts6
+            "pants1" -> R.drawable.pants1
+            "pants2" -> R.drawable.pants2
+            "pants3" -> R.drawable.pants3
+            "pants4" -> R.drawable.pants4
+            "pants5" -> R.drawable.pants5
+            "pants6" -> R.drawable.pants6
+            "shoes1" -> R.drawable.shoes1
+            "shoes2" -> R.drawable.shoes2
+            "shoes3" -> R.drawable.shoes3
+            "shoes4" -> R.drawable.shoes4
+            "shoes5" -> R.drawable.shoes5
+            "shoes6" -> R.drawable.shoes6
+            "acc3" -> R.drawable.acc3
+            "acc5" -> R.drawable.acc5
+            "acc6" -> R.drawable.acc6
+            "bag4" -> R.drawable.bag4
+            "clothes1" -> R.drawable.clothes1
+            "clothes2" -> R.drawable.clothes2
+            "clothes3" -> R.drawable.clothes3
+            "clothes4" -> R.drawable.clothes4
+            "clothes5" -> R.drawable.clothes5
+            "clothes6" -> R.drawable.clothes6
+            "clothes7" -> R.drawable.clothes7
+            "clothes8" -> R.drawable.clothes8
+            else -> R.drawable.clothes8 // 기본값
         }
     }
 
