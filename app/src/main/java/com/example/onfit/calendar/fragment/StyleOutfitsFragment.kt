@@ -28,6 +28,7 @@ class StyleOutfitsFragment : Fragment() {
     private val styleFilters = listOf("캐주얼", "스트릿", "빈티지", "미니멀", "포멀")
 
     // 🔥 더미 코디 데이터
+    // StyleOutfitsFragment.kt의 더미 데이터 수정
     private val dummyOutfits = listOf(
         DummyOutfitItem(
             id = 1,
@@ -56,6 +57,20 @@ class StyleOutfitsFragment : Fragment() {
             style = "캐주얼",
             date = "2025-08-04",
             description = "캐주얼 스타일 코디 4"
+        ),
+        DummyOutfitItem(
+            id = 5,
+            imageResName = "cody5",
+            style = "캐주얼",
+            date = "2025-08-05",
+            description = "캐주얼 스타일 코디 5"
+        ),
+        DummyOutfitItem(
+            id = 6,  // ← 4에서 6으로 변경!
+            imageResName = "cody6",
+            style = "캐주얼",
+            date = "2025-08-14",
+            description = "캐주얼 스타일 코디 6"  // ← "코디 4"에서 "코디 6"으로 변경!
         )
     )
 

@@ -1,6 +1,5 @@
 package com.example.onfit.Wardrobe.fragment
 
-import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -9,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import android.widget.LinearLayout
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import java.util.Calendar as JavaCalendar
 import androidx.fragment.app.Fragment
@@ -21,14 +19,12 @@ import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestListener
 import com.example.onfit.R
-import com.example.onfit.Wardrobe.Network.RetrofitClient
 import com.example.onfit.Wardrobe.Network.WardrobeItemDetail
 import com.example.onfit.Wardrobe.Network.WardrobeItemTags
-import com.example.onfit.calendar.fragment.CalendarFragment
 import kotlinx.coroutines.launch
 import com.example.onfit.KakaoLogin.util.TokenProvider
-import androidx.recyclerview.widget.RecyclerView
 import com.example.onfit.Wardrobe.Network.RecommendationItem
+import com.example.onfit.Wardrobe.Network.RetrofitClient
 
 class ClothesDetailFragment : Fragment() {
 
@@ -138,39 +134,59 @@ class ClothesDetailFragment : Fragment() {
 
         Log.d("ClothesDetailFragment", "🎭 하드코딩된 더미 아이템 생성: dummyId=$dummyId, index=$index")
 
-        // 🔥 WardrobeFragment와 완전히 동일한 하드코딩된 더미 아이템 리스트
+        // 🔥 FIXED: HardcodedItem 데이터 클래스 정의 추가
+        data class HardcodedItem(
+            val imageName: String,
+            val category: Int,
+            val subcategory: Int,
+            val categoryName: String,
+            val subcategoryName: String,
+            val brand: String,
+            val size: String,
+            val price: Int,
+            val purchaseSite: String,
+            val outfitGroup: Int,
+            val season: Int = 1
+        )
+
         val hardcodedItems = listOf(
-            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 2),
-            HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2),
-            HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1),
-            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 2),
+            // 🔥 shirts5, pants5, shoes5, acc5 (5시리즈) - WardrobeFragment와 동일한 season
+            HardcodedItem("shirts5", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 69800, "H&M 온라인", 5, season = 2), // 여름
+            HardcodedItem("pants5", 2, 11, "하의", "청바지", "무신사", "M", 39900, "무신사 온라인", 5, season = 2), // 여름
+            HardcodedItem("shoes5", 5, 32, "신발", "슬리퍼", "무지", "260", 29900, "무지 온라인", 5, season = 2), // 여름
+            HardcodedItem("acc5", 6, 41, "액세서리", "가방", "아디다스", "FREE", 86900, "아디다스 온라인", 5, season = 2), // 여름
 
+            HardcodedItem("shirts6", 1, 4, "상의", "셔츠/블라우스", "무지", "M", 69900, "무지 온라인", 2, season = 2), // 여름
+            HardcodedItem("pants6", 2, 10, "하의", "긴바지", "무신사", "M", 49900, "무신사", 2, season = 2), // 여름
+            HardcodedItem("shoes6", 5, 34, "신발", "로퍼", "무지", "260", 29900, "무지 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("acc6", 6, 43, "액세서리", "기타", "H&M", "FREE", 39900, "H&M", 2, season = 2), // 여름
 
-                    // 코디 1 관련 아이템들
-            HardcodedItem("shirts1", 1, 4, "상의", "셔츠/블라우스", "자라", "M", 59000, "자라 강남점", 1),
-            HardcodedItem("pants1", 2, 10, "하의", "긴바지", "유니클로", "30", 29900, "유니클로 온라인", 1),
-            HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1),
-            HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2),
-            HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2),
-            HardcodedItem("shoes2", 4, 29, "아우터", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2),
-            HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3),
-            HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3),
-            HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3),
-            HardcodedItem("acc3", 6, 40, "액세서리", "안경/선글라스", "무지", "FREE", 39000, "무지 매장", 3),
-            HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1),
-            HardcodedItem("pants4", 2, 14, "하의", "스커트", "자라", "S", 39900, "자라 온라인", 1),
-            HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1),
-            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1)
+            // 코디 1 관련 아이템들
+            HardcodedItem("shirts1", 1, 4, "상의", "셔츠/블라우스", "자라", "M", 59000, "자라 강남점", 1, season = 2), // 여름
+            HardcodedItem("pants1", 2, 10, "하의", "긴바지", "유니클로", "30", 29900, "유니클로 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("shoes1", 5, 29, "신발", "운동화", "나이키", "260", 139000, "나이키 공식몰", 1, season = 2), // 여름
+            HardcodedItem("shirts2", 1, 1, "상의", "반팔티셔츠", "자라", "M", 19900, "자라 홍대점", 2, season = 2), // 여름
+            HardcodedItem("pants2", 2, 9, "하의", "반바지", "리바이스", "31", 89000, "리바이스 매장", 2, season = 2), // 여름
+            HardcodedItem("shoes2", 5, 29, "신발", "운동화", "아디다스", "260", 119000, "아디다스 온라인", 2, season = 1), // 봄가을
+            HardcodedItem("shirts3", 1, 4, "상의", "셔츠/블라우스", "H&M", "M", 24900, "H&M 명동점", 3, season = 2), // 여름
+            HardcodedItem("shoes3", 5, 29, "신발", "운동화", "닥터마틴", "250", 259000, "닥터마틴 강남점", 3, season = 1), // 봄가을
+            HardcodedItem("pants3", 2, 10, "하의", "긴바지", "MCM", "30", 189000, "MCM 백화점", 3, season = 1), // 봄가을
+            HardcodedItem("acc3", 6, 40, "액세서리", "안경/선글라스", "무지", "FREE", 39000, "무지 매장", 3, season = 2), // 여름
+            HardcodedItem("shirts4", 1, 4, "상의", "셔츠/블라우스", "유니클로", "M", 29900, "유니클로 홍대점", 1, season = 2), // 여름
+            HardcodedItem("pants4", 2, 10, "하의", "긴바지", "자라", "S", 39900, "자라 온라인", 1, season = 1), // 봄가을
+            HardcodedItem("bag4", 6, 41, "액세서리", "가방", "무지", "FREE", 49000, "무지 매장", 1, season = 2), // 여름
+            HardcodedItem("shoes4", 5, 31, "신발", "샌들", "무지", "260", 29900, "무지 온라인", 1, season = 2) // 여름
         )
 
         val selectedItem = hardcodedItems[index % hardcodedItems.size]
 
+        // 🔥 FIXED: DummyItemInfo 생성 부분 수정
         val itemInfo = DummyItemInfo(
             id = dummyId,
             imagePath = "drawable://${selectedItem.imageName}",
             category = selectedItem.category,
             subcategory = selectedItem.subcategory,
-            season = 1, // 봄가을로 고정
+            season = selectedItem.season, // 🔥 HardcodedItem의 season 직접 사용
             color = generateHardcodedColor(index),
             brand = selectedItem.brand,
             size = selectedItem.size,
@@ -179,18 +195,10 @@ class ClothesDetailFragment : Fragment() {
             tags = generateHardcodedTags(selectedItem.category, index)
         )
 
-        Log.d("ClothesDetailFragment", "✅ 하드코딩된 더미 아이템:")
-        Log.d("ClothesDetailFragment", "  - 이미지: ${selectedItem.imageName}")
-        Log.d("ClothesDetailFragment", "  - 카테고리: ${selectedItem.categoryName}")
-        Log.d("ClothesDetailFragment", "  - 서브카테고리: ${selectedItem.subcategoryName}")
-        Log.d("ClothesDetailFragment", "  - 브랜드: ${selectedItem.brand}")
-        Log.d("ClothesDetailFragment", "  - 가격: ${selectedItem.price}원")
-        Log.d("ClothesDetailFragment", "  - 구매처: ${selectedItem.purchaseSite}")
-
         return itemInfo
     }
 
-    // 🔥 FIXED: WardrobeFragment와 동일한 하드코딩된 아이템 데이터 클래스
+    // HardcodedItem 데이터 클래스에 season 필드 추가
     data class HardcodedItem(
         val imageName: String,
         val category: Int,
@@ -201,7 +209,8 @@ class ClothesDetailFragment : Fragment() {
         val size: String,
         val price: Int,
         val purchaseSite: String,
-        val outfitGroup: Int // 어떤 코디에 속하는지 (1, 2, 3)
+        val outfitGroup: Int, // 어떤 코디에 속하는지 (1, 2, 3)
+        val season: Int = 1 // 🔥 추가: 계절 정보 (1=봄가을, 2=여름, 4=겨울)
     )
 
     fun getTagNameById(tagId: Int): String {
@@ -231,23 +240,28 @@ class ClothesDetailFragment : Fragment() {
         // WardrobeFragment의 하드코딩된 아이템별 컬러 매핑
         val colorMapping = mapOf(
             0 to 1,
-            1 to 2,
+            1 to 1,
+            2 to 1,
             3 to 1,
             4 to 1,
-            5 to 2,  // shirts1 - color = 2 (화이트)
-            6 to 6,  // pants1 - color = 6 (베이지)
-            7 to 6,  // shoes1 - color = 6 (베이지)
-            8 to 1,  // shirts2 - color = 1 (블랙)
-            9 to 6,  // pants2 - color = 6 (베이지)
-            10 to 1,  // shoes2 - color = 1 (블랙)
-            11 to 1,  // shirts3 - color = 1 (블랙)
-            12 to 2,  // shoes3 - color = 2 (화이트)
-            13 to 1,  // pants3 - color = 1 (블랙)
-            14 to 1,  // acc3 - color = 1 (블랙)
-            15 to 3, // shirts4 - color = 3 (그레이) ← 수정
-            16 to 1, // pants4 - color = 1 (블랙) ← 수정
-            17 to 1, // bag4 - color = 1 (블랙)
-            18 to 1  // shoes4 - color = 1 (블랙)
+            5 to 2,
+            6 to 1,
+            7 to 1,
+            8 to 2,
+            9 to 5,  // shirts1 - color = 2 (화이트)
+            10 to 5,  // pants1 - color = 6 (베이지)
+            11 to 1,  // shoes1 - color = 6 (베이지)
+            12 to 5,  // shirts2 - color = 1 (블랙)
+            13 to 1,  // pants2 - color = 6 (베이지)
+            14 to 1,  // shoes2 - color = 1 (블랙)
+            15 to 2,  // shirts3 - color = 1 (블랙)
+            16 to 1,  // shoes3 - color = 2 (화이트)
+            17 to 1,  // pants3 - color = 1 (블랙)
+            18 to 3,  // acc3 - color = 1 (블랙)
+            19 to 1, // shirts4 - color = 3 (그레이) ← 수정
+            20 to 1, // pants4 - color = 1 (블랙) ← 수정
+            21 to 1, // bag4 - color = 1 (블랙)
+            22 to 1
         )
 
         return colorMapping[index % colorMapping.size] ?: 1 // 기본값: 블랙
@@ -264,20 +278,24 @@ class ClothesDetailFragment : Fragment() {
             1 to listOf(3, 11),
             2 to listOf(4, 11),
             3 to listOf(4),
-            4 to listOf(1, 10), // 캐주얼, 데일리
-            5 to listOf(1, 4),  // 캐주얼, 클래식
-            6 to listOf(2, 13), // 스트릿, 나들이룩
-            7 to listOf(3, 11), // 미니멀, 출근룩
-            8 to listOf(3, 17), // 미니멀, 여행룩
-            9 to listOf(2, 13), // 스트릿, 나들이룩
-            10 to listOf(3, 11), // 미니멀, 출근룩
-            11 to listOf(3, 17), // 미니멀, 여행룩
-            12 to listOf(9, 11), // 모던, 출근룩
-            13 to listOf(9, 10), // 모던, 데일리
-            14 to listOf(4, 11), // 클래식, 출근룩
-            15 to listOf(4, 15), // 클래식, 하객룩
-            16 to listOf(4, 10), // 클래식, 데일리
-            17 to listOf(13, 10) // 나들이룩, 데일리
+            4 to listOf(1, 10),
+            5 to listOf(3, 11),
+            6 to listOf(4, 11),
+            7 to listOf(4),
+            8 to listOf(1, 10), // 캐주얼, 데일리
+            9 to listOf(1, 4),  // 캐주얼, 클래식
+            10 to listOf(2, 13), // 스트릿, 나들이룩
+            11 to listOf(3, 11), // 미니멀, 출근룩
+            12 to listOf(3, 17), // 미니멀, 여행룩
+            13 to listOf(2, 13), // 스트릿, 나들이룩
+            14 to listOf(3, 11), // 미니멀, 출근룩
+            15 to listOf(3, 17), // 미니멀, 여행룩
+            16 to listOf(9, 11), // 모던, 출근룩
+            17 to listOf(9, 10), // 모던, 데일리
+            18 to listOf(4, 11), // 클래식, 출근룩
+            19 to listOf(4, 15), // 클래식, 하객룩
+            20 to listOf(4, 10), // 클래식, 데일리
+            21 to listOf(13, 10) // 나들이룩, 데일리
         )
 
         val tagIds = tagMapping[index % tagMapping.size] ?: listOf(1, 10)
@@ -335,6 +353,10 @@ class ClothesDetailFragment : Fragment() {
 
                 // 🔥 FIXED: WardrobeAdapter와 동일한 매핑 사용
                 val drawableResId = when (imageName) {
+                    "shirts5" -> R.drawable.shirts5      // ✅ 수정
+                    "pants5" -> R.drawable.pants5        // ✅ 수정
+                    "shoes5" -> R.drawable.shoes5        // ✅ 수정
+                    "acc5" -> R.drawable.acc5            // ✅ 수정
                     "shirts6" -> R.drawable.shirts6      // ✅ 수정
                     "pants6" -> R.drawable.pants6        // ✅ 수정
                     "shoes6" -> R.drawable.shoes6        // ✅ 수정
@@ -661,8 +683,8 @@ class ClothesDetailFragment : Fragment() {
             listOf("white", "화이트", "흰색", "하얀", "흰") to 2, // 화이트
             listOf("gray", "grey", "그레이", "회색") to 3, // 그레이
             listOf("navy", "네이비", "남색") to 4, // 네이비
-            listOf("beige", "베이지", "베이지색") to 6, // 베이지
-            listOf("brown", "브라운", "갈색", "브라운색") to 5, // 브라운
+            listOf("beige", "베이지", "베이지색") to 5, // 베이지
+            listOf("brown", "브라운", "갈색", "브라운색") to 6, // 브라운
             listOf("red", "빨강", "레드", "빨간") to 7, // 레드
             listOf("pink", "핑크", "분홍") to 8, // 핑크
             listOf("yellow", "노랑", "옐로우", "노란") to 10, // 옐로우
@@ -738,7 +760,7 @@ class ClothesDetailFragment : Fragment() {
         }
 
         val messageText = TextView(requireContext()).apply {
-            text = "이 더미 아이템을 옷장에서 제거하겠습니까?"
+            text = "이 아이템을 옷장에서 제거하겠습니까?"
             textSize = 17f
             setTextColor(android.graphics.Color.BLACK)
             gravity = android.view.Gravity.CENTER
@@ -835,7 +857,7 @@ class ClothesDetailFragment : Fragment() {
 
     // 🔥 NEW: 더미 아이템 삭제 (옷장에서만 제거)
     private fun deleteDummyItem() {
-        Toast.makeText(requireContext(), "더미 아이템이 옷장에서 제거되었습니다", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "아이템이 옷장에서 제거되었습니다", Toast.LENGTH_SHORT).show()
 
         // WardrobeFragment에 더미 아이템 제거 신호 전송
         val bundle = Bundle().apply {
@@ -1012,7 +1034,7 @@ class ClothesDetailFragment : Fragment() {
     private fun loadDummyImage(imageView: ImageView) {
         val dummyImages = listOf(
             R.drawable.clothes1, R.drawable.clothes2, R.drawable.clothes3,
-            R.drawable.clothes4, R.drawable.clothes5, R.drawable.clothes6,
+            R.drawable.clothes4, R.drawable.shirts5, R.drawable.clothes6,
             R.drawable.clothes7, R.drawable.clothes8
         )
 
@@ -1653,107 +1675,158 @@ class ClothesDetailFragment : Fragment() {
         Log.d("ClothesDetailFragment", "✅ 더미 추천 아이템 ${dummyRecommendations.size}개 표시 완료")
     }
 
-    private fun createDummyRecommendations(): List<String> {
-        // 일단 간단하게 문자열 리스트로
-        return listOf("더미1", "더미2", "더미3", "더미4")
+    private fun createDummyRecommendations(): List<RecommendationItemData> {
+        Log.d("ClothesDetailFragment", "🎯 추천 아이템 생성 시작")
+
+        // 현재 아이템의 카테고리 확인
+        val currentCategory = getCurrentItemCategory()
+
+        return when (currentCategory) {
+            1 -> { // 상의인 경우 -> 하의, 신발, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 상의 아이템 -> 하의, 신발, 액세서리 추천")
+                listOf(
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            2 -> { // 하의인 경우 -> 상의, 신발, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 하의 아이템 -> 상의, 신발, 액세서리 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            5 -> { // 신발인 경우 -> 상의, 하의, 액세서리 추천
+                Log.d("ClothesDetailFragment", "✅ 신발 아이템 -> 상의, 하의, 액세서리 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryAccessory()  // 액세서리 하나
+                )
+            }
+            6 -> { // 액세서리인 경우 -> 상의, 하의, 신발 추천
+                Log.d("ClothesDetailFragment", "✅ 액세서리 아이템 -> 상의, 하의, 신발 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes()      // 신발 하나
+                )
+            }
+            3 -> { // 원피스인 경우 -> 신발, 액세서리, 아우터 추천
+                Log.d("ClothesDetailFragment", "✅ 원피스 아이템 -> 신발, 액세서리, 아우터 추천")
+                listOf(
+                    getComplementaryShoes(),     // 신발 하나
+                    getComplementaryAccessory(), // 액세서리 하나
+                    getComplementaryOuter()      // 아우터 하나
+                )
+            }
+            4 -> { // 아우터인 경우 -> 상의, 하의, 신발 추천
+                Log.d("ClothesDetailFragment", "✅ 아우터 아이템 -> 상의, 하의, 신발 추천")
+                listOf(
+                    getComplementaryTop(),       // 상의 하나
+                    getComplementaryBottom(),    // 하의 하나
+                    getComplementaryShoes()      // 신발 하나
+                )
+            }
+            else -> { // 기본값: 다양한 카테고리 추천
+                Log.d("ClothesDetailFragment", "✅ 기본 추천")
+                listOf(
+                    getComplementaryTop(),
+                    getComplementaryBottom(),
+                    getComplementaryShoes()
+                )
+            }
+        }
     }
 
-    /**
-     * 🔥 수정된 코디 기록 카드 생성 - 날짜 표시 문제 해결
-     */
-    private fun createHardcodedOutfitCard(outfitNumber: Int): View {
-        val context = requireContext()
-        val imageWidth = dpToPx(117)
-        val imageHeight = dpToPx(147)
-        val cardLayout = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(
-                imageWidth, // 카드 width를 이미지 width와 동일하게!
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                rightMargin = dpToPx(12)
-            }
-            gravity = android.view.Gravity.START
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
-        }
+    // 🔥 NEW: 추천 아이템 데이터 클래스
+    data class RecommendationItemData(
+        val id: Int,
+        val imageName: String,
+        val category: Int,
+        val categoryName: String,
+        val subcategoryName: String,
+        val brand: String,
+        val displayText: String
+    )
 
-        val imageView = ImageView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                imageWidth,
-                imageHeight
-            ).apply {
-                gravity = android.view.Gravity.START
-            }
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            background = createRoundedDrawable(10f, android.graphics.Color.TRANSPARENT)
-            clipToOutline = true
-            outlineProvider = object : android.view.ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: android.graphics.Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, dpToPx(12).toFloat())
-                }
-            }
-            setImageResource(
-                when (outfitNumber) {
-                    1 -> R.drawable.cody1
-                    2 -> R.drawable.cody2
-                    3 -> R.drawable.cody3
-                    4 -> R.drawable.cody4
-                    else -> R.drawable.cody4
-                }
-            )
+    // 🔥 NEW: 현재 아이템의 카테고리 확인
+    private fun getCurrentItemCategory(): Int {
+        if (isDummyItemId(imageResId)) {
+            val dummyInfo = generateDummyItemInfo(imageResId)
+            return dummyInfo.category
         }
+        // API 아이템의 경우 별도 처리 필요
+        return 1 // 기본값
+    }
 
-        val dateMap = mapOf(
-            1 to "8월 13일",
-            2 to "8월 12일",
-            3 to "8월 11일",
-            4 to "8월 10일"
+    // 🔥 NEW: 보완 아이템 생성 함수들
+    private fun getComplementaryTop(): RecommendationItemData {
+        val topItems = listOf(
+            RecommendationItemData(-2001, "shirts1", 1, "상의", "셔츠/블라우스", "자라", "자라"),
+            RecommendationItemData(-2002, "shirts2", 1, "상의", "반팔티셔츠", "자라", "자라"),
+            RecommendationItemData(-2003, "shirts3", 1, "상의", "셔츠/블라우스", "H&M", "H&M"),
+            RecommendationItemData(-2004, "shirts4", 1, "상의", "셔츠/블라우스", "유니클로", "유니클로")
         )
-        val dateText = TextView(context).apply {
-            text = dateMap[outfitNumber] ?: "코디 $outfitNumber"
-            textSize = 13f
-            setTextColor(android.graphics.Color.parseColor("#333333"))
-            gravity = android.view.Gravity.CENTER
-            background = createRoundedDrawable(
-                radiusDp = 12f,
-                color = android.graphics.Color.parseColor("#F1F2F4")
-            )
-            setPadding(dpToPx(14), dpToPx(3), dpToPx(14), dpToPx(3))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = android.view.Gravity.START
-                topMargin = dpToPx(10) // 간격 넓힘!
-                bottomMargin = dpToPx(10)
-            }
-        }
-
-        cardLayout.addView(imageView)
-        cardLayout.addView(dateText)
-
-        cardLayout.setOnClickListener {
-            navigateToCalendarWithOutfit(outfitNumber)
-        }
-        return cardLayout
+        return topItems.random()
     }
 
-    /**
-     * 🔥 수정된 추천 아이템 카드 생성 - 간격 조정
-     */
+    private fun getComplementaryBottom(): RecommendationItemData {
+        val bottomItems = listOf(
+            RecommendationItemData(-2011, "pants1", 2, "하의", "긴바지", "유니클로", "유니클로"),
+            RecommendationItemData(-2012, "pants2", 2, "하의", "반바지", "리바이스", "리바이스"),
+            RecommendationItemData(-2013, "pants3", 2, "하의", "긴바지", "MCM", "MCM"),
+            RecommendationItemData(-2014, "pants5", 2, "하의", "청바지", "무신사", "무신사")
+        )
+        return bottomItems.random()
+    }
+
+    private fun getComplementaryShoes(): RecommendationItemData {
+        val shoeItems = listOf(
+            RecommendationItemData(-2021, "shoes1", 5, "신발", "운동화", "나이키", "나이키"),
+            RecommendationItemData(-2022, "shoes2", 5, "신발", "운동화", "아디다스", "아디다스"),
+            RecommendationItemData(-2023, "shoes3", 5, "신발", "운동화", "닥터마틴", "닥터마틴"),
+            RecommendationItemData(-2024, "shoes4", 5, "신발", "샌들", "무지", "무지")
+        )
+        return shoeItems.random()
+    }
+
+    private fun getComplementaryAccessory(): RecommendationItemData {
+        val accessoryItems = listOf(
+            RecommendationItemData(-2031, "acc3", 6, "액세서리", "안경/선글라스", "무지", "무지"),
+            RecommendationItemData(-2032, "bag4", 6, "액세서리", "가방", "무지", "무지"),
+            RecommendationItemData(-2033, "acc5", 6, "액세서리", "가방", "아디다스", "아디다스"),
+            RecommendationItemData(-2034, "acc6", 6, "액세서리", "기타", "H&M", "H&M")
+        )
+        return accessoryItems.random()
+    }
+
+    private fun getComplementaryOuter(): RecommendationItemData {
+        val outerItems = listOf(
+            RecommendationItemData(-2041, "clothes1", 4, "아우터", "자켓", "자라", "자라"),
+            RecommendationItemData(-2042, "clothes2", 4, "아우터", "가디건", "유니클로", "유니클로"),
+            RecommendationItemData(-2043, "clothes3", 4, "아우터", "코트", "H&M", "H&M"),
+            RecommendationItemData(-2044, "clothes4", 4, "아우터", "패딩", "노스페이스", "노스페이스")
+        )
+        return outerItems.random()
+    }
+
+    // 🔥 MODIFIED: 추천 아이템 카드 생성 수정
     private fun createRecommendationItemCard(item: Any, index: Int): View {
         val cardLayout = android.widget.FrameLayout(requireContext()).apply {
             val params = LinearLayout.LayoutParams(
                 dpToPx(117),
                 dpToPx(147)
             ).apply {
-                rightMargin = dpToPx(20) // 🔥 오른쪽 간격 늘림 (12 → 20)
-                leftMargin = dpToPx(0)   // 🔥 왼쪽 잘림 방지
+                rightMargin = dpToPx(20)
+                leftMargin = dpToPx(0)
             }
             layoutParams = params
 
             setOnClickListener {
-                navigateToItemDetail(item)
+                navigateToRecommendationDetail(item)
             }
 
             background = createRippleDrawable()
@@ -1776,17 +1849,16 @@ class ClothesDetailFragment : Fragment() {
                 }
             }
 
-            setItemImage(this, item, index)
+            setRecommendationItemImage(this, item)
             elevation = 4f
         }
 
         val infoText = TextView(requireContext()).apply {
-            text = getItemDisplayText(item, index)
+            text = getRecommendationDisplayText(item)
             textSize = 11f
             setTextColor(android.graphics.Color.parseColor("#333333"))
             gravity = android.view.Gravity.CENTER
 
-            // 🔥 더 진한 배경으로 가시성 향상
             background = createRoundedDrawable(8f, android.graphics.Color.parseColor("#E6FFFFFF"))
 
             setPadding(dpToPx(6), dpToPx(3), dpToPx(6), dpToPx(3))
@@ -1810,6 +1882,56 @@ class ClothesDetailFragment : Fragment() {
         return cardLayout
     }
 
+    // 🔥 NEW: 추천 아이템 이미지 설정
+    private fun setRecommendationItemImage(imageView: ImageView, item: Any) {
+        when (item) {
+            is RecommendationItemData -> {
+                val drawableResId = getDrawableResourceId(item.imageName)
+                imageView.setImageResource(drawableResId)
+                Log.d("ClothesDetailFragment", "✅ 추천 이미지 설정: ${item.imageName} -> $drawableResId")
+            }
+            else -> {
+                imageView.setImageResource(R.drawable.clothes8) // 기본 이미지
+            }
+        }
+    }
+
+    // 🔥 NEW: 추천 아이템 표시 텍스트
+    private fun getRecommendationDisplayText(item: Any): String {
+        return when (item) {
+            is RecommendationItemData -> {
+                "${item.categoryName} · ${item.brand}"
+            }
+            else -> "추천 아이템"
+        }
+    }
+
+    // 🔥 NEW: 추천 아이템 클릭 시 상세 화면으로 이동
+    private fun navigateToRecommendationDetail(item: Any) {
+        when (item) {
+            is RecommendationItemData -> {
+                Log.d("ClothesDetailFragment", "🔗 추천 아이템 클릭: ${item.categoryName} - ${item.brand}")
+
+                val bundle = Bundle().apply {
+                    putInt("image_res_id", item.id) // 음수 ID로 더미 추천 아이템임을 표시
+                    putBoolean("is_recommendation", true)
+                    putString("recommendation_type", item.categoryName)
+                }
+
+                try {
+                    findNavController().navigate(R.id.clothesDetailFragment, bundle)
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(),
+                        "${item.categoryName} 추천: ${item.subcategoryName} (${item.brand})",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> {
+                Toast.makeText(requireContext(), "추천 아이템", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     /**
      * 🔥 아이템 이미지 설정 (더미 + 실제 데이터)
      */
@@ -1831,6 +1953,43 @@ class ClothesDetailFragment : Fragment() {
                 // 더미 데이터인 경우
                 imageView.setImageResource(getDummyItemImage(index))
             }
+        }
+    }
+
+    // 🔥 NEW: drawable 리소스 ID 가져오기
+    private fun getDrawableResourceId(imageName: String): Int {
+        return when (imageName) {
+            "shirts1" -> R.drawable.shirts1
+            "shirts2" -> R.drawable.shirts2
+            "shirts3" -> R.drawable.shirts3
+            "shirts4" -> R.drawable.shirts4
+            "shirts5" -> R.drawable.shirts5
+            "shirts6" -> R.drawable.shirts6
+            "pants1" -> R.drawable.pants1
+            "pants2" -> R.drawable.pants2
+            "pants3" -> R.drawable.pants3
+            "pants4" -> R.drawable.pants4
+            "pants5" -> R.drawable.pants5
+            "pants6" -> R.drawable.pants6
+            "shoes1" -> R.drawable.shoes1
+            "shoes2" -> R.drawable.shoes2
+            "shoes3" -> R.drawable.shoes3
+            "shoes4" -> R.drawable.shoes4
+            "shoes5" -> R.drawable.shoes5
+            "shoes6" -> R.drawable.shoes6
+            "acc3" -> R.drawable.acc3
+            "acc5" -> R.drawable.acc5
+            "acc6" -> R.drawable.acc6
+            "bag4" -> R.drawable.bag4
+            "clothes1" -> R.drawable.clothes1
+            "clothes2" -> R.drawable.clothes2
+            "clothes3" -> R.drawable.clothes3
+            "clothes4" -> R.drawable.clothes4
+            "clothes5" -> R.drawable.clothes5
+            "clothes6" -> R.drawable.clothes6
+            "clothes7" -> R.drawable.clothes7
+            "clothes8" -> R.drawable.clothes8
+            else -> R.drawable.clothes8 // 기본값
         }
     }
 
@@ -1915,6 +2074,9 @@ class ClothesDetailFragment : Fragment() {
         }
     }
 
+    /**
+     * 🔥 RESTORED: 원래대로 - 해당 아이템의 코디 하나만 표시
+     */
     private fun displayHardcodedOutfitRecords() {
         Log.d("ClothesDetailFragment", "🎭 displayHardcodedOutfitRecords 시작")
 
@@ -1929,11 +2091,10 @@ class ClothesDetailFragment : Fragment() {
             visibility = View.VISIBLE
             removeAllViews()
             orientation = LinearLayout.HORIZONTAL
-
-            // 🔥 왼쪽 패딩을 줄여서 텍스트와 맞춤
             setPadding(dpToPx(0), dpToPx(8), dpToPx(16), dpToPx(8))
         }
 
+        // 🔥 원래대로: 현재 아이템의 코디 그룹만 가져오기
         val currentOutfitNumber = getCurrentItemOutfitGroup()
 
         if (currentOutfitNumber != null) {
@@ -1946,6 +2107,144 @@ class ClothesDetailFragment : Fragment() {
         } else {
             displayNoOutfitRecordsWithStyle()
         }
+    }
+
+    /**
+     * 🔥 FIXED: 정확한 코디 그룹 매핑 (5시리즈 -> 6번, 6시리즈 -> 5번)
+     */
+    private fun getCurrentItemOutfitGroup(): Int? {
+        val index = Math.abs(imageResId + 1000) // -1000 -> 0, -1001 -> 1, ...
+
+        // 🔥 FIXED: WardrobeFragment 순서에 맞춘 정확한 코디 그룹 매핑
+        val outfitGroupMapping = mapOf(
+            // 🔥 shirts5, pants5, shoes5, acc5 (5시리즈) -> 코디 5번 (8월 5일)
+            0 to 5,  // shirts5 -> cody5 (8월 5일)
+            1 to 5,  // pants5 -> cody5 (8월 5일)
+            2 to 5,  // shoes5 -> cody5 (8월 5일)
+            3 to 5,  // acc5 -> cody5 (8월 5일)
+
+            // 🔥 shirts6, pants6, shoes6, acc6 (6시리즈) -> 코디 6번 (8월 14일)
+            4 to 6,  // shirts6 -> cody6 (8월 14일)
+            5 to 6,  // pants6 -> cody6 (8월 14일)
+            6 to 6,  // shoes6 -> cody6 (8월 14일)
+            7 to 6,  // acc6 -> cody6 (8월 14일)
+
+            // 🔥 shirts1, pants1, shoes1 (1시리즈) -> 코디 1번 (8월 13일)
+            8 to 1,  // shirts1 -> cody1
+            9 to 1,  // pants1 -> cody1
+            10 to 1, // shoes1 -> cody1
+
+            // 🔥 shirts2, pants2, shoes2 (2시리즈) -> 코디 2번 (8월 12일)
+            11 to 2, // shirts2 -> cody2
+            12 to 2, // pants2 -> cody2
+            13 to 2, // shoes2 -> cody2
+
+            // 🔥 shirts3, shoes3, pants3, acc3 (3시리즈) -> 코디 3번 (8월 11일)
+            14 to 3, // shirts3 -> cody3
+            15 to 3, // shoes3 -> cody3
+            16 to 3, // pants3 -> cody3
+            17 to 3, // acc3 -> cody3
+
+            // 🔥 shirts4, pants4, bag4, shoes4 (4시리즈) -> 코디 4번 (8월 10일)
+            18 to 4, // shirts4 -> cody4
+            19 to 4, // pants4 -> cody4
+            20 to 4, // bag4 -> cody4
+            21 to 4  // shoes4 -> cody4
+        )
+
+        val outfitGroup = outfitGroupMapping[index % outfitGroupMapping.size]
+
+        Log.d("ClothesDetailFragment", "🎯 아이템 index=$index -> 코디 그룹=$outfitGroup")
+
+        return outfitGroup
+    }
+
+    /**
+     * 🔥 FIXED: 561234 순서에 맞춘 코디 카드 생성
+     */
+    private fun createHardcodedOutfitCard(outfitNumber: Int): View {
+        val context = requireContext()
+        val imageWidth = dpToPx(117)
+        val imageHeight = dpToPx(147)
+        val cardLayout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                rightMargin = dpToPx(12)
+            }
+            gravity = android.view.Gravity.START
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        }
+
+        val imageView = ImageView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                imageWidth,
+                imageHeight
+            ).apply {
+                gravity = android.view.Gravity.START
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            background = createRoundedDrawable(10f, android.graphics.Color.TRANSPARENT)
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, dpToPx(12).toFloat())
+                }
+            }
+
+            // 🔥 FIXED: 561234 순서에 맞춘 이미지 매핑
+            setImageResource(
+                when (outfitNumber) {
+                    5 -> R.drawable.cody5  // 🔥 첫 번째: cody5
+                    6 -> R.drawable.cody6  // 🔥 두 번째: cody6 (14일)
+                    1 -> R.drawable.cody1  // 🔥 세 번째: cody1 (13일)
+                    2 -> R.drawable.cody2  // 🔥 네 번째: cody2 (12일)
+                    3 -> R.drawable.cody3  // 🔥 다섯 번째: cody3 (11일)
+                    4 -> R.drawable.cody4  // 🔥 여섯 번째: cody4 (10일)
+                    else -> R.drawable.cody1
+                }
+            )
+        }
+
+        // 🔥 FIXED: 561234 순서에 맞춘 날짜 매핑
+        val dateMap = mapOf(
+            5 to "8월 5일",   // 🔥 첫 번째: cody5 (5시리즈 위치)
+            6 to "8월 14일",  // 🔥 두 번째: cody6 -> 14일
+            1 to "8월 13일",  // 🔥 세 번째: cody1 -> 13일
+            2 to "8월 12일",  // 🔥 네 번째: cody2 -> 12일
+            3 to "8월 11일",  // 🔥 다섯 번째: cody3 -> 11일
+            4 to "8월 10일"   // 🔥 여섯 번째: cody4 -> 10일
+        )
+
+        val dateText = TextView(context).apply {
+            text = dateMap[outfitNumber] ?: "코디 $outfitNumber"
+            textSize = 13f
+            setTextColor(android.graphics.Color.parseColor("#333333"))
+            gravity = android.view.Gravity.CENTER
+            background = createRoundedDrawable(
+                radiusDp = 12f,
+                color = android.graphics.Color.parseColor("#F1F2F4")
+            )
+            setPadding(dpToPx(14), dpToPx(3), dpToPx(14), dpToPx(3))
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                gravity = android.view.Gravity.START
+                topMargin = dpToPx(10)
+                bottomMargin = dpToPx(10)
+            }
+        }
+
+        cardLayout.addView(imageView)
+        cardLayout.addView(dateText)
+
+        cardLayout.setOnClickListener {
+            navigateToCalendarWithOutfit(outfitNumber)
+        }
+        return cardLayout
     }
 
     /**
@@ -2012,42 +2311,20 @@ class ClothesDetailFragment : Fragment() {
             .start()
     }
 
-    private fun getCurrentItemOutfitGroup(): Int? {
-        val index = Math.abs(imageResId + 1000) // -1000 -> 0, -1001 -> 1, ...
-
-        // WardrobeFragment의 하드코딩된 아이템 순서와 코디 그룹 매핑
-        val outfitGroupMapping = mapOf(
-            0 to 1,  // shirts1 -> cody1
-            1 to 1,  // pants1 -> cody1
-            2 to 1,  // shoes1 -> cody1
-            3 to 2,  // shirts2 -> cody2
-            4 to 2,  // pants2 -> cody2
-            5 to 2,  // shoes2 -> cody2
-            6 to 3,  // shirts3 -> cody3
-            7 to 3,  // shoes3 -> cody3
-            8 to 3,  // pants3 -> cody3
-            9 to 3,  // acc3 -> cody3
-            10 to 1, // shirts4 -> cody1
-            11 to 1, // pants4 -> cody1
-            12 to 1, // bag4 -> cody1
-            13 to 1  // shoes4 -> cody1
-        )
-
-        return outfitGroupMapping[index % outfitGroupMapping.size]
-    }
-
     private fun navigateToCalendarWithOutfit(outfitNumber: Int) {
         try {
-            // 🔥 JavaCalendar로 변경
             val calendar = JavaCalendar.getInstance()
             val currentYear = calendar.get(JavaCalendar.YEAR)
             val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
 
+            // 🔥 FIXED: 정확한 날짜 매핑
             val outfitDateMap = mapOf(
-                1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // 이번 달 20일
-                2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // 이번 달 19일
-                3 to "$currentYear-${String.format("%02d", currentMonth)}-11",  // 이번 달 18일
-                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"
+                5 to "$currentYear-${String.format("%02d", currentMonth)}-05", // cody5 -> 8월 5일
+                6 to "$currentYear-${String.format("%02d", currentMonth)}-14", // cody6 -> 8월 14일
+                1 to "$currentYear-${String.format("%02d", currentMonth)}-13", // cody1 -> 8월 13일
+                2 to "$currentYear-${String.format("%02d", currentMonth)}-12", // cody2 -> 8월 12일
+                3 to "$currentYear-${String.format("%02d", currentMonth)}-11", // cody3 -> 8월 11일
+                4 to "$currentYear-${String.format("%02d", currentMonth)}-10"  // cody4 -> 8월 10일
             )
 
             val targetDate = outfitDateMap[outfitNumber]
@@ -2066,6 +2343,9 @@ class ClothesDetailFragment : Fragment() {
                 } catch (e: Exception) {
                     Toast.makeText(context, "코디 ${outfitNumber}번 (${targetDate})", Toast.LENGTH_LONG).show()
                 }
+            } else {
+                Log.e("ClothesDetailFragment", "❌ 코디 ${outfitNumber}번의 날짜 매핑을 찾을 수 없음")
+                Toast.makeText(context, "해당 코디의 날짜 정보를 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
             }
 
         } catch (e: Exception) {
