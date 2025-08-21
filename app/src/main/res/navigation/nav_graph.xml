@@ -188,11 +188,8 @@
         android:name="com.example.onfit.HomeRegister.fragment.OutfitSaveFragment"
         android:label="outfitSaveFragment" >
         <argument
-            android:name="imageUris"
-            app:argType="string[]" />
-        <argument
-            android:name="imageResIds"
-            app:argType="integer[]" />
+                android:name="save_date"
+                app:argType="string"/>
         <action
             android:id="@+id/action_outfitSaveFragment_to_wardrobeFragment"
             app:destination="@id/wardrobeFragment" />

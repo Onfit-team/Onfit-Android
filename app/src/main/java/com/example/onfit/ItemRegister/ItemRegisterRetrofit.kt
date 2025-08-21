@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ItemRegisterRetrofit {
-    private const val BASE_URL = "http://15.164.35.198:3000/"
+    private const val BASE_URL = "http://3.36.113.173/"
 
     private val httpLogger = HttpLoggingInterceptor { msg ->
         Log.d("Wardrobe-HTTP", msg)

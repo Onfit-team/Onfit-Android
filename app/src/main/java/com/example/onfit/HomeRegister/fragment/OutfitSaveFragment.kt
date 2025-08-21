@@ -1,7 +1,12 @@
 package com.example.onfit.HomeRegister.fragment
 
+import android.content.ContentResolver
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,25 +17,39 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.widget.ViewPager2
 import com.example.onfit.HomeRegister.adapter.SaveImagePagerAdapter
 import com.example.onfit.HomeRegister.model.DisplayImage
 import com.example.onfit.ItemRegister.ItemRegisterRequest
 import com.example.onfit.ItemRegister.ItemRegisterRetrofit
 import com.example.onfit.KakaoLogin.util.TokenProvider
+import com.example.onfit.OutfitRegister.ApiService
+import com.example.onfit.OutfitRegister.RetrofitClient
 import com.example.onfit.R
 import com.example.onfit.TopInfoDialogFragment
+import com.example.onfit.Wardrobe.Network.ImageUploadResponse
 import com.example.onfit.databinding.FragmentOutfitSaveBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 // 이미지 드래프트 추가
 private data class ItemDraft(
@@ -52,6 +71,7 @@ class OutfitSaveFragment : Fragment() {
 
     private val currentImages = mutableListOf<DisplayImage>()
     private lateinit var pagerAdapter: SaveImagePagerAdapter
+    private val args: OutfitSaveFragmentArgs by navArgs()
 
     private val drafts = mutableListOf<ItemDraft>()
     private var bindingInProgress = false // 페이지 전환 시 리스너 오발동 방지
@@ -79,21 +99,25 @@ class OutfitSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ViewPager 이미지 준비
-        val args = OutfitSaveFragmentArgs.fromBundle(requireArguments())
+        // 1) 날짜만 받아서 제목에 표시
+        val saveDate = args.saveDate ?: "날짜 없음"
+        binding.outfitSaveTitle1Tv.text = saveDate
 
-        val refinedUrls: List<String> = args.imageUris
-            ?.filter { it != null && (it.startsWith("http://") || it.startsWith("https://")) }
-            ?.distinct()
-            ?: emptyList()
-
+        // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
         currentImages.clear()
-        currentImages.addAll(refinedUrls.map { s -> DisplayImage(uri = Uri.parse(s)) })
+        val dummyResIds = listOf(
+            R.drawable.calendar_save_image2,
+            R.drawable.calendar_save_image3,
+            R.drawable.calendar_save_image4
+            // 필요하면 더 추가
+        )
+        currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
 
-        // 드래프트 개수 동기화
+        // 3) 드래프트 개수 동기화
         drafts.clear()
         repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
+        // 4) ViewPager 세팅
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
@@ -239,10 +263,6 @@ class OutfitSaveFragment : Fragment() {
             it.setOnClickListener(commonClickListener)
         }
 
-        // 날짜는 번들에서
-        val saveDate = requireArguments().getString("save_date") ?: "날짜 없음"
-        binding.outfitSaveTitle1Tv.text = saveDate
-
         // 갤러리 버튼
         binding.outfitSaveChangeBtn.setOnClickListener {
             // 이미지 다중 선택
@@ -334,38 +354,37 @@ class OutfitSaveFragment : Fragment() {
         // 0) 현재 페이지 값 보존
         saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
 
-        // 1) ViewPager 현재 목록 기준: http URL만 전송 대상 (content://, resId는 제외)
-        val submissions: List<Pair<String, ItemDraft>> =
-            currentImages.mapIndexedNotNull { idx, di ->
-                val url = di.uri?.toString()
-                if (url != null && url.startsWith("http")) {
-                    url to (drafts.getOrNull(idx) ?: ItemDraft())
-                } else {
-                    null
-                }
-            }
-
-        if (submissions.isEmpty()) {
-            Toast.makeText(requireContext(), "등록할 이미지 URL이 없어요. 먼저 업로드를 완료해주세요.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         // 2) 날짜
         val passedSaveDate = requireArguments().getString("save_date")
         val purchaseDate = normalizePurchaseDate(passedSaveDate)
         Log.d(TAG, "normalized purchaseDate=$purchaseDate (from '$passedSaveDate')")
 
         // 3) API 준비
-        val token = "Bearer " + TokenProvider.getToken(requireContext())
+        val bearer = "Bearer " + TokenProvider.getToken(requireContext())
         val api = ItemRegisterRetrofit.api
 
         binding.outfitSaveSaveBtn.isEnabled = false
 
         viewLifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val ensured: List<Pair<String, ItemDraft>> =
+                currentImages.mapIndexed { idx, di ->
+                    async {
+                        val url = uploadIfNeededAndGetUrl(di, bearer)
+                        url?.let { it to (drafts.getOrNull(idx) ?: ItemDraft()) }
+                    }
+                }.awaitAll().filterNotNull()
+
+            if (ensured.isEmpty()) {
+                withContext(Dispatchers.Main) {
+                    binding.outfitSaveSaveBtn.isEnabled = true
+                    Toast.makeText(requireContext(), "업로드 가능한 이미지가 없어요.", Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
             var success = 0
             var lastError: String? = null
 
-            submissions.forEachIndexed { i, (url, d) ->
+            ensured.forEachIndexed { i, (url, d) ->
                 val req = ItemRegisterRequest(
                     category = d.categoryId,
                     subcategory = d.subcategoryId,
@@ -374,15 +393,15 @@ class OutfitSaveFragment : Fragment() {
                     brand = d.brand,
                     size = d.size,
                     purchaseDate = purchaseDate,
-                    image = url,              // 각 이미지 고유 URL
+                    image = url,              // ✅ 업로드로 얻은 URL 사용
                     price = d.price,
                     purchaseSite = d.site,
                     tagIds = d.tagIds.toList()
                 )
-                Log.d(TAG, "[${i + 1}/${submissions.size}] REQ=" + Gson().toJson(req))
+                Log.d(TAG, "[${i + 1}/${ensured.size}] REQ=" + Gson().toJson(req))
 
                 try {
-                    val resp = api.createRegisterItem(token, req)
+                    val resp = api.createRegisterItem(bearer, req)
                     if (resp.isSuccessful && (resp.body()?.ok == true)) {
                         success++
                     } else {
@@ -395,31 +414,107 @@ class OutfitSaveFragment : Fragment() {
                     Log.e(TAG, "Exception while createRegisterItem", e)
                     lastError = e.message
                 }
-            }
 
-            withContext(kotlinx.coroutines.Dispatchers.Main) {
-                val total = submissions.size
-                val fail = total - success
-                val msg = when {
-                    success == 0 -> "등록 실패: ${lastError ?: "알 수 없는 오류"}"
-                    fail == 0    -> "아이템 ${success}개 등록 완료!"
-                    else         -> "아이템 ${success}개 등록, ${fail}개 실패"
-                }
-                Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 
-                if (success > 0) {
-                    val nav = findNavController()
-                    val opts = NavOptions.Builder()
-                        .setLaunchSingleTop(true)
-                        .setRestoreState(true)
-                        .setPopUpTo(nav.graph.startDestinationId, false)
-                        .build()
-                    nav.navigate(R.id.wardrobeFragment, null, opts)
-                } else {
-                    binding.outfitSaveSaveBtn.isEnabled = true
+                withContext(Dispatchers.Main) {
+                    val total = ensured.size
+                    val fail = total - success
+                    val msg = when {
+                        success == 0 -> "등록 실패: ${lastError ?: "알 수 없는 오류"}"
+                        fail == 0 -> "아이템 ${success}개 등록 완료!"
+                        else -> "아이템 ${success}개 등록, ${fail}개 실패"
+                    }
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+
+                    if (success > 0) {
+                        val nav = findNavController()
+                        val opts = NavOptions.Builder()
+                            .setLaunchSingleTop(true)
+                            .setRestoreState(true)
+                            .setPopUpTo(nav.graph.startDestinationId, false)
+                            .build()
+                        nav.navigate(R.id.wardrobeFragment, null, opts)
+                    } else {
+                        binding.outfitSaveSaveBtn.isEnabled = true
+                    }
                 }
             }
         }
+    }
+
+    // 이미지 업로드
+    private suspend fun uploadIfNeededAndGetUrl(
+        di: DisplayImage,
+        bearer: String
+    ): String? {
+        // 이미 URL이면 그대로
+        di.uri?.toString()?.let { s ->
+            if (s.startsWith("http://") || s.startsWith("https://")) return s
+        }
+
+        // uri or resId → File
+        val file: File? = when {
+            di.uri != null -> uriToCacheFile(requireContext(), di.uri!!)
+            di.resId != null -> resIdToTempJpeg(requireContext(), di.resId!!)
+            else -> null
+        }
+        if (file == null || !file.exists() || file.length() <= 0) return null
+
+        val part = fileToImagePart(file)
+        return runCatching {
+            val resp = imageUploadApi.uploadImage(bearer, part)
+            if (resp.isSuccessful) {
+                val body = resp.body()
+                if (body?.ok == true) body.payload?.imageUrl else null
+            } else null
+        }.getOrNull()
+    }
+
+    private val imageUploadApi by lazy {
+        // ItemRegister와 같은 Retrofit 인스턴스를 사용 (네가 쓰는 RetrofitClient/ItemRegisterRetrofit 중 하나)
+        RetrofitClient.instance.create(ApiService::class.java)
+        // 또는 ItemRegisterRetrofit.retrofit.create(ImageUploadService::class.java)
+    }
+
+    private fun uriToCacheFile(context: Context, uri: Uri): File? {
+        return try {
+            val name = queryDisplayName(context.contentResolver, uri) ?: "upload_${System.currentTimeMillis()}.jpg"
+            val out = File(context.cacheDir, name)
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                out.outputStream().use { output -> input.copyTo(output) }
+            }
+            out
+        } catch (_: Exception) { null }
+    }
+
+    private fun resIdToTempJpeg(context: Context, @DrawableRes resId: Int): File? {
+        val d = AppCompatResources.getDrawable(context, resId) ?: return null
+        val w = if (d.intrinsicWidth > 0) d.intrinsicWidth else 512
+        val h = if (d.intrinsicHeight > 0) d.intrinsicHeight else 512
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        Canvas(bmp).apply { d.setBounds(0, 0, w, h); d.draw(this) }
+        val f = File(context.cacheDir, "res_${resId}_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+        return f
+    }
+
+    private fun fileToImagePart(file: File): MultipartBody.Part {
+        val mime = when (file.extension.lowercase()) {
+            "png" -> "image/png"
+            "jpg", "jpeg" -> "image/jpeg"
+            else -> "image/jpeg"
+        }.toMediaTypeOrNull()
+        val body = file.asRequestBody(mime)
+        return MultipartBody.Part.createFormData("image", file.name, body) // ← 서버 필드명 "image"
+    }
+
+    private fun queryDisplayName(resolver: ContentResolver, uri: Uri): String? {
+        val proj = arrayOf(OpenableColumns.DISPLAY_NAME)
+        resolver.query(uri, proj, null, null, null)?.use { c ->
+            val idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (idx >= 0 && c.moveToFirst()) return c.getString(idx)
+        }
+        return null
     }
 
     // 갤러리 이동
