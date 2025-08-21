@@ -2,7 +2,9 @@ package com.example.onfit
 
 data class CalendarSaveItem(
     val imageResId: Int? = null,    // drawable 리소스 ID (더미용)
-    val imageUrl: String? = null    // 서버 이미지 URL (실제용)
+    val imageUrl: String? = null,    // 서버 이미지 URL (실제용)
+    val isUrlImage: (() -> Boolean)? = null,      // 삭제할 속성
+    val isDrawableResource: (() -> Boolean)? = null // 삭제할 속성
 ) {
     // 이미지가 있는지 확인하는 헬퍼 함수
     fun hasImage(): Boolean = imageResId != null || !imageUrl.isNullOrBlank()

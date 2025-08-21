@@ -214,13 +214,13 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         val outfitIdText = body.result?.id?.toString().orEmpty()
                         val registeredDate = formattedDateForAPI // "2025-08-06"
 
-                        Log.d("RegisterFragment", "등록 성공 - 날짜: $registeredDate, outfit_id: $outfitIdText")
+                        Log.d("RegisterFragment", "등록 성공 - 날짜: $registeredDate, outfit_id: $outfitIdText, 이미지: $imageUrl")
 
-                        // ⭐ outfit_id와 날짜 매핑을 outfit_history에 저장
+                        // ⭐ outfit_id, 날짜, 이미지 URL을 모두 저장 (형식: "날짜:outfit_id:이미지URL")
                         val historyPrefs = requireContext().getSharedPreferences("outfit_history", Context.MODE_PRIVATE)
                         val existingData = historyPrefs.getString("registered_outfits", "") ?: ""
 
-                        val newEntry = "$registeredDate:$outfitIdText"
+                        val newEntry = "$registeredDate:$outfitIdText:$imageUrl" // ⭐ 이미지 URL 포함
                         val updatedData = if (existingData.isBlank()) {
                             newEntry
                         } else {
@@ -228,13 +228,14 @@ class RegisterFragment : Fragment(), TopSheetDialogFragment.OnMemoDoneListener {
                         }
 
                         historyPrefs.edit().putString("registered_outfits", updatedData).apply()
-                        Log.d("RegisterFragment", "등록 기록 저장: $newEntry")
+                        Log.d("RegisterFragment", "등록 기록 저장 (이미지 포함): $newEntry")
 
-                        // ⭐ 새로 등록된 정보를 CalendarFragment에 전달
+                        // ⭐ 새로 등록된 정보를 CalendarFragment에 전달 (이미지 URL도 포함)
                         val registrationPrefs = requireContext().getSharedPreferences("outfit_registration", Context.MODE_PRIVATE)
                         registrationPrefs.edit()
                             .putString("newly_registered_date", registeredDate)
                             .putInt("newly_registered_outfit_id", outfitIdText.toIntOrNull() ?: -1)
+                            .putString("newly_registered_image_url", imageUrl) // ⭐ 이미지 URL도 전달
                             .putLong("registration_timestamp", System.currentTimeMillis())
                             .apply()
 

@@ -9,14 +9,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.onfit.databinding.FragmentCalendarSaveBinding
+import java.util.Calendar as JavaCalendar
+import java.util.*
 
-// ✅ 추가: 상세 API 재호출을 위한 import (최소 변경)
+// ✅ 상세 API 재호출을 위한 import
 import androidx.lifecycle.lifecycleScope
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.network.RetrofitInstance
@@ -37,7 +40,7 @@ class CalendarSaveFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentCalendarSaveBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -45,27 +48,66 @@ class CalendarSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //  하나의 키로만 읽기 (selected_date)
-        val selectedDate = arguments?.getString("selected_date")
+        // ⭐ 전달받은 데이터 확인
+        val selectedDate = arguments?.getString("selected_date") ?: arguments?.getString("selectedDate")
         val mainImageUrl = arguments?.getString("main_image_url")
         val itemImageUrls = arguments?.getStringArrayList("item_image_urls")
         val outfitId = arguments?.getInt("outfit_id", -1) ?: -1
+        val outfitNumber = arguments?.getInt("outfit_number") ?: -1
+        val fromOutfitRecord = arguments?.getBoolean("from_outfit_record") ?: false
+        val isDummyOutfit = arguments?.getBoolean("is_dummy_outfit") ?: false
+        val isRealOutfit = arguments?.getBoolean("is_real_outfit") ?: false
+        val memo = arguments?.getString("memo")
 
-        Log.d("CalendarSaveFragment", "받은 데이터: date=$selectedDate, main=$mainImageUrl, items=$itemImageUrls, outfitId=$outfitId")
+        Log.d("CalendarSaveFragment", "받은 데이터:")
+        Log.d("CalendarSaveFragment", "날짜: $selectedDate")
+        Log.d("CalendarSaveFragment", "메인 이미지 URL: $mainImageUrl")
+        Log.d("CalendarSaveFragment", "Outfit ID: $outfitId")
+        Log.d("CalendarSaveFragment", "Outfit Number: $outfitNumber")
+        Log.d("CalendarSaveFragment", "From Outfit Record: $fromOutfitRecord")
+        Log.d("CalendarSaveFragment", "Is Dummy Outfit: $isDummyOutfit")
+        Log.d("CalendarSaveFragment", "Is Real Outfit: $isRealOutfit")
+        Log.d("CalendarSaveFragment", "Memo: $memo")
 
+        // ⭐ 날짜 표시
         binding.calendarSaveDateTv.text = selectedDate ?: "날짜 없음"
 
-        // 1) 우선 전달받은 값으로 즉시 표시 (기존 동작 유지)
-        if (!mainImageUrl.isNullOrBlank()) {
-            setupMainImage(mainImageUrl)
-        }
-        if (!itemImageUrls.isNullOrEmpty()) {
-            setupItemRecyclerView(itemImageUrls)
-        } else {
-            setupDummyRecyclerView()
+        // 🔥 코디 타입별 초기 표시 (main 분기 유지) + URL 보정 추가
+        when {
+            // 1. 더미 코디 (ClothesDetailFragment에서 온 경우 또는 더미 플래그)
+            isDummyOutfit || (fromOutfitRecord && outfitNumber != -1) -> {
+                Log.d("CalendarSaveFragment", "🎭 더미 코디 데이터 설정")
+                setupDummyOutfitData(outfitNumber)
+            }
+
+            // 2. 실제 API 코디 (HomeViewModel에서 온 경우)
+            isRealOutfit && !mainImageUrl.isNullOrBlank() -> {
+                Log.d("CalendarSaveFragment", "🌐 실제 API 코디 데이터 설정")
+                setupRealApiOutfitData(normalizeServerUrl(mainImageUrl), memo)
+            }
+
+            // 3. 기존 서버 코디 (개별 아이템들이 있는 경우)
+            !mainImageUrl.isNullOrBlank() && !itemImageUrls.isNullOrEmpty() -> {
+                Log.d("CalendarSaveFragment", "📦 기존 서버 코디 데이터 설정")
+                setupMainImage(normalizeServerUrl(mainImageUrl))
+                setupItemRecyclerView(itemImageUrls.map { normalizeServerUrl(it) })
+            }
+
+            // 4. 메인 이미지만 있는 경우
+            !mainImageUrl.isNullOrBlank() -> {
+                Log.d("CalendarSaveFragment", "🖼️ 메인 이미지만 설정")
+                setupMainImage(normalizeServerUrl(mainImageUrl))
+                setupDummyRecyclerView()
+            }
+
+            // 5. 폴백: 더미 데이터
+            else -> {
+                Log.d("CalendarSaveFragment", "🔄 폴백: 더미 데이터 사용")
+                setupDummyRecyclerView()
+            }
         }
 
-        // 2) ✅ outfitId가 유효하면 상세 API로 '정답' 데이터로 덮어쓰기 (최소 변경)
+        // ✅ outfitId가 유효하면 상세 API로 '정답' 데이터로 덮어쓰기 (fix/KakaoHomeCommunity 기능 유지)
         if (outfitId > 0) {
             val token = TokenProvider.getToken(requireContext())
             if (token.isNotBlank()) {
@@ -99,17 +141,25 @@ class CalendarSaveFragment : Fragment() {
             }
         }
 
-        // 버튼 리스너들 (기존 유지)
+        // 버튼 리스너들
         binding.calendarSaveBackBtn.setOnClickListener {
             findNavController().popBackStack()
         }
 
         binding.calendarSaveEditIv.setOnClickListener {
-            findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
+            if (isDummyOutfit) {
+                Toast.makeText(requireContext(), "더미 코디는 편집할 수 없습니다", Toast.LENGTH_SHORT).show()
+            } else {
+                findNavController().navigate(R.id.action_calendarSaveFragment_to_calendarRewriteFragment)
+            }
         }
 
         binding.calendarSaveSendIv.setOnClickListener {
-            showDeleteDialog()
+            if (isDummyOutfit) {
+                showDummyDeleteDialog()
+            } else {
+                showDeleteDialog()
+            }
         }
     }
 
@@ -131,9 +181,61 @@ class CalendarSaveFragment : Fragment() {
     }
 
     /**
-     * ⭐ 큰 메인 이미지 표시
-     * 무엇: 상단 대표 이미지 ImageView에 로드
-     * 구성: 크기/scaleType 지정 후 Glide로 로드
+     * 🔥 실제 API 코디 데이터 설정
+     */
+    private fun setupRealApiOutfitData(mainImageUrl: String, memo: String?) {
+        Log.d("CalendarSaveFragment", "🌐 실제 API 코디 설정: $mainImageUrl")
+        setupMainImage(mainImageUrl)
+        setupRealOutfitDescription(memo)
+        binding.calendarSaveRv.visibility = View.GONE
+    }
+
+    /**
+     * 🔥 실제 코디 설명 표시 (RecyclerView 대신)
+     */
+    private fun setupRealOutfitDescription(memo: String?) {
+        binding.calendarSaveRv.visibility = View.GONE
+        Log.d("CalendarSaveFragment", "실제 코디 메모: $memo")
+        // 필요 시 memo를 별도 TextView에 표시하는 로직 추가 가능
+    }
+
+    /**
+     * 🔥 더미 코디 삭제 다이얼로그 (더미 전용)
+     */
+    private fun showDummyDeleteDialog() {
+        val dialog = AlertDialog.Builder(requireContext()).create()
+        val dialogView = layoutInflater.inflate(R.layout.outfit_delete_dialog, null)
+        dialog.setView(dialogView)
+        dialog.setCancelable(false)
+
+        dialog.window?.setBackgroundDrawable(
+            ContextCompat.getDrawable(requireContext(), R.drawable.rounded_white_bg)
+        )
+
+        val yesBtn = dialogView.findViewById<Button>(R.id.delete_dialog_yes_btn)
+        val noBtn = dialogView.findViewById<Button>(R.id.delete_dialog_no_btn)
+
+        yesBtn.setOnClickListener {
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "더미 코디가 제거되었습니다", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+        }
+
+        noBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // 다이얼로그 너비 294dp
+        val width = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
+        ).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    /**
+     * ⭐ 큰 메인 이미지 표시 (URL/파일 경로)
      */
     private fun setupMainImage(mainImageUrl: String) {
         Log.d("CalendarSaveFragment", "메인 이미지 로드 시작: $mainImageUrl")
@@ -157,9 +259,7 @@ class CalendarSaveFragment : Fragment() {
     }
 
     /**
-     * ⭐ 개별 아이템들을 작은 RecyclerView에 표시
-     * 무엇: 하단 RecyclerView에 아이템 이미지 수평 스크롤로 표시
-     * 구성: 서버/번들에서 받은 URL 리스트를 CalendarSaveItem 리스트로 변환
+     * ⭐ 개별 아이템들을 작은 RecyclerView에 표시 (URL 리스트)
      */
     private fun setupItemRecyclerView(itemImageUrls: List<String>) {
         Log.d("CalendarSaveFragment", "개별 아이템들 로드: ${itemImageUrls.size}개")
@@ -188,6 +288,9 @@ class CalendarSaveFragment : Fragment() {
         binding.calendarSaveRv.visibility = View.VISIBLE
     }
 
+    /**
+     * 실제(서버) 코디 삭제 다이얼로그
+     */
     private fun showDeleteDialog() {
         val dialog = AlertDialog.Builder(requireContext()).create()
         val dialogView = layoutInflater.inflate(R.layout.outfit_delete_dialog, null)
@@ -221,5 +324,87 @@ class CalendarSaveFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    // 🔥 더미 코디 데이터 설정
+    private fun setupDummyOutfitData(outfitNumber: Int) {
+        Log.d("CalendarSaveFragment", "🎭 더미 코디 ${outfitNumber}번 데이터 설정")
+
+        val calendar = JavaCalendar.getInstance()
+        val currentYear = calendar.get(JavaCalendar.YEAR)
+        val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
+
+        val dateMap = mapOf(
+            1 to "$currentYear-${String.format("%02d", currentMonth)}-13",
+            2 to "$currentYear-${String.format("%02d", currentMonth)}-12",
+            3 to "$currentYear-${String.format("%02d", currentMonth)}-11",
+            4 to "$currentYear-${String.format("%02d", currentMonth)}-10"
+        )
+
+        val targetDate = dateMap[outfitNumber] ?: "날짜 없음"
+        binding.calendarSaveDateTv.text = targetDate
+
+        val mainImageRes = when (outfitNumber) {
+            1 -> R.drawable.cody1
+            2 -> R.drawable.cody2
+            3 -> R.drawable.cody3
+            else -> R.drawable.clothes8
+        }
+
+        setupMainImageFromDrawable(mainImageRes)
+
+        val itemList = when (outfitNumber) {
+            1 -> listOf(
+                CalendarSaveItem(imageResId = R.drawable.shirts1),
+                CalendarSaveItem(imageResId = R.drawable.pants1),
+                CalendarSaveItem(imageResId = R.drawable.shoes1)
+            )
+            2 -> listOf(
+                CalendarSaveItem(imageResId = R.drawable.shirts2),
+                CalendarSaveItem(imageResId = R.drawable.pants2),
+                CalendarSaveItem(imageResId = R.drawable.shoes2)
+            )
+            3 -> listOf(
+                CalendarSaveItem(imageResId = R.drawable.shirts3),
+                CalendarSaveItem(imageResId = R.drawable.shoes3),
+                CalendarSaveItem(imageResId = R.drawable.pants3)
+            )
+            else -> calendarSaveList
+        }
+
+        // 레이아웃/가시성까지 한 번에 처리
+        setupDummyItemRecyclerView(itemList)
+
+        Log.d("CalendarSaveFragment", "✅ 코디 ${outfitNumber}번 설정 완료: 날짜=$targetDate")
+    }
+
+    // 🔥 Drawable 리소스로 메인 이미지 설정
+    private fun setupMainImageFromDrawable(imageResId: Int) {
+        Log.d("CalendarSaveFragment", "메인 이미지 Drawable 설정: $imageResId")
+
+        val layoutParams = binding.calendarSaveOutfitIv.layoutParams
+        layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+        layoutParams.height = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 350f, resources.displayMetrics
+        ).toInt()
+        binding.calendarSaveOutfitIv.layoutParams = layoutParams
+
+        binding.calendarSaveOutfitIv.scaleType = ImageView.ScaleType.CENTER_CROP
+        binding.calendarSaveOutfitIv.setImageResource(imageResId)
+
+        Log.d("CalendarSaveFragment", "✅ Drawable 메인 이미지 설정 완료")
+    }
+
+    // 🔥 더미 아이템들을 RecyclerView에 표시
+    private fun setupDummyItemRecyclerView(itemList: List<CalendarSaveItem>) {
+        Log.d("CalendarSaveFragment", "더미 개별 아이템들 설정: ${itemList.size}개")
+
+        val adapter = CalendarSaveAdapter(itemList)
+        binding.calendarSaveRv.adapter = adapter
+        binding.calendarSaveRv.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        binding.calendarSaveRv.visibility = View.VISIBLE
+
+        Log.d("CalendarSaveFragment", "✅ 더미 아이템 RecyclerView 설정 완료")
     }
 }

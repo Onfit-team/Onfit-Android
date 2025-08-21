@@ -284,6 +284,11 @@
         <action
             android:id="@+id/action_calendarRewriteFragment_to_calendarSelectFragment"
             app:destination="@id/calendarSelectFragment" />
+        <argument android:name="selectedDate"  app:argType="string"  app:nullable="true"/>
+        <argument android:name="mainImageUrl"  app:argType="string"  app:nullable="true"/>
+        <argument android:name="itemImageUrls" app:argType="string[]" app:nullable="true"/>
+        <argument android:name="weatherText"   app:argType="string"  app:nullable="true"/>
+        <argument android:name="memoText"      app:argType="string"  app:nullable="true"/>
     </fragment>
 
     <fragment

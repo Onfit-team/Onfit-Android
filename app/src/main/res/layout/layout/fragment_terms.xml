@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/logo_bg_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/graybg"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/checkboxAll"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="42dp"/>
+    <!-- 로고 -->
+    <ImageView
+        android:id="@+id/logoImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/minilogo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="@id/logo_bg_iv"
+        app:layout_constraintBottom_toTopOf="@+id/checkboxAll"
+        android:layout_marginLeft="11dp"
+        android:layout_marginTop="25dp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/onfit"
+        app:layout_constraintStart_toEndOf="@id/logoImage"
+        app:layout_constraintTop_toTopOf="@id/logoImage"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="15dp"/>
+
+
+    <!-- 전체 동의 -->
+    <CheckBox
+        android:id="@+id/checkboxAll"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="전체 동의하기"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:buttonTint="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/logoImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="50dp" />
+
+    <!-- 카카오 개인정보 제공 동의 -->
+    <CheckBox
+        android:id="@+id/checkboxPrivacy"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="카카오 개인정보 제3자 제공 동의"
+        android:buttonTint="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/checkboxAll"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 아웃핏 서비스 이용약관 -->
+    <LinearLayout
+        android:id="@+id/layoutServiceTerms"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/checkboxPrivacy"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <CheckBox
+            android:id="@+id/checkboxService"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="OutfitLog 서비스 이용약관"
+            android:buttonTint="@color/black" />
+
+        <TextView
+            android:id="@+id/btnServiceDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="보기"
+            android:textColor="@color/gray"
+            android:paddingStart="8dp"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 개인정보 처리방침 -->
+    <LinearLayout
+        android:id="@+id/layoutPrivacyTerms"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/layoutServiceTerms"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="24dp">
+
+        <CheckBox
+            android:id="@+id/checkboxPolicy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="개인정보 처리방침"
+            android:buttonTint="@color/black" />
+
+        <TextView
+            android:id="@+id/btnPolicyDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="보기"
+            android:textColor="@color/gray"
+            android:paddingStart="8dp"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- 계속하기 버튼 -->
+    <Button
+        android:id="@+id/btnNext"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="동의하고 계속하기"
+        android:enabled="false"
+        android:backgroundTint="@color/basic_blue"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="24dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
