@@ -126,31 +126,46 @@ class OutfitSaveFragment : Fragment() {
         val uriStrList = arguments?.getStringArrayList("cropped_uri_list").orEmpty()
         val cropIdList = arguments?.getStringArrayList("cropped_crop_id_list").orEmpty()
 
-        // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
-        currentImages.clear()
-        val dummyResIds = listOf(
-            R.drawable.item_top,
-            R.drawable.item_bottom,
-            R.drawable.item_shoes,
-            R.drawable.item_bag
-            // 필요하면 더 추가
+    // 2) ViewPager 데이터 구성
+    currentImages.clear()
+
+    // 더미 drawable 4장으로 페이지 구성
+    val dummyResIds = listOf(
+        R.drawable.item_top,
+        R.drawable.item_bottom,
+        R.drawable.item_shoes,
+        R.drawable.item_bag
+    )
+    currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
+
+
+// 4장을 drawable 에 넣어두고, 파일명은 원하는대로. 예시는 아래처럼 가정:
+        val demoResIds = listOf(
+            R.drawable.testimage1,       // ← 검정 반팔 니트/폴로
+            R.drawable.testimage2,     // ← 그레이 데님
+            R.drawable.testimage3,  // ← 블랙 쪼리
+            R.drawable.testimage4        // ← 블랙 숄더백
         )
+        currentImages.addAll(demoResIds.map { id -> DisplayImage(resId = id) })
 
-        // 2) ViewPager 데이터 구성
-        currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
-
-        // 3) 드래프트 개수 동기화
+// 드래프트 개수 동기화
         drafts.clear()
         repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
-        drafts.clear()
-        currentImages.forEachIndexed  { idx, di ->
-            drafts += when {
-                di.resId != null -> defaultSpinnerDraftForRes(di.resId!!)
-                else             -> defaultSpinnerDraftForIndex(idx) // URI면 인덱스 기반
-            }
+    // 드래프트 초기화(초기 스피너 기본값 주입)
+    drafts.clear()
+    currentImages.forEachIndexed { idx, di ->
+        drafts += when {
+            di.resId != null -> defaultSpinnerDraftForRes(di.resId!!)
+            else             -> defaultSpinnerDraftForIndex(idx)
         }
-        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
+    }
+    if (currentImages.isNotEmpty()) bindFormFromDraft(0)
+
+    // cropId는 데모라 없으니 null로 채움(크래시 방지)
+    cropIdsForPages.clear()
+    repeat(currentImages.size) { cropIdsForPages.add(null) }
+
 
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
@@ -163,6 +178,7 @@ class OutfitSaveFragment : Fragment() {
         } else {
             repeat(currentImages.size) { cropIdsForPages.add(null) }
         }
+
 
         // (선택) 닉네임 문구
         TokenProvider.getNickname(requireContext())?.let { nickname ->
@@ -622,12 +638,15 @@ class OutfitSaveFragment : Fragment() {
 
     // Fragment 클래스 안(멤버)으로 정의
     private fun EditText.watchDraft() {
-        this.addTextChangedListener {
-            if (!bindingInProgress) {
-                saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+        this.addTextChangedListener(
+            afterTextChanged = {
+                if (!bindingInProgress) {
+                    saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
+                }
             }
-        }
+        )
     }
+
 
     private fun saveFormToDraft(index: Int) {
         if (bindingInProgress || index !in drafts.indices) return
