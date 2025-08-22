@@ -130,14 +130,12 @@ class OutfitSaveFragment : Fragment() {
         currentImages.clear()
         currentImages.addAll(uriStrList.map { s -> DisplayImage(uri = Uri.parse(s)) })
 
-        // 3) 드래프트 개수 동기화
         drafts.clear()
-        repeat(currentImages.size) { drafts.add(ItemDraft()) }
-        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
-
-        drafts.clear()
-        currentImages.forEach { di ->
-            drafts += di.resId?.let { defaultSpinnerDraftForRes(it) } ?: ItemDraft()
+        currentImages.forEachIndexed  { idx, di ->
+            drafts += when {
+                di.resId != null -> defaultSpinnerDraftForRes(di.resId!!)
+                else             -> defaultSpinnerDraftForIndex(idx) // URI면 인덱스 기반
+            }
         }
         if (currentImages.isNotEmpty()) bindFormFromDraft(0)
 
@@ -677,7 +675,7 @@ class OutfitSaveFragment : Fragment() {
         R.drawable.item_bottom -> ItemDraft(
             categoryId    = categoryIdx("하의"),
             subcategoryId = subcategoryIdx("하의", "청바지"),
-            seasonId      = seasonIdx("봄가을"),
+            seasonId      = seasonIdx("봄"),
             colorId       = colorIdx("블랙"),
         )
         R.drawable.item_shoes -> ItemDraft(
@@ -687,9 +685,37 @@ class OutfitSaveFragment : Fragment() {
             colorId       = colorIdx("블랙"),
         )
         R.drawable.item_bag -> ItemDraft(
-            categoryId    = categoryIdx("액세사리"),
-            subcategoryId = subcategoryIdx("액세사리", "가방"),
+            categoryId    = categoryIdx("악세사리"),
+            subcategoryId = subcategoryIdx("악세사리", "가방"),
             colorId       = colorIdx("블랙"),
+        )
+        else -> ItemDraft()
+    }
+
+    private fun defaultSpinnerDraftForIndex(index: Int): ItemDraft = when (index) {
+        0 -> ItemDraft(
+            categoryId = categoryIdx("상의"),
+            subcategoryId = subcategoryIdx("상의", "셔츠/블라우스"),
+            seasonId = seasonIdx("여름"),
+            colorId = colorIdx("블랙")
+        )
+        1 -> ItemDraft(
+            categoryId = categoryIdx("하의"),
+            subcategoryId = subcategoryIdx("하의", "청바지"),
+            seasonId = seasonIdx("가을"),  // "봄가을"은 리스트에 없음!
+            colorId = colorIdx("블랙")
+        )
+        2 -> ItemDraft(
+            categoryId = categoryIdx("신발"),
+            subcategoryId = subcategoryIdx("신발", "슬리퍼"),
+            seasonId = seasonIdx("여름"),
+            colorId = colorIdx("블랙")
+        )
+        3 -> ItemDraft(
+            categoryId = categoryIdx("악세사리"), // ← 오타 수정! (액세사리 X)
+            subcategoryId = subcategoryIdx("악세사리", "가방"),
+            seasonId = seasonIdx("봄"),
+            colorId = colorIdx("블랙")
         )
         else -> ItemDraft()
     }
