@@ -130,14 +130,22 @@ class OutfitSaveFragment : Fragment() {
         currentImages.clear()
         currentImages.addAll(uriStrList.map { s -> DisplayImage(uri = Uri.parse(s)) })
 
+        // 3) 드래프트 개수 동기화
         drafts.clear()
         repeat(currentImages.size) { drafts.add(ItemDraft()) }
+        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
+
+        drafts.clear()
+        currentImages.forEach { di ->
+            drafts += di.resId?.let { defaultSpinnerDraftForRes(it) } ?: ItemDraft()
+        }
+        if (currentImages.isNotEmpty()) bindFormFromDraft(0)
 
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
-        // 3) 페이지별 cropId 동기화 (인덱스 일치)
+        // 페이지별 cropId 동기화 (인덱스 일치)
         cropIdsForPages.clear()
         if (cropIdList.size == currentImages.size) {
             cropIdsForPages.addAll(cropIdList.map { it.takeIf { s -> s.isNotBlank() } })
@@ -145,7 +153,13 @@ class OutfitSaveFragment : Fragment() {
             repeat(currentImages.size) { cropIdsForPages.add(null) }
         }
 
-        // (좌우 이동 버튼은 그대로)
+        // (선택) 닉네임 문구
+        TokenProvider.getNickname(requireContext())?.let { nickname ->
+            if (nickname.isNotBlank()) {
+                binding.outfitSaveTitle1Tv2.text = "$nickname 님의 착장 아이템을"
+            }
+        }
+
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
             saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
@@ -636,6 +650,48 @@ class OutfitSaveFragment : Fragment() {
                 bindingInProgress = false
             }
         }
+    }
+
+    // 보조 인덱스 함수(카테고리 더미데이터)
+    private fun categoryIdx(name: String) =
+        categoryMap.keys.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    private fun subcategoryIdx(cat: String, sub: String) =
+        (categoryMap[cat]?.indexOf(sub)?.let { it + 1 }) ?: 1
+
+    private fun seasonIdx(name: String) =
+        seasonList.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    private fun colorIdx(name: String) =
+        colorList.indexOf(name).let { if (it >= 0) it + 1 else 1 }
+
+    // "스피너 전용" 기본 드래프트
+    private fun defaultSpinnerDraftForRes(@DrawableRes resId: Int): ItemDraft = when (resId) {
+        R.drawable.item_top -> ItemDraft(
+            categoryId    = categoryIdx("상의"),
+            subcategoryId = subcategoryIdx("상의", "셔츠/블라우스"),
+            // 필요하면 아래 두 줄도 설정(원치 않으면 생략 가능)
+            seasonId      = seasonIdx("여름"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_bottom -> ItemDraft(
+            categoryId    = categoryIdx("하의"),
+            subcategoryId = subcategoryIdx("하의", "청바지"),
+            seasonId      = seasonIdx("봄가을"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_shoes -> ItemDraft(
+            categoryId    = categoryIdx("신발"),
+            subcategoryId = subcategoryIdx("신발", "슬리퍼"),
+            seasonId      = seasonIdx("여름"),
+            colorId       = colorIdx("블랙"),
+        )
+        R.drawable.item_bag -> ItemDraft(
+            categoryId    = categoryIdx("액세사리"),
+            subcategoryId = subcategoryIdx("액세사리", "가방"),
+            colorId       = colorIdx("블랙"),
+        )
+        else -> ItemDraft()
     }
 
     override fun onResume() {

@@ -33,14 +33,8 @@ import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.OutfitRegister.ApiService
 import com.example.onfit.R
 import com.example.onfit.Refine.HeavyApiRetrofit
-import com.example.onfit.Refine.RefineRequest
-import com.example.onfit.Refine.RefineRetrofit
-import com.example.onfit.Refine.RefineService
 import com.example.onfit.databinding.FragmentOutfitRegisterBinding
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
@@ -49,8 +43,6 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URLConnection
-
 
 class OutfitRegisterFragment : Fragment() {
     private var _binding: FragmentOutfitRegisterBinding? = null
@@ -71,7 +63,6 @@ class OutfitRegisterFragment : Fragment() {
     private var passedOutfitId: Int = -1           // 숫자로 쓰고 싶을 때
     private var passedOutfitIdStr: String? = null  // 문자열로 받는 경우도 커버
 
-
     // 갤러리에서 이미지 선택 결과를 받는 Launcher
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -84,7 +75,6 @@ class OutfitRegisterFragment : Fragment() {
                     imageUri = selectedImageUri,
                     isClosetButtonActive = true
                 )
-                // adapter 아이템 RecyclerView에 추가
                 adapter.addItem(newItem)
             }
         }
@@ -101,7 +91,52 @@ class OutfitRegisterFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 옷장 아이템 이미지로 이미지 변경
+        // 0) 어댑터를 가장 먼저 준비(리스너에서 접근하므로)
+        adapter = OutfitAdapter(
+            outfitList,
+            onClosetButtonClick = { pos ->
+                val item = outfitList.getOrNull(pos)
+                val source: String? = when {
+                    item?.imageUri != null   -> item.imageUri.toString() // content:// 또는 file://
+                    item?.imageResId != null -> "res://${item.imageResId}" // 리소스일 경우
+                    else -> null
+                } ?: run {
+                    Toast.makeText(requireContext(), "이미지 소스가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@OutfitAdapter
+                }
+                val directions = OutfitRegisterFragmentDirections
+                    .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
+                findNavController().navigate(directions)
+            },
+            onCropButtonClick = { position ->
+                val pathForCrop: String? = originalImagePath
+                    ?: outfitList.getOrNull(position)?.imageUri?.let { uri ->
+                        if (uri.scheme.isNullOrBlank()) uri.path else uri.toString()
+                    }
+                if (pathForCrop.isNullOrBlank()) {
+                    Toast.makeText(requireContext(), "크롭할 원본 이미지가 없어요.", Toast.LENGTH_SHORT).show()
+                    return@OutfitAdapter
+                }
+                val bundle = Bundle().apply {
+                    putString("outfit_image_path", pathForCrop)
+                    putInt("itemPosition", position)
+                }
+                findNavController().navigate(
+                    R.id.action_outfitRegisterFragment_to_outfitCropFragment,
+                    bundle
+                )
+            }
+        )
+        binding.outfitRegisterRv.adapter = adapter
+        binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
+
+        // 1) 인자 수신
+        passedSaveDate = arguments?.getString("save_date")
+        passedOutfitIdStr = arguments?.getString("outfitId")
+        passedOutfitId = passedOutfitIdStr?.toIntOrNull()
+            ?: arguments?.getInt("outfitId", -1) ?: -1
+
+        // 2) 옷장 아이템 대체(SelectFragment 결과)
         findNavController().currentBackStackEntry
             ?.savedStateHandle
             ?.getLiveData<Bundle>("wardrobe_result")
@@ -109,7 +144,6 @@ class OutfitRegisterFragment : Fragment() {
                 val position   = result.getInt("position", -1)
                 val imageResId = result.getInt("imageResId", 0)
                 val imageUri   = result.getString("imageUriString")
-
                 if (position in outfitList.indices) {
                     when {
                         imageResId != 0 -> {
@@ -126,30 +160,12 @@ class OutfitRegisterFragment : Fragment() {
                 }
             }
 
-        // 더미데이터 추가
-//        if (outfitList.isEmpty()) {
-//            outfitList.addAll(
-//                listOf(
-//                    OutfitItem2(R.drawable.calendar_save_image2),
-//                    OutfitItem2(R.drawable.calendar_save_image3),
-//                    OutfitItem2(R.drawable.calendar_save_image4)
-//                )
-//            )
-//        }
-        passedSaveDate = arguments?.getString("save_date")
-        passedOutfitIdStr = arguments?.getString("outfitId") // Register/Save에서 putString 한 경우
-        passedOutfitId = passedOutfitIdStr?.toIntOrNull()
-            ?: arguments?.getInt("outfitId", -1) ?: -1
-
-
-        // OutfitCropFragment에서 크롭한 결과 받아 RecyclerView에 추가
+        // 3) 크롭 결과 수신 리스너
         parentFragmentManager.setFragmentResultListener(
             "crop_result",
             viewLifecycleOwner
         ) { _, bundle ->
             val uriStr = bundle.getString("cropped_image_uri") ?: return@setFragmentResultListener
-
-            // 같은 결과가 다시 들어오면 스킵
             if (addedCropUriStrings.add(uriStr)) {
                 val uri = Uri.parse(uriStr)
                 adapter.addItem(
@@ -162,17 +178,14 @@ class OutfitRegisterFragment : Fragment() {
             } else {
                 Log.d("OutfitRegister", "skip duplicated crop_result: $uriStr")
             }
-            // 한 번 소비했으면 반드시 비우기(재전달 방지)
             parentFragmentManager.clearFragmentResult("crop_result")
         }
 
-
-        // SaveFragment에서 전달받은 이미지 경로 가져오기
+        // 4) SaveFragment에서 전달받은 원본 경로로 detect 호출
         val imagePath = arguments?.getString("outfit_image_path")
         if (!imagePath.isNullOrEmpty()) {
-            originalImagePath = imagePath // 이미지 경로 보관
+            originalImagePath = imagePath
             if (processedDetectPaths.add(imagePath)) {
-                // set에 처음 들어갈 때만 true -> detect 1회만 수행
                 Log.d("OutfitRegisterFragment", "이미지 경로: $imagePath")
                 uploadImageToServer(File(imagePath))
             } else {
@@ -180,52 +193,12 @@ class OutfitRegisterFragment : Fragment() {
             }
         }
 
-        adapter = OutfitAdapter(
-            outfitList,
-            onClosetButtonClick = { pos ->
-                val item = outfitList.getOrNull(pos)
-                val source: String? = when {
-                    item?.imageUri != null   -> item.imageUri.toString() // content:// 또는 file://
-                    item?.imageResId != null -> "res://${item.imageResId}" // 리소스일 경우
-                    else -> null
-                }?: run {
-                    Toast.makeText(requireContext(), "이미지 소스가 없어요.", Toast.LENGTH_SHORT).show()
-                    return@OutfitAdapter
-                }
-                // Safe Args
-                val directions = OutfitRegisterFragmentDirections
-                    .actionOutfitRegisterFragmentToOutfitSelectFragment(source, pos)
+        // + 버튼: 갤러리 추가
+        binding.outfitRegisterAddButton.setOnClickListener { openGallery() }
 
-                findNavController().navigate(directions)
-            },
-            onCropButtonClick = { position ->
-                val pathForCrop: String? = originalImagePath
-                    ?: outfitList.getOrNull(position)?.imageUri?.let { uri ->
-                        // uri가 content:// 또는 file://이면 그대로, 아니면 파일 경로만
-                        if (uri.scheme.isNullOrBlank()) uri.path else uri.toString()
-                    }
-                if (pathForCrop.isNullOrBlank()) {
-                    Toast.makeText(requireContext(), "크롭할 원본 이미지가 없어요.", Toast.LENGTH_SHORT).show()
-                    return@OutfitAdapter
-                }
-                val bundle = Bundle().apply {
-                    putString("outfit_image_path", pathForCrop) // ✅ 원본 path 그대로 전달
-                    putInt("itemPosition", position)
-                }
-                findNavController().navigate(R.id.action_outfitRegisterFragment_to_outfitCropFragment, bundle)
-            })
-
-        binding.outfitRegisterRv.adapter = adapter
-        binding.outfitRegisterRv.layoutManager = LinearLayoutManager(requireContext())
-
-        // + 버튼 누르면 이미지 추가
-        binding.outfitRegisterAddButton.setOnClickListener {
-            openGallery()
-        }
-
-
+        // 5) 저장 버튼: Save 화면으로 즉시 이동 (컨플릭트 분기 중 '즉시 이동' 채택)
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            val uriList   = ArrayList<String>()
+            val uriList    = ArrayList<String>()
             val cropIdList = ArrayList<String?>()
             outfitList.forEach { item ->
                 item.imageUri?.toString()?.let { uriStr ->
@@ -234,12 +207,12 @@ class OutfitRegisterFragment : Fragment() {
                 }
             }
 
-            // 2) 기존 전달 값 + 우리가 추가한 리스트를 함께 번들로
             val bundle = Bundle().apply {
                 passedSaveDate?.let { putString("save_date", it) }
                 originalImagePath?.let { putString("outfit_image_path", it) }
                 putInt("outfitId", passedOutfitId.takeIf { id -> id > 0 } ?: -1)
                 putStringArrayList("cropped_uri_list", uriList)
+                // cropId는 null 제거하여 전달(저장화면에서 사이즈 불일치 시 자체 보정)
                 putStringArrayList("cropped_crop_id_list", ArrayList(cropIdList.filterNotNull()))
             }
 
@@ -248,7 +221,6 @@ class OutfitRegisterFragment : Fragment() {
                 bundle
             )
         }
-
 
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
@@ -261,12 +233,10 @@ class OutfitRegisterFragment : Fragment() {
         val resolver = context.contentResolver
         val mime = resolver.getType(uri) ?: "image/*"
         val fileName = queryDisplayName(resolver, uri) ?: "upload_${System.currentTimeMillis()}.jpg"
-
         val temp = File(context.cacheDir, fileName)
         resolver.openInputStream(uri)!!.use { input ->
             temp.outputStream().use { out -> input.copyTo(out) }
         }
-
         val rb = temp.asRequestBody(mime.toMediaTypeOrNull())
         return MultipartBody.Part.createFormData(partName, fileName, rb)
     }
@@ -308,28 +278,8 @@ class OutfitRegisterFragment : Fragment() {
         return null
     }
 
-    // Bitmap을 bbox로 잘라내는 함수
-    private fun cropBitmap(original: Bitmap, bbox: List<Float>): Bitmap {
-        val x = bbox[0].toInt().coerceIn(0, original.width)
-        val y = bbox[1].toInt().coerceIn(0, original.height)
-        val width = (bbox[2] - bbox[0]).toInt().coerceAtMost(original.width - x)
-        val height = (bbox[3] - bbox[1]).toInt().coerceAtMost(original.height - y)
-
-        return Bitmap.createBitmap(original, x, y, width, height)
-    }
-
-    // Bitmap → Uri 변환
-    private fun bitmapToUri(bitmap: Bitmap): Uri {
-        val file = File(requireContext().cacheDir, "crop_${System.currentTimeMillis()}.png")
-        FileOutputStream(file).use { fos ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
-        }
-        return Uri.fromFile(file)
-    }
-
     // API 호출 후 RecyclerView에 아이템 추가(발급받은 임시 토큰 사용)
     private fun uploadImageToServer(file: File) {
-        // 임시 토큰
         val token = TokenProvider.getToken(requireContext())
         if (token.isNullOrBlank()) {
             Toast.makeText(requireContext(), "토큰 없음", Toast.LENGTH_SHORT).show(); return
@@ -338,54 +288,32 @@ class OutfitRegisterFragment : Fragment() {
             Toast.makeText(requireContext(), "유효하지 않은 파일", Toast.LENGTH_SHORT).show(); return
         }
 
-        // Part 생성
-        val part = fileToImagePart(requireContext(), file)
+        val part = fileToImagePart(requireContext(), file)  // 우리가 만든 헬퍼
         val header = "Bearer $token"
-
-        // ✅ 여기서 멀티파트(이미지) 만들고, 로그 찍고, detect에 그대로 넘김
-        val imagePart = fileToImagePart(requireContext(), file)  // 우리가 만든 헬퍼
-        val mime = imagePart.body.contentType()?.toString() ?: "unknown" // OkHttp 4.x
-        // OkHttp 3.x라면 ↑를 imagePart.body().contentType()?.toString() 로 바꾸세요
-        val filename = file.name
-        println("📦 multipart name=photo, filename=$filename, mime=$mime")
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // ✅ 1) 호출 시작 로그
-                val callId = System.currentTimeMillis().toString()
                 val response = aiCropApi.detectItems(header, part)
 
-                // ✅ 3) 응답 파싱 + 크롭 로그 (IO 스레드에서 미리)
                 val cropsIO = if (response.isSuccessful) {
                     response.body()?.result?.crops.orEmpty()
                 } else emptyList()
 
-                if (response.isSuccessful) {
-                    Log.d(
-                        "Detect",
-                        "CALL $callId CROPS size=${cropsIO.size} raw=${
-                            cropsIO.joinToString(" | ") { it.bbox.joinToString(prefix = "[", postfix = "]") }
-                        }"
-                    )
-                } else {
+                if (!response.isSuccessful) {
                     val err = response.errorBody()?.string()
-                    Log.e("Detect", "CALL $callId ERROR http=${response.code()} body=$err")
+                    Log.e("Detect", "ERROR http=${response.code()} body=$err")
                 }
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body()?.isSuccess == true) {
                         val crops = response.body()?.result?.crops.orEmpty()
-
                         val originalBitmap = BitmapFactory.decodeFile(file.absolutePath)
                         if (originalBitmap == null) {
                             Toast.makeText(requireContext(), "이미지 디코드 실패", Toast.LENGTH_SHORT).show()
                             return@withContext
                         }
 
-                        // bbox를 정수로 정규화해서 키 만들고 중복 제거
-                        val uniqueCrops = dedupeCropsByIoU(crops /* or cropsIO if 사용중 */, iouThreshold = 0.88f, minSidePx = 24)
-                        Log.d("Detect", "DEDUPED size=${uniqueCrops.size} (from ${crops.size})")
-
+                        val uniqueCrops = dedupeCropsByIoU(crops, iouThreshold = 0.88f, minSidePx = 24)
                         for (crop in uniqueCrops) {
                             val bmp = safeCrop(originalBitmap, crop.bbox) ?: continue
                             val uri = bitmapToUri(bmp)
@@ -399,18 +327,14 @@ class OutfitRegisterFragment : Fragment() {
                             )
                         }
                     } else {
-                        // 서버 에러 본문 파싱
                         val raw = response.errorBody()?.string()
                         data class ErrBody(val errorCode: String?, val reason: String?)
                         data class ErrEnvelope(val resultType: String?, val error: ErrBody?)
-
                         val reason = try {
                             val env = com.google.gson.Gson().fromJson(raw, ErrEnvelope::class.java)
                             env?.error?.reason
                         } catch (_: Exception) { null }
-
                         val msg = reason ?: response.body()?.message ?: "알 수 없는 오류"
-                        println("❗HTTP ${response.code()} | $raw")
                         Toast.makeText(requireContext(), "감지 실패: $msg", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -418,34 +342,26 @@ class OutfitRegisterFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "서버 요청 실패(${e::class.java.simpleName})", Toast.LENGTH_SHORT).show()
                 }
-                println("🔥 ${e::class.java.name}: ${e.message}")
-                e.printStackTrace()
+                Log.e("Detect", "EXCEPTION", e)
             }
         }
     }
+
     private val aiCropApi by lazy {
         HeavyApiRetrofit.retrofit.create(AiCropService::class.java)
     }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK).apply {
-            type = "image/*" // 갤러리에서 이미지 파일만 보이도록
-        }
+        val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
         galleryLauncher.launch(intent)
     }
 
     // 파일 확장자/용량/인코딩을 안전하게 만들어 Part 생성
     private fun fileToImagePart(context: Context, src: File): MultipartBody.Part {
-        // 확장자 보장
         val safeName = if (src.name.contains('.')) src.name else "${src.name}.jpg"
-
-        // 이름에서 MIME 추정 (없으면 jpeg로)
         val mimeFromName = java.net.URLConnection.guessContentTypeFromName(safeName)
         val mime = (mimeFromName ?: "image/jpeg").toMediaTypeOrNull()
-
-        // (선택) 너무 크거나 MIME 불명일 때 JPEG로 재인코딩
         val sendFile = ensureJpegIfNeeded(context, src, safeName)
-
         val req = sendFile.asRequestBody(mime)
         return MultipartBody.Part.createFormData("image", sendFile.name, req)
     }
@@ -454,15 +370,9 @@ class OutfitRegisterFragment : Fragment() {
     private fun ensureJpegIfNeeded(context: Context, src: File, safeName: String): File {
         val nameLc = safeName.lowercase()
         val looksJpeg = nameLc.endsWith(".jpg") || nameLc.endsWith(".jpeg")
-
-        // 1) 이미 JPEG이고 10MB 이하 → 그대로 사용
         if (looksJpeg && src.length() in 1..10_000_000L) return src
 
-        // 2) 재인코딩
-        val bm = BitmapFactory.decodeFile(src.absolutePath)
-            ?: return src // 디코드 실패 시 원본 그대로(최후의 수단)
-
-        // (선택) 해상도 제한: 긴 변 2000px로 리사이즈
+        val bm = BitmapFactory.decodeFile(src.absolutePath) ?: return src
         val maxSide = 2000
         val w = bm.width
         val h = bm.height
@@ -479,7 +389,6 @@ class OutfitRegisterFragment : Fragment() {
         return outFile
     }
 
-    // 크롭 시 중복 제거
     private fun safeCrop(original: Bitmap, bbox: List<Float>): Bitmap? {
         if (bbox.size < 4) return null
         val x1 = bbox[0].toInt().coerceIn(0, original.width - 1)
@@ -491,17 +400,15 @@ class OutfitRegisterFragment : Fragment() {
         return try { Bitmap.createBitmap(original, x1, y1, w, h) } catch (_: Exception) { null }
     }
 
-    // 두 박스의 IoU 계산 (bbox: [x1, y1, x2, y2])
+    // 두 박스의 IoU 계산
     private fun iou(a: List<Float>, b: List<Float>): Float {
         if (a.size < 4 || b.size < 4) return 0f
         val ax1 = a[0]; val ay1 = a[1]; val ax2 = a[2]; val ay2 = a[3]
         val bx1 = b[0]; val by1 = b[1]; val bx2 = b[2]; val by2 = b[3]
-
         val ix1 = maxOf(ax1, bx1)
         val iy1 = maxOf(ay1, by1)
         val ix2 = minOf(ax2, bx2)
         val iy2 = minOf(ay2, by2)
-
         val iw = (ix2 - ix1).coerceAtLeast(0f)
         val ih = (iy2 - iy1).coerceAtLeast(0f)
         val inter = iw * ih
@@ -511,18 +418,16 @@ class OutfitRegisterFragment : Fragment() {
         return if (union <= 0f) 0f else inter / union
     }
 
-    // NMS 느낌의 간단 중복 제거 (IoU 임계값 이상이면 중복으로 간주)
     private fun dedupeCropsByIoU(
         crops: List<CropItem>,
         iouThreshold: Float = 0.88f,
-        minSidePx: Int = 24 // 너무 작은 박스 무시 (선택)
+        minSidePx: Int = 24
     ): List<CropItem> {
         val result = mutableListOf<CropItem>()
         for (c in crops) {
             val w = (c.bbox[2] - c.bbox[0]).coerceAtLeast(0f)
             val h = (c.bbox[3] - c.bbox[1]).coerceAtLeast(0f)
-            if (w < minSidePx || h < minSidePx) continue // 작은 박스 스킵
-
+            if (w < minSidePx || h < minSidePx) continue
             val dup = result.any { iou(it.bbox, c.bbox) >= iouThreshold }
             if (!dup) result += c
         }
@@ -536,7 +441,6 @@ class OutfitRegisterFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
     }
 }
