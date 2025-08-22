@@ -36,13 +36,6 @@
             app:layout_constraintTop_toBottomOf="@+id/outfit_save_back_btn"
             app:layout_constraintLeft_toLeftOf="parent">
             <TextView
-                android:id="@+id/outfit_save_title1_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="4월 27일"
-                android:textSize="20sp"
-                android:fontFamily="@font/pretendardbold" />
-            <TextView
                 android:id="@+id/outfit_save_title1_tv2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
