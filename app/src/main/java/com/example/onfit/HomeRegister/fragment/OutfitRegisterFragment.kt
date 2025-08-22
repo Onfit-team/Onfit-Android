@@ -347,6 +347,15 @@ class OutfitRegisterFragment : Fragment() {
         }
     }
 
+    // Bitmap → Uri 변환
+    private fun bitmapToUri(bitmap: Bitmap): Uri {
+        val file = File(requireContext().cacheDir, "crop_${System.currentTimeMillis()}.png")
+        FileOutputStream(file).use { fos ->
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+        }
+        return Uri.fromFile(file)
+    }
+
     private val aiCropApi by lazy {
         HeavyApiRetrofit.retrofit.create(AiCropService::class.java)
     }

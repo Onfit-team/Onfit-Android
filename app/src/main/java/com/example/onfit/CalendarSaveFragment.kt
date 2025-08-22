@@ -16,14 +16,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.onfit.databinding.FragmentCalendarSaveBinding
-import java.util.Calendar as JavaCalendar
-import java.util.*
 
 // ✅ 상세 API 재호출을 위한 import
 import androidx.lifecycle.lifecycleScope
 import com.example.onfit.KakaoLogin.util.TokenProvider
 import com.example.onfit.network.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CalendarSaveFragment : Fragment() {
     private var _binding: FragmentCalendarSaveBinding? = null
@@ -266,8 +266,56 @@ class CalendarSaveFragment : Fragment() {
 
         yesBtn.setOnClickListener {
             dialog.dismiss()
-            Toast.makeText(requireContext(), "더미 코디가 제거되었습니다", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
+
+            // 🔥 여러 가지 키로 outfitId 찾기 시도
+            var outfitId = arguments?.getInt("outfit_id", -1)
+                ?: arguments?.getInt("outfitId", -1)
+                ?: arguments?.getString("outfit_id")?.toIntOrNull()
+                ?: arguments?.getString("outfitId")?.toIntOrNull()
+                ?: -1
+
+            // 🔥 디버깅: arguments 전체 내용 확인
+            Log.d("CalendarSaveFragment", "=== arguments 내용 ===")
+            arguments?.keySet()?.forEach { key ->
+                val value = arguments?.get(key)
+                Log.d("CalendarSaveFragment", "$key: $value (타입: ${value?.javaClass?.simpleName})")
+            }
+            Log.d("CalendarSaveFragment", "arguments에서 추출된 outfitId: $outfitId")
+
+            // 🔥 outfitId가 -1이면 URL에서 추출 시도
+            if (outfitId <= 0) {
+                val mainImageUrl = arguments?.getString("main_image_url")
+                Log.d("CalendarSaveFragment", "URL에서 outfitId 추출 시도: $mainImageUrl")
+
+                // URL 패턴에 따라 outfitId 추출 (예: uploads/5/... 에서 5 추출)
+                val urlOutfitId = mainImageUrl?.let { url ->
+                    val regex = Regex("""/uploads/(\d+)/""")
+                    val match = regex.find(url)
+                    val extracted = match?.groupValues?.get(1)?.toIntOrNull()
+                    Log.d("CalendarSaveFragment", "정규식 매치: $match, 추출값: $extracted")
+                    extracted
+                }
+
+                if (urlOutfitId != null && urlOutfitId > 0) {
+                    Log.d("CalendarSaveFragment", "✅ URL에서 추출한 outfitId: $urlOutfitId")
+                    outfitId = urlOutfitId
+                } else {
+                    Log.e("CalendarSaveFragment", "❌ URL에서도 outfitId 추출 실패")
+                }
+            }
+
+            // 🔥 최종 outfitId 확인 후 삭제 실행
+            if (outfitId > 0) {
+                Log.d("CalendarSaveFragment", "🚀 삭제 실행: outfitId = $outfitId")
+                deleteOutfitFromServer(outfitId)
+            } else {
+                Log.e("CalendarSaveFragment", "❌ 최종적으로 유효한 outfitId를 찾지 못함")
+                Toast.makeText(
+                    requireContext(),
+                    "삭제할 수 없습니다 (ID: $outfitId)",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
 
         noBtn.setOnClickListener {
@@ -338,7 +386,7 @@ class CalendarSaveFragment : Fragment() {
     }
 
     /**
-     * 실제(서버) 코디 삭제 다이얼로그
+     * 실제(서버) 코디 삭제 다이얼로그 - 수정된 버전
      */
     private fun showDeleteDialog() {
         val dialog = AlertDialog.Builder(requireContext()).create()
@@ -355,7 +403,23 @@ class CalendarSaveFragment : Fragment() {
 
         yesBtn.setOnClickListener {
             dialog.dismiss()
-            activity?.finish() // 액티비티 종료
+
+            val outfitId = arguments?.getInt("outfit_id", -1) ?: -1
+
+            // 🔥 디버깅: arguments 전체 내용 확인
+            Log.d("CalendarSaveFragment", "=== arguments 내용 ===")
+            arguments?.keySet()?.forEach { key ->
+                val value = arguments?.get(key)
+                Log.d("CalendarSaveFragment", "$key: $value")
+            }
+            Log.d("CalendarSaveFragment", "추출된 outfitId: $outfitId")
+
+            if (outfitId > 0) {
+                deleteOutfitFromServer(outfitId)
+            } else {
+                Log.e("CalendarSaveFragment", "❌ 유효하지 않은 outfitId: $outfitId")
+                Toast.makeText(requireContext(), "삭제할 수 없습니다 (ID: $outfitId)", Toast.LENGTH_SHORT).show()
+            }
         }
 
         noBtn.setOnClickListener {
@@ -368,6 +432,85 @@ class CalendarSaveFragment : Fragment() {
             TypedValue.COMPLEX_UNIT_DIP, 294f, resources.displayMetrics
         ).toInt()
         dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    /**
+     * 🔥 에러 수정된 함수 - 실제 서버 삭제 API 호출
+     */
+    private fun deleteOutfitFromServer(outfitId: Int) {
+        val token = TokenProvider.getToken(requireContext())
+
+        // 🔥 디버깅: 전송할 데이터 확인
+        Log.d("CalendarSaveFragment", "=== 삭제 요청 시작 ===")
+        Log.d("CalendarSaveFragment", "outfitId: $outfitId")
+        Log.d("CalendarSaveFragment", "token: ${if (token.isNotBlank()) "존재함" else "없음"}")
+
+        if (token.isBlank()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                Log.d("CalendarSaveFragment", "API 호출 시작...")
+                val response = RetrofitInstance.api.deleteOutfit("Bearer $token", outfitId)
+
+                // 🔥 디버깅: 응답 상세 정보
+                Log.d("CalendarSaveFragment", "응답 코드: ${response.code()}")
+                Log.d("CalendarSaveFragment", "응답 성공 여부: ${response.isSuccessful}")
+
+                val responseBody = response.body()
+                Log.d("CalendarSaveFragment", "응답 본문: $responseBody")
+
+                if (!response.isSuccessful) {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("CalendarSaveFragment", "에러 응답: $errorBody")
+                }
+
+                withContext(Dispatchers.Main) {
+                    when (response.code()) {
+                        200 -> {
+                            Log.d("CalendarSaveFragment", "✅ 삭제 성공!")
+                            Toast.makeText(
+                                requireContext(),
+                                "코디가 삭제되었습니다",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            findNavController().popBackStack()
+                        }
+                        401 -> {
+                            Log.e("CalendarSaveFragment", "❌ 인증 실패")
+                            Toast.makeText(requireContext(), "로그인이 만료되었습니다", Toast.LENGTH_SHORT).show()
+                        }
+                        404 -> {
+                            Log.e("CalendarSaveFragment", "❌ 코디를 찾을 수 없음")
+                            Toast.makeText(requireContext(), "삭제할 코디를 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
+                        }
+                        500 -> {
+                            Log.e("CalendarSaveFragment", "❌ 서버 에러")
+                            Toast.makeText(requireContext(), "서버 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            Log.e("CalendarSaveFragment", "❌ 알 수 없는 에러: ${response.code()}")
+                            Toast.makeText(
+                                requireContext(),
+                                "삭제 실패 (${response.code()})",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("CalendarSaveFragment", "❌ 예외 발생", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        requireContext(),
+                        "네트워크 오류: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -493,10 +636,10 @@ class CalendarSaveFragment : Fragment() {
                 CalendarSaveItem(imageResId = R.drawable.acc6)
             )
             7 -> listOf(  // 🔥 NEW: 코디 7번 - 캐주얼 코디 아이템들 ✅
-                CalendarSaveItem(imageResId = R.drawable.shirts7),  // 체크 셔츠 (임시로 shirts1 사용)
+                CalendarSaveItem(imageResId = R.drawable.shirts8),  // 체크 셔츠 (임시로 shirts1 사용)
                 CalendarSaveItem(imageResId = R.drawable.check7),  // 화이트 이너 (임시로 shirts2 사용)
-                CalendarSaveItem(imageResId = R.drawable.pants7),   // 네이비 청바지 (pants5 사용)
-                CalendarSaveItem(imageResId = R.drawable.shoes1),   // 블랙 컨버스 (shoes1 사용)
+                CalendarSaveItem(imageResId = R.drawable.pants8),   // 네이비 청바지 (pants5 사용)
+                CalendarSaveItem(imageResId = R.drawable.shoes2),   // 블랙 컨버스 (shoes1 사용)
                 CalendarSaveItem(imageResId = R.drawable.bag7)      // 블랙 백팩 (acc5 사용)
             )
             else -> calendarSaveList
