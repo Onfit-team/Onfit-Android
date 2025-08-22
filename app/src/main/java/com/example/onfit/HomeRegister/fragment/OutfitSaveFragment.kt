@@ -126,9 +126,21 @@ class OutfitSaveFragment : Fragment() {
         val uriStrList = arguments?.getStringArrayList("cropped_uri_list").orEmpty()
         val cropIdList = arguments?.getStringArrayList("cropped_crop_id_list").orEmpty()
 
-        // 2) ViewPager 데이터 구성
+        // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
         currentImages.clear()
-        currentImages.addAll(uriStrList.map { s -> DisplayImage(uri = Uri.parse(s)) })
+        val dummyResIds = listOf(
+            R.drawable.calendar_save_image2,
+            R.drawable.calendar_save_image3,
+            R.drawable.calendar_save_image4
+            // 필요하면 더 추가
+        )
+
+        // 2) ViewPager 데이터 구성
+        currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
+
+        // 3) 드래프트 개수 동기화
+        drafts.clear()
+        repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
         drafts.clear()
         currentImages.forEachIndexed  { idx, di ->
