@@ -126,8 +126,18 @@ class OutfitSaveFragment : Fragment() {
         val uriStrList = arguments?.getStringArrayList("cropped_uri_list").orEmpty()
         val cropIdList = arguments?.getStringArrayList("cropped_crop_id_list").orEmpty()
 
-        // 2) ViewPager 데이터 구성  ★ 이 블록으로 교체
-        currentImages.clear()
+    // 2) ViewPager 데이터 구성
+    currentImages.clear()
+
+    // 더미 drawable 4장으로 페이지 구성
+    val dummyResIds = listOf(
+        R.drawable.item_top,
+        R.drawable.item_bottom,
+        R.drawable.item_shoes,
+        R.drawable.item_bag
+    )
+    currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
+
 
 // 4장을 drawable 에 넣어두고, 파일명은 원하는대로. 예시는 아래처럼 가정:
         val demoResIds = listOf(
@@ -142,9 +152,19 @@ class OutfitSaveFragment : Fragment() {
         drafts.clear()
         repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
-// cropId는 데모라 없으니 null로 채움(크래시 방지)
-        cropIdsForPages.clear()
-        repeat(currentImages.size) { cropIdsForPages.add(null) }
+    // 드래프트 초기화(초기 스피너 기본값 주입)
+    drafts.clear()
+    currentImages.forEachIndexed { idx, di ->
+        drafts += when {
+            di.resId != null -> defaultSpinnerDraftForRes(di.resId!!)
+            else             -> defaultSpinnerDraftForIndex(idx)
+        }
+    }
+    if (currentImages.isNotEmpty()) bindFormFromDraft(0)
+
+    // cropId는 데모라 없으니 null로 채움(크래시 방지)
+    cropIdsForPages.clear()
+    repeat(currentImages.size) { cropIdsForPages.add(null) }
 
 
         pagerAdapter = SaveImagePagerAdapter(currentImages)
