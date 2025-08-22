@@ -69,6 +69,9 @@ class OutfitSaveFragment : Fragment() {
     private val binding get() = _binding!!
     private val TAG = "ItemRegister"
 
+    private val cropIdsForPages = mutableListOf<String?>()
+    private val autoTagFetched = mutableSetOf<Int>() // (자동태깅 미사용 상태지만 보존)
+
     private val currentImages = mutableListOf<DisplayImage>()
     private lateinit var pagerAdapter: SaveImagePagerAdapter
     private val args: OutfitSaveFragmentArgs by navArgs()
@@ -119,30 +122,30 @@ class OutfitSaveFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1) 날짜만 받아서 제목에 표시
-        val saveDate = args.saveDate ?: "날짜 없음"
-        binding.outfitSaveTitle1Tv.text = saveDate
+        // 1) Register에서 넘어온 데이터 수신 (URI / cropId)
+        val uriStrList = arguments?.getStringArrayList("cropped_uri_list").orEmpty()
+        val cropIdList = arguments?.getStringArrayList("cropped_crop_id_list").orEmpty()
 
-        // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
+        // 2) ViewPager 데이터 구성
         currentImages.clear()
-        val dummyResIds = listOf(
-            R.drawable.calendar_save_image2,
-            R.drawable.calendar_save_image3,
-            R.drawable.calendar_save_image4
-            // 필요하면 더 추가
-        )
-        currentImages.addAll(dummyResIds.map { id -> DisplayImage(resId = id) })
+        currentImages.addAll(uriStrList.map { s -> DisplayImage(uri = Uri.parse(s)) })
 
-        // 3) 드래프트 개수 동기화
         drafts.clear()
         repeat(currentImages.size) { drafts.add(ItemDraft()) }
 
-        // 4) ViewPager 세팅
         pagerAdapter = SaveImagePagerAdapter(currentImages)
         binding.outfitSaveOutfitVp.adapter = pagerAdapter
         binding.outfitSaveOutfitVp.offscreenPageLimit = 1
 
-        // 사진 왼쪽, 오른쪽 버튼 눌러서 전환
+        // 3) 페이지별 cropId 동기화 (인덱스 일치)
+        cropIdsForPages.clear()
+        if (cropIdList.size == currentImages.size) {
+            cropIdsForPages.addAll(cropIdList.map { it.takeIf { s -> s.isNotBlank() } })
+        } else {
+            repeat(currentImages.size) { cropIdsForPages.add(null) }
+        }
+
+        // (좌우 이동 버튼은 그대로)
         binding.outfitSaveLeftBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
             saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
@@ -152,20 +155,11 @@ class OutfitSaveFragment : Fragment() {
         binding.outfitSaveRightBtn.setOnClickListener {
             if (pagerAdapter.itemCount == 0) return@setOnClickListener
             saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
-            val next =
-                (binding.outfitSaveOutfitVp.currentItem + 1).coerceAtMost(pagerAdapter.itemCount - 1)
+            val next = (binding.outfitSaveOutfitVp.currentItem + 1).coerceAtMost(pagerAdapter.itemCount - 1)
             binding.outfitSaveOutfitVp.setCurrentItem(next, true)
         }
 
-        binding.outfitSaveOutfitVp.registerOnPageChangeCallback(object :
-            ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                bindFormFromDraft(position)
-            }
-        })
-
-        // 스피너 어댑터 세팅
+        // ✅ 4) 스피너 어댑터를 "먼저" 세팅 (콜백보다 앞)
         val spinner1 = binding.outfitSaveSpinner1
         val spinner2 = binding.outfitSaveSpinner2
         val spinner3 = binding.outfitSaveSpinner3
@@ -207,44 +201,61 @@ class OutfitSaveFragment : Fragment() {
             override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) {
                 val selectedParent = parentCategories[position]
                 val subList = categoryMap[selectedParent] ?: emptyList()
-                (spinner2.adapter as ArrayAdapter<String>).apply {
-                    clear(); addAll(subList); notifyDataSetChanged()
-                }
+                val adapter: ArrayAdapter<String> =
+                    (spinner2.adapter as? ArrayAdapter<String>)
+                        ?: ArrayAdapter<String>(
+                            requireContext(),
+                            android.R.layout.simple_spinner_item,
+                            mutableListOf<String>()         // ← 반드시 <String> 명시
+                        ).also {
+                            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                            spinner2.adapter = it
+                        }
+
+// 하위 카테고리 갱신
+                adapter.clear()
+                adapter.addAll(subList)                       // subList: List<String>
+                adapter.notifyDataSetChanged()
+
+
                 if (!bindingInProgress) {
                     spinner2.setSelection(0)
                     saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
                 }
             }
-
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-        // 스피너 변경 시 현재 페이지 드래프트 저장
         val onSpinnerChanged = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) {
                 if (!bindingInProgress) saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
             }
-
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
         spinner2.onItemSelectedListener = onSpinnerChanged
         spinner3.onItemSelectedListener = onSpinnerChanged
         spinner4.onItemSelectedListener = onSpinnerChanged
 
+        // ✅ 5) 이제서야 페이지 전환 콜백 등록(스피너 준비 완료 이후)
+        binding.outfitSaveOutfitVp.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                bindFormFromDraft(position)
+            }
+        })
+
         // 초기 드래프트 바인딩
         if (currentImages.isNotEmpty()) bindFormFromDraft(0)
 
-        // 5) 텍스트/칩 리스너 (초기 바인딩 후 등록)
+        // 텍스트/칩 리스너 (기존 그대로)
         fun TextInputEditText.watch() = addTextChangedListener {
             if (!bindingInProgress) saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
         }
-        // 텍스트 변경 시 현재 페이지 드래프트 저장
         binding.outfitSaveEt1.watchDraft()
         binding.outfitSaveEt2.watchDraft()
         binding.outfitSaveEt3.watchDraft()
         binding.outfitSaveEt4.watchDraft()
 
-        // 칩(태그) 변경 시 현재 페이지 드래프트 저장
         val chipGroups = arrayOf(binding.outfitSaveVibeChips, binding.outfitSaveUseChips)
         chipGroups.forEach { group ->
             for (i in 0 until group.childCount) {
@@ -255,7 +266,6 @@ class OutfitSaveFragment : Fragment() {
             }
         }
 
-        // 6) 구매 정보 다이얼로그
         val commonClickListener = View.OnClickListener {
             val dialog = TopInfoDialogFragment()
             dialog.setOnTopInfoSavedListener(object : TopInfoDialogFragment.OnTopInfoSavedListener {
@@ -279,25 +289,17 @@ class OutfitSaveFragment : Fragment() {
             binding.outfitSaveEt2,
             binding.outfitSaveEt3,
             binding.outfitSaveEt4
-        ).forEach {
-            it.setOnClickListener(commonClickListener)
-        }
+        ).forEach { it.setOnClickListener(commonClickListener) }
 
         // 갤러리 버튼
-        binding.outfitSaveChangeBtn.setOnClickListener {
-            // 이미지 다중 선택
-            changeImagesLauncher.launch("image/*")
-        }
+        binding.outfitSaveChangeBtn.setOnClickListener { changeImagesLauncher.launch("image/*") }
 
-        // 뒤로가기 버튼
-        binding.outfitSaveBackBtn.setOnClickListener {
-            findNavController().popBackStack()
-        }
+        // 뒤로가기
+        binding.outfitSaveBackBtn.setOnClickListener { findNavController().popBackStack() }
 
-        // 기록하기 버튼
-        binding.outfitSaveSaveBtn.setOnClickListener {
-            saveAllImagesToOutfit()
-        }
+        // 기록하기
+        binding.outfitSaveSaveBtn.setOnClickListener { saveAllImagesToOutfit() }
+
         setupChipMaxLimit(3)
     }
 
@@ -320,7 +322,6 @@ class OutfitSaveFragment : Fragment() {
                 }
             }
         }
-        // 중복 방지 + 최대 3개만
         return result.distinct().take(3)
     }
 
@@ -330,7 +331,6 @@ class OutfitSaveFragment : Fragment() {
         val use  = binding.outfitSaveUseChips
         val groups = arrayOf(vibe, use)
 
-        // 프로그램으로 체크 상태를 되돌릴 때 리스너가 다시 불리지 않도록 가드
         var suppress = false
 
         fun totalChecked(): Int {
@@ -344,7 +344,6 @@ class OutfitSaveFragment : Fragment() {
             return cnt
         }
 
-        // 두 그룹의 모든 Chip에 리스너 부착
         groups.forEach { group ->
             for (i in 0 until group.childCount) {
                 val chip = group.getChildAt(i) as? Chip ?: continue
@@ -354,7 +353,6 @@ class OutfitSaveFragment : Fragment() {
                     if (isChecked) {
                         val current = totalChecked()
                         if (current > maxCount) {
-                            // 초과 → 방금 체크한 칩을 되돌림 + 토스트
                             suppress = true
                             (button as? Chip)?.isChecked = false
                             suppress = false
@@ -371,27 +369,23 @@ class OutfitSaveFragment : Fragment() {
     }
 
     private fun saveAllImagesToOutfit() {
-        // 0) 현재 페이지 값 보존(초기 코드 유지)
         saveFormToDraft(binding.outfitSaveOutfitVp.currentItem)
 
-        // 1) outfitId 검증
         if (outfitId <= 0) {
             Toast.makeText(requireContext(), "유효한 outfitId가 없습니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 2) 토큰/버튼 상태
         val bearer = "Bearer " + TokenProvider.getToken(requireContext())
         binding.outfitSaveSaveBtn.isEnabled = false
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 3) ViewPager 내 이미지들을 URL로 확보 (이미 URL이면 그대로, 아니면 /items/upload로 업로드)
                 val urls = currentImages.map { di ->
                     async { uploadIfNeededAndGetUrl(di, bearer) }
                 }.awaitAll()
                     .filterNotNull()
-                    .distinct() // 중복 제거
+                    .distinct()
 
                 if (urls.isEmpty()) {
                     withContext(Dispatchers.Main) {
@@ -401,13 +395,11 @@ class OutfitSaveFragment : Fragment() {
                     return@launch
                 }
 
-                // 4) /items/save 요청 바디
                 val req = ItemsSaveRequest(
                     items = urls.map { ImageOnly(it) },
                     outfitId = outfitId
                 )
 
-                // 5) 호출
                 val resp = imageUploadApi.saveItems(bearer, req)
 
                 withContext(Dispatchers.Main) {
@@ -420,7 +412,6 @@ class OutfitSaveFragment : Fragment() {
                             Toast.LENGTH_SHORT
                         ).show()
 
-                        // 성공 시 이동(기존 동작 유지)
                         val nav = findNavController()
                         val opts = NavOptions.Builder()
                             .setLaunchSingleTop(true)
@@ -459,12 +450,10 @@ class OutfitSaveFragment : Fragment() {
         di: DisplayImage,
         bearer: String
     ): String? {
-        // 이미 URL이면 그대로
         di.uri?.toString()?.let { s ->
             if (s.startsWith("http://") || s.startsWith("https://")) return s
         }
 
-        // uri or resId → File
         val file: File? = when {
             di.uri != null -> uriToCacheFile(requireContext(), di.uri!!)
             di.resId != null -> resIdToTempJpeg(requireContext(), di.resId!!)
@@ -483,15 +472,20 @@ class OutfitSaveFragment : Fragment() {
     }
 
     private val imageUploadApi by lazy {
-        // ItemRegister와 같은 Retrofit 인스턴스를 사용 (네가 쓰는 RetrofitClient/ItemRegisterRetrofit 중 하나)
         RetrofitClient.instance.create(ApiService::class.java)
-        // 또는 ItemRegisterRetrofit.retrofit.create(ImageUploadService::class.java)
     }
 
+    // 고유 파일명으로 캐시에 복사(동시 업로드 충돌 방지)
     private fun uriToCacheFile(context: Context, uri: Uri): File? {
         return try {
-            val name = queryDisplayName(context.contentResolver, uri) ?: "upload_${System.currentTimeMillis()}.jpg"
-            val out = File(context.cacheDir, name)
+            val mime = context.contentResolver.getType(uri)?.lowercase().orEmpty()
+            val ext = when {
+                "png" in mime -> "png"
+                "webp" in mime -> "webp"
+                "jpg" in mime || "jpeg" in mime -> "jpg"
+                else -> "jpg"
+            }
+            val out = File(context.cacheDir, "upload_${System.currentTimeMillis()}_${System.nanoTime()}.$ext")
             context.contentResolver.openInputStream(uri)?.use { input ->
                 out.outputStream().use { output -> input.copyTo(output) }
             }
@@ -513,11 +507,12 @@ class OutfitSaveFragment : Fragment() {
     private fun fileToImagePart(file: File): MultipartBody.Part {
         val mime = when (file.extension.lowercase()) {
             "png" -> "image/png"
+            "webp" -> "image/webp"
             "jpg", "jpeg" -> "image/jpeg"
             else -> "image/jpeg"
         }.toMediaTypeOrNull()
         val body = file.asRequestBody(mime)
-        return MultipartBody.Part.createFormData("image", file.name, body) // ← 서버 필드명 "image"
+        return MultipartBody.Part.createFormData("image", file.name, body)
     }
 
     private fun queryDisplayName(resolver: ContentResolver, uri: Uri): String? {
@@ -529,58 +524,28 @@ class OutfitSaveFragment : Fragment() {
         return null
     }
 
-    // 갤러리 이동
+    // 갤러리 이동(이미지 교체)
     private val changeImagesLauncher =
         registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
             if (uris.isNullOrEmpty()) return@registerForActivityResult
 
             val newList = uris.map { DisplayImage(uri = it) }
 
-            // 현재 목록 교체
             currentImages.clear()
             currentImages.addAll(newList)
             pagerAdapter.replaceAll(newList)
 
-            // 첫 페이지로 이동
+            autoTagFetched.clear()
+            cropIdsForPages.clear()
+            repeat(newList.size) { cropIdsForPages.add(null) }
+
             binding.outfitSaveOutfitVp.setCurrentItem(0, false)
+
+            drafts.clear()
+            repeat(currentImages.size) { drafts.add(ItemDraft()) }
+
+            if (currentImages.isNotEmpty()) bindFormFromDraft(0)
         }
-
-    private fun normalizePurchaseDate(raw: String?): String {
-        val today = java.time.LocalDate.now()
-        if (raw.isNullOrBlank()) return today.toString() // ISO 기본
-
-        val s = raw.trim()
-
-        // 1) 이미 ISO
-        runCatching { return java.time.LocalDate.parse(s).toString() }
-
-        // 2) 흔한 포맷들
-        val patterns = listOf(
-            "yyyy.MM.dd",
-            "yyyy/MM/dd",
-            "yyyy-MM-dd",
-            "yyyy년 M월 d일"
-        )
-        for (p in patterns) {
-            runCatching {
-                val fmt = java.time.format.DateTimeFormatter.ofPattern(p)
-                return java.time.LocalDate.parse(s, fmt).toString()
-            }
-        }
-
-        // 3) "M월 d일" (연도 없음) → 올해로 보정
-        val regex = Regex("""^\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*$""")
-        val m = regex.matchEntire(s)
-        if (m != null) {
-            val month = m.groupValues[1].toInt().coerceIn(1, 12)
-            val day   = m.groupValues[2].toInt().coerceIn(1, 31)
-            val d = java.time.LocalDate.of(today.year, month, day)
-            return d.toString()
-        }
-
-        // 4) 실패 시 오늘 날짜
-        return today.toString()
-    }
 
     // 현재 페이지 <-> 폼 동기화 유틸
     private fun bindFormFromDraft(index: Int) {
@@ -592,14 +557,26 @@ class OutfitSaveFragment : Fragment() {
         val parentCategories = categoryMap.keys.toList()
         val catIdx = (d.categoryId - 1).coerceIn(0, parentCategories.lastIndex)
         binding.outfitSaveSpinner1.setSelection(catIdx)
-
-        // 하위 목록 갱신 후 선택 적용
+        
         val selectedParent = parentCategories[catIdx]
         val subList = categoryMap[selectedParent] ?: emptyList()
-        (binding.outfitSaveSpinner2.adapter as ArrayAdapter<String>).apply {
-            clear(); addAll(subList); notifyDataSetChanged()
-        }
-        val subIdx = (d.subcategoryId - 1).coerceIn(0, subList.lastIndex)
+        val subAdapter: ArrayAdapter<String> =
+            (binding.outfitSaveSpinner2.adapter as? ArrayAdapter<String>)
+                ?: ArrayAdapter<String>(
+                    requireContext(),
+                    android.R.layout.simple_spinner_item,
+                    mutableListOf<String>()
+                ).also {
+                    it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    binding.outfitSaveSpinner2.adapter = it
+                }
+
+        subAdapter.clear()
+        subAdapter.addAll(subList)
+        subAdapter.notifyDataSetChanged()
+
+
+        val subIdx = (d.subcategoryId - 1).coerceIn(0, (subList.size - 1).coerceAtLeast(0))
         binding.outfitSaveSpinner2.setSelection(subIdx)
 
         // 나머지 스피너
@@ -663,13 +640,11 @@ class OutfitSaveFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // 실행 중 bottom navigation view 보이지 않게
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.GONE
     }
 
     override fun onPause() {
         super.onPause()
-        // 실행 안 할 때 bottom navigation view 다시 보이게
         activity?.findViewById<View>(R.id.bottomNavigationView)?.visibility = View.VISIBLE
     }
 

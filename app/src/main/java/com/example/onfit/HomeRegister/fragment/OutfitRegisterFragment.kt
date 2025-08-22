@@ -223,21 +223,32 @@ class OutfitRegisterFragment : Fragment() {
             openGallery()
         }
 
-        // 이미지 안 넘기고 그냥 OutfitSaveFragment로 이동
+
         binding.outfitRegisterSaveBtn.setOnClickListener {
-            val bundle = Bundle().apply {
-                // 날짜만 넘기기
-                passedSaveDate?.let { putString("save_date", it) }
-                // 원본 이미지 경로(있으면)
-                originalImagePath?.let { putString("outfit_image_path", it) }
-                // outfitId (Int로 보냄; String으로 가지고 있으면 toIntOrNull)
-                putInt("outfitId", passedOutfitId.takeIf { id -> id > 0 } ?: -1)
+            val uriList   = ArrayList<String>()
+            val cropIdList = ArrayList<String?>()
+            outfitList.forEach { item ->
+                item.imageUri?.toString()?.let { uriStr ->
+                    uriList.add(uriStr)
+                    cropIdList.add(item.cropId)
+                }
             }
+
+            // 2) 기존 전달 값 + 우리가 추가한 리스트를 함께 번들로
+            val bundle = Bundle().apply {
+                passedSaveDate?.let { putString("save_date", it) }
+                originalImagePath?.let { putString("outfit_image_path", it) }
+                putInt("outfitId", passedOutfitId.takeIf { id -> id > 0 } ?: -1)
+                putStringArrayList("cropped_uri_list", uriList)
+                putStringArrayList("cropped_crop_id_list", ArrayList(cropIdList.filterNotNull()))
+            }
+
             findNavController().navigate(
                 R.id.action_outfitRegisterFragment_to_outfitSaveFragment,
                 bundle
             )
         }
+
 
         // 뒤로가기
         binding.outfitRegisterBackBtn.setOnClickListener {
