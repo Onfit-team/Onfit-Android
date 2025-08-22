@@ -54,4 +54,15 @@ data class CalendarResponse(
         val mainImage: String?, // 코디 이미지
         val memo: String? // 코디 메모
     )
+
+    data class DeleteOutfitResponse(
+        val isSuccess: Boolean,
+        val code: String,
+        val message: String,
+        val result: DeleteResult?
+    )
+
+    data class DeleteResult(
+        val detail: String
+    )
 }
