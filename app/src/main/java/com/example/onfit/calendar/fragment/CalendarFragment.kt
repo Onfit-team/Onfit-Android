@@ -87,9 +87,6 @@ class CalendarFragment : Fragment() {
     // ⭐ 중복 실행 방지를 위한 플래그
     private var isLoadingDates = false
 
-    // 🔥 현재 선택된 날짜 저장
-    private var currentSelectedDate: String? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         viewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
@@ -171,7 +168,6 @@ class CalendarFragment : Fragment() {
         val calendar = JavaCalendar.getInstance()
         val currentYear = calendar.get(JavaCalendar.YEAR)
         val currentMonth = calendar.get(JavaCalendar.MONTH) + 1
-        val today = java.time.LocalDate.now().toString()
 
         // 🔥 StyleOutfitsFragment와 정확히 일치하는 매핑
         val styleDummyOutfits = mapOf(
@@ -204,22 +200,20 @@ class CalendarFragment : Fragment() {
         val allDummyOutfits = styleDummyOutfits + calendarDummyOutfits + cody7DummyOutfits
 
         allDummyOutfits.forEach { (date, outfitId) ->
-            // 🔥 오늘 날짜는 더미 데이터 추가하지 않음
-            if (date != today) {
-                registeredDates.add(date)
-                dateToOutfitIdMap[date] = outfitId
-                saveOutfitRegistration(date, outfitId)
-                Log.d("CalendarFragment", "더미 코디 추가: $date -> ID: $outfitId")
-            } else {
-                Log.d("CalendarFragment", "오늘 날짜 더미 데이터 스킵: $date")
-            }
+            registeredDates.add(date)
+            dateToOutfitIdMap[date] = outfitId
+            saveOutfitRegistration(date, outfitId)
+
+            Log.d("CalendarFragment", "더미 코디 추가: $date -> ID: $outfitId")
         }
 
         if (::calendarAdapter.isInitialized) {
             calendarAdapter.updateRegisteredDates(registeredDates)
         }
 
-        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료 (오늘 날짜 제외)")
+        Log.d("CalendarFragment", "✅ 더미 데이터 추가 완료")
+        Log.d("CalendarFragment", "📅 이제 StyleOutfits와 정확히 매칭:")
+        Log.d("CalendarFragment", "   5일(1105-cody5) ✅, 14일(1106-cody6) ✅, 16일(1107-cody7) ✅")
     }
 
     /**
@@ -520,52 +514,18 @@ class CalendarFragment : Fragment() {
     * ⭐ 날짜 클릭 이벤트 처리 - 더미 우선, 실제 데이터 fallback
     */
     private fun handleDateClick(dateString: String, hasOutfit: Boolean) {
-        Log.d("CalendarFragment", "🔍 날짜 클릭: $dateString, hasOutfit: $hasOutfit")
-
-        // 🔥 선택된 날짜 저장
-        currentSelectedDate = dateString
-        Log.d("CalendarFragment", "선택된 날짜 저장: $currentSelectedDate")
-
-        // 🔥 오늘 날짜인지 확인
-        val today = java.time.LocalDate.now().toString()
-        val isToday = dateString == today
-
-        Log.d("CalendarFragment", "오늘 날짜 여부: $isToday (오늘: $today)")
-
         if (hasOutfit) {
             val storedOutfitId = dateToOutfitIdMap[dateString]
-            Log.d("CalendarFragment", "저장된 ID: $storedOutfitId")
+            Log.d("CalendarFragment", "날짜 클릭: $dateString, 저장된 ID: $storedOutfitId")
 
-            // 🔥 오늘 날짜 특별 처리 - 더미 데이터 무시하고 실제 데이터만 찾기
-            if (isToday) {
-                Log.d("CalendarFragment", "🚨 오늘 날짜 특별 처리 시작")
-
-                // 오늘 날짜는 무조건 HomeViewModel에서 실제 데이터 찾기
-                val allOutfits = homeViewModel.recentOutfits.value
-                val todayOutfit = allOutfits?.find {
-                    it.date.substring(0, 10) == dateString
-                }
-
-                if (todayOutfit != null) {
-                    Log.d("CalendarFragment", "✅ 오늘 날짜 실제 코디 발견: ${todayOutfit.image}")
-                    navigateToOutfitDetailWithImage(dateString, todayOutfit.image)
-                    return
-                } else {
-                    Log.d("CalendarFragment", "❌ 오늘 날짜 실제 코디 없음 - 등록 화면으로")
-                    showBottomSheet()
-                    return
-                }
-            }
-
-            // 🔥 오늘이 아닌 날짜는 기존 로직 그대로
-            // 1순위: 더미 데이터 확인
+            // 🔥 1순위: 더미 데이터 확인
             if (storedOutfitId != null && isDummyOutfitId(storedOutfitId)) {
                 Log.d("CalendarFragment", "🎭 더미 코디로 이동")
                 navigateToDummyOutfitDetail(dateString, storedOutfitId)
                 return
             }
 
-            // 2순위: HomeViewModel에서 실제 데이터 찾기
+            // 🔥 2순위: HomeViewModel에서 실제 데이터 찾기
             val allOutfits = homeViewModel.recentOutfits.value
             val matchingOutfit = allOutfits?.find {
                 it.date.substring(0, 10) == dateString
@@ -583,7 +543,6 @@ class CalendarFragment : Fragment() {
             showBottomSheet()
         }
     }
-
 
     /**
      * 🔥 실제 ID 찾기 로직 개선 - HomeViewModel 데이터 사용
@@ -950,7 +909,10 @@ class CalendarFragment : Fragment() {
     // API에 갤러리, 카메라에서 고른 사진 업로드하고 Url 받아오기
     private fun uploadImageToServer(file: File) {
         Log.d("Calendar", "Step 1: 함수 진입")
-        Log.d("UploadDebug", "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}")
+        Log.d(
+            "UploadDebug",
+            "파일 존재=${file.exists()}, size=${file.length()}, path=${file.absolutePath}"
+        )
 
         // 1. 토큰 체크
         val token = TokenProvider.getToken(requireContext())
@@ -965,7 +927,10 @@ class CalendarFragment : Fragment() {
         val ext = file.extension.lowercase()
         val bmpTest = BitmapFactory.decodeFile(file.absolutePath) != null
 
-        Log.d("UploadCheck", "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest")
+        Log.d(
+            "UploadCheck",
+            "exists=$exists, canRead=$canRead, length=$length, ext=$ext, bitmapReadable=$bmpTest"
+        )
 
         require(exists && length > 0 && bmpTest) { "이미지 파일이 손상되었거나 크기가 0입니다." }
 
@@ -983,7 +948,8 @@ class CalendarFragment : Fragment() {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                 require(bitmap != null) { "PNG 디코딩 실패" }
 
-                val jpgFile = File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
+                val jpgFile =
+                    File(requireContext().cacheDir, "upload_temp_${System.currentTimeMillis()}.jpg")
                 FileOutputStream(jpgFile).use { out ->
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
                 }
@@ -1009,39 +975,36 @@ class CalendarFragment : Fragment() {
 
                 val bodyObj = response.body()
 
-                // 🔥 uploadImageToServer 함수에서 Bundle 부분만 수정
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && bodyObj?.ok == true) {
                         val imageUrl = bodyObj.payload?.imageUrl
 
                         if (imageUrl.isNullOrBlank()) {
-                            Toast.makeText(requireContext(), "이미지 URL을 받지 못했어요.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireContext(),
+                                "이미지 URL을 받지 못했어요.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@withContext
                         }
 
-                        // 🔥 RegisterFragment로 선택된 날짜와 URL 전달 (여러 키로 시도)
+                        // RegisterFragment로 URL 전달
                         val bundle = Bundle().apply {
                             putString("selectedImagePath", uploadFile.absolutePath)
                             putString("uploadedImageUrl", imageUrl)
-
-                            // 🔥 선택된 날짜가 있으면 사용, 없으면 오늘 날짜
-                            val targetDate = currentSelectedDate ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-                            // 🔥 여러 키로 날짜 전달 (RegisterFragment가 어떤 키를 쓰는지 모르니)
-                            putString("selected_date", targetDate)
-                            putString("selectedDate", targetDate)
-                            putString("save_date", targetDate)
-                            putString("target_date", targetDate)
-                            putString("outfit_date", targetDate)  // 추가 키
-
-                            Log.d("CalendarFragment", "RegisterFragment로 날짜 전달: $targetDate")
-                            Log.d("CalendarFragment", "선택된 날짜: $currentSelectedDate, 사용할 날짜: $targetDate")
                         }
 
-                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
+                                Lifecycle.State.STARTED
+                            )
+                        ) {
                             return@withContext
                         }
 
+                        if (!isAdded || !viewLifecycleOwner.lifecycle.currentState.isAtLeast(
+                                Lifecycle.State.STARTED
+                            )
+                        ) return@withContext
                         val nav = findNavController()
 
                         // 액션으로 시도
@@ -1054,8 +1017,15 @@ class CalendarFragment : Fragment() {
                         }
                     } else {
                         val errorMsg = response.errorBody()?.string()
-                        Log.e("HomeFragment", "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj")
-                        Toast.makeText(requireContext(), bodyObj?.message ?: "업로드 실패", Toast.LENGTH_SHORT).show()
+                        Log.e(
+                            "HomeFragment",
+                            "업로드 실패: code=${response.code()}, error=$errorMsg, body=$bodyObj"
+                        )
+                        Toast.makeText(
+                            requireContext(),
+                            bodyObj?.message ?: "업로드 실패",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             } catch (e: Exception) {
