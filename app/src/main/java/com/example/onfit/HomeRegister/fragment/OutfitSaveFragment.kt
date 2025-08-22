@@ -129,9 +129,10 @@ class OutfitSaveFragment : Fragment() {
         // 2) 더미 이미지로 ViewPager 구성 (이전 화면에서 이미지 안 받음)
         currentImages.clear()
         val dummyResIds = listOf(
-            R.drawable.calendar_save_image2,
-            R.drawable.calendar_save_image3,
-            R.drawable.calendar_save_image4
+            R.drawable.item_top,
+            R.drawable.item_bottom,
+            R.drawable.item_shoes,
+            R.drawable.item_bag
             // 필요하면 더 추가
         )
 
