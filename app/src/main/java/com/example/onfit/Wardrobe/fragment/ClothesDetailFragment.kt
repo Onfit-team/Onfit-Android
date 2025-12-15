@@ -1969,7 +1969,7 @@ class ClothesDetailFragment : Fragment() {
             "shirts4" -> R.drawable.shirts4
             "shirts5" -> R.drawable.shirts5
             "shirts6" -> R.drawable.shirts6
-            "shirts7" -> R.drawable.shirts7
+            "shirts7" -> R.drawable.shirts8
             "pants1" -> R.drawable.pants1
             "pants2" -> R.drawable.pants2
             "pants3" -> R.drawable.pants3

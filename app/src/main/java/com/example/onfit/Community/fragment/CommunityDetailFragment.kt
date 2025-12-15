@@ -118,34 +118,30 @@ class CommunityDetailFragment : Fragment() {
         loadDetail()
     }
 
-
-    // CommunityDetailFragment.kt
+    
     private fun resolveDummyIdFromAssetName(uri: String): Int? {
-        // 파일명 추출 (확장자 제거)
         val name = uri.substringAfterLast('/').substringBeforeLast('.')
-
-        // "2번-신발.운동화...." 형태에서 코디 번호 추출
         val outfitNo = Regex("""^(\d+)번""").find(name)?.groupValues?.getOrNull(1) ?: return null
 
-        // 대분류 추정
         val isTop    = listOf("상의", "셔츠", "반팔티", "셔츠블라우스").any { name.contains(it) }
         val isBottom = name.contains("하의")
         val isShoes  = name.contains("신발")
         val isAcc    = name.contains("액세사리") || name.contains("액세서리")
         val isBag    = name.contains("가방")
-
-        // ClothesDetailFragment 하드코딩 순서에 맞춘 인덱스 매핑
+        
         val idx = when (outfitNo) {
-            "6" -> when { isTop -> 0; isBottom -> 1; isShoes -> 2; isAcc -> 3; else -> null }
-            "1" -> when { isTop -> 4; isBottom -> 5; isShoes -> 6; else -> null }
-            "2" -> when { isTop -> 7; isBottom -> 8; isShoes -> 9; else -> null }
-            "3" -> when { isTop ->10; isShoes  ->11; isBottom->12; isAcc  ->13; else -> null }
-            "4" -> when { isTop ->14; isBottom ->15; isBag   ->16; isShoes->17; else -> null }
+            "5" -> when { isTop -> 0;  isBottom -> 1;  isShoes -> 2;  isAcc -> 3;  else -> null }
+            "6" -> when { isTop -> 4;  isBottom -> 5;  isShoes -> 6;  isAcc -> 7;  else -> null }
+            "1" -> when { isTop -> 8;  isBottom -> 9;  isShoes -> 10; else -> null }
+            "2" -> when { isTop -> 11; isBottom -> 12; isShoes -> 13; else -> null }
+            "3" -> when { isTop -> 14; isShoes  -> 15; isBottom -> 16; isAcc -> 17; else -> null }
+            "4" -> when { isTop -> 18; isBottom -> 19; isBag    -> 20; isShoes -> 21; else -> null }
             else -> null
         } ?: return null
 
         return -1000 - idx
     }
+
 
 
     private fun pickAssetUri(baseName: String): String? {

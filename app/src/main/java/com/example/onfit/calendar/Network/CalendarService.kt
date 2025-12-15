@@ -22,4 +22,10 @@ interface CalendarService {
         @Header("Authorization") authorization: String
     ): Response<MostUsedTagResponse>
 
+    @DELETE("calendar/outfit/{outfit_id}")
+    suspend fun deleteOutfit(
+        @Header("Authorization") token: String,
+        @Path("outfit_id") outfitId: Int
+    ): Response<CalendarResponse.DeleteOutfitResponse>
+
 }

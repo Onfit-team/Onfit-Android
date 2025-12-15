@@ -43,6 +43,7 @@
                 android:textSize="20sp"
                 android:fontFamily="@font/pretendardbold" />
             <TextView
+                android:id="@+id/outfit_save_title1_tv2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" 수정님의 착장 아이템을"

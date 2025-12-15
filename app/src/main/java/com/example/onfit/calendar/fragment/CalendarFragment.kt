@@ -58,6 +58,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.absoluteValue
 
 class CalendarFragment : Fragment() {
 
@@ -254,6 +255,9 @@ class CalendarFragment : Fragment() {
     /**
      * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
      */
+    /**
+     * ⭐ 이미지 URL로 상세 화면 이동 (outfit_id 없이)
+     */
     private fun navigateToOutfitDetailWithImage(dateString: String, imageUrl: String) {
         try {
             val bundle = Bundle().apply {
@@ -263,7 +267,15 @@ class CalendarFragment : Fragment() {
                 // ⭐ 개별 아이템 이미지들이 있다면 추가 (현재는 메인 이미지만)
                 // putStringArrayList("item_image_urls", arrayListOf(...))
 
-                // outfit_id는 전달하지 않음 (현재 -1로 설정됨)
+                // 🔥 실제 outfit_id 찾아서 전달
+                val realOutfitId = findRealOutfitIdFromDate(dateString)
+                if (realOutfitId > 0) {
+                    putInt("outfit_id", realOutfitId)
+                    Log.d("CalendarFragment", "실제 outfit_id 전달: $realOutfitId")
+                } else {
+                    Log.w("CalendarFragment", "실제 outfit_id를 찾을 수 없음, -1로 전달")
+                    putInt("outfit_id", -1)
+                }
             }
 
             val navController = findNavController()
@@ -284,6 +296,30 @@ class CalendarFragment : Fragment() {
             Log.e("CalendarFragment", "코디 상세 화면 이동 실패", e)
             Toast.makeText(context, "코디 상세 화면을 열 수 없습니다.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // 🔥 새로 추가할 함수
+    private fun findRealOutfitIdFromDate(dateString: String): Int {
+        // 1. dateToOutfitIdMap에서 먼저 찾기
+        val storedId = dateToOutfitIdMap[dateString]
+        if (storedId != null && storedId > 0 && !isDummyOutfitId(storedId)) {
+            Log.d("CalendarFragment", "저장된 실제 ID 발견: $dateString -> $storedId")
+            return storedId
+        }
+
+        // 2. HomeViewModel에서 해당 날짜의 실제 데이터 찾기
+        homeViewModel.recentOutfits.value?.find {
+            it.date.substring(0, 10) == dateString
+        }?.let { outfit ->
+            // 여기서 실제 outfit_id를 찾는 로직 필요
+            // 현재는 outfit.id 같은 필드가 없어서 임시 방편 사용
+            val tempId = dateString.hashCode().let { if (it < 0) -it else it } % 10000
+            Log.d("CalendarFragment", "HomeViewModel에서 임시 ID 생성: $dateString -> $tempId")
+            return tempId
+        }
+
+        Log.w("CalendarFragment", "해당 날짜의 실제 outfit_id를 찾을 수 없음: $dateString")
+        return -1
     }
 
     // 🔥 더미 코디 상세 화면 이동 함수 최종 수정
